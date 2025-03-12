@@ -5,12 +5,12 @@ import (
 	"iv_project/dto"
 	invitation_dto "iv_project/dto/invitation"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -33,15 +33,6 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	validation := validator.New()
-	err := validation.Struct(request)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-
 	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -50,13 +41,33 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	uploadedFiles, ok := r.Context().Value(middleware.UploadedFilesKey).(map[string]string)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "Tidak ada file yang diunggah"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	invitation := models.Invitation{
 		UserID: request.UserID,
 		Status: request.Status,
 		InvitationData: models.InvitationData{
-			EventName: request.InvitationData.EventName,
-			EventDate: eventDate,
-			Location:  request.InvitationData.Location,
+			EventName:         request.InvitationData.EventName,
+			EventDate:         eventDate,
+			Location:          request.InvitationData.Location,
+			GalleryImageURL1:  uploadedFiles["gallery_image_url_1"],
+			GalleryImageURL2:  uploadedFiles["gallery_image_url_2"],
+			GalleryImageURL3:  uploadedFiles["gallery_image_url_3"],
+			GalleryImageURL4:  uploadedFiles["gallery_image_url_4"],
+			GalleryImageURL5:  uploadedFiles["gallery_image_url_5"],
+			GalleryImageURL6:  uploadedFiles["gallery_image_url_6"],
+			GalleryImageURL7:  uploadedFiles["gallery_image_url_7"],
+			GalleryImageURL8:  uploadedFiles["gallery_image_url_8"],
+			GalleryImageURL9:  uploadedFiles["gallery_image_url_9"],
+			GalleryImageURL10: uploadedFiles["gallery_image_url_10"],
+			GalleryImageURL11: uploadedFiles["gallery_image_url_11"],
+			GalleryImageURL12: uploadedFiles["gallery_image_url_12"],
 		},
 	}
 
