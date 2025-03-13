@@ -105,9 +105,9 @@ func (h *invitationHandlers) GetInvitationByID(w http.ResponseWriter, r *http.Re
 func (h *invitationHandlers) GetInvitationsByUserID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id := mux.Vars(r)["id"]
 
-	invitations, err := h.InvitationRepositories.GetInvitationsByUserID(uint(id))
+	invitations, err := h.InvitationRepositories.GetInvitationsByUserID(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(err.Error())

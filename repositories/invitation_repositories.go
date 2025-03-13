@@ -9,7 +9,7 @@ import (
 type InvitationRepositories interface {
 	CreateInvitation(invitation models.Invitation) error
 	GetInvitationByID(invitationID uint) (models.Invitation, error)
-	GetInvitationsByUserID(userID uint) ([]models.Invitation, error)
+	GetInvitationsByUserID(userID string) ([]models.Invitation, error)
 }
 
 func InvitationRepository(db *gorm.DB) *repository {
@@ -26,7 +26,7 @@ func (r *repository) GetInvitationByID(invitationID uint) (models.Invitation, er
 	return invitation, err
 }
 
-func (r *repository) GetInvitationsByUserID(userID uint) ([]models.Invitation, error) {
+func (r *repository) GetInvitationsByUserID(userID string) ([]models.Invitation, error) {
 	var invitations []models.Invitation
 	err := r.db.Preload("InvitationData").Where("user_id = ?", userID).Find(&invitations).Error
 	return invitations, err

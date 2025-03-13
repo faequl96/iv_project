@@ -7,7 +7,6 @@ import (
 	"iv_project/models"
 	"iv_project/repositories"
 	"net/http"
-	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -42,7 +41,7 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := models.User{
-		AuthID:   request.AuthID,
+		ID:       request.ID,
 		UserName: request.UserName,
 		Email:    request.Email,
 		FullName: request.FullName,
@@ -64,9 +63,9 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id := mux.Vars(r)["id"]
 
-	user, err := h.UserRepositories.GetUserByID(uint(id))
+	user, err := h.UserRepositories.GetUserByID(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}

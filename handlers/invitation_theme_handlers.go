@@ -46,7 +46,6 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 		NormalPrice: request.NormalPrice,
 		DiskonPrice: request.DiskonPrice,
 		Category:    request.Category,
-		Rating:      request.Rating,
 	}
 
 	err = h.InvitationThemeRepositories.CreateInvitationTheme(invitationTheme)
@@ -137,9 +136,6 @@ func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r
 	invitationTheme.DiskonPrice = request.DiskonPrice
 	if request.Category != "" {
 		invitationTheme.Category = request.Category
-	}
-	if request.Rating > 1 && request.Rating <= 5 {
-		invitationTheme.Rating = request.Rating
 	}
 
 	err = h.InvitationThemeRepositories.UpdateInvitationTheme(invitationTheme)
