@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"iv_project/dto"
-	invitation_dto "iv_project/dto/invitation_theme"
+	invitation_theme_dto "iv_project/dto/invitation_theme"
 	"iv_project/models"
 	"iv_project/repositories"
 	"net/http"
@@ -24,7 +24,7 @@ func InvitationThemeHandler(InvitationThemeRepositories repositories.InvitationT
 func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(invitation_dto.InvitationThemeRequest)
+	request := new(invitation_theme_dto.InvitationThemeRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -112,7 +112,7 @@ func (h *invitationThemeHandlers) GetInvitationThemeByID(w http.ResponseWriter, 
 func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(invitation_dto.InvitationThemeRequest)
+	request := new(invitation_theme_dto.InvitationThemeRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}

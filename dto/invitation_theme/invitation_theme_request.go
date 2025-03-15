@@ -1,4 +1,4 @@
-package invitation_dto
+package invitation_theme_dto
 
 type InvitationThemeRequest struct {
 	Title       string `json:"title" binding:"required"`

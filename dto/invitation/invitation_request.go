@@ -1,7 +1,7 @@
 package invitation_dto
 
 type InvitationRequest struct {
-	UserID         uint                  `json:"user_id" binding:"required"`
+	UserID         string                `json:"user_id" binding:"required"`
 	Status         string                `json:"status" binding:"required"`
 	InvitationData InvitationDataRequest `json:"invitation_data" binding:"required"`
 }

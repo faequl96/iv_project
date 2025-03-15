@@ -13,7 +13,7 @@ func InvitationRoutes(r *mux.Router) {
 	invitationRepository := repositories.InvitationRepository(mysql.DB)
 	h := handlers.InvitationHandler(invitationRepository)
 
-	r.HandleFunc("/create-invitation", middleware.InvitationImagesUploader(h.CreateInvitation)).Methods("POST")
+	r.HandleFunc("/invitation", middleware.InvitationImagesUploader(h.CreateInvitation)).Methods("POST")
 	r.HandleFunc("/invitation/{id}", h.GetInvitationByID).Methods("GET")
-	r.HandleFunc("/invitations/{id}", h.GetInvitationsByUserID).Methods("GET")
+	r.HandleFunc("/invitations/{userId}", h.GetInvitationsByUserID).Methods("GET")
 }

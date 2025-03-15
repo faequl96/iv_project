@@ -17,7 +17,7 @@ func UserRepository(db *gorm.DB) *repository {
 }
 
 func (r *repository) CreateUser(user models.User) error {
-	return r.db.FirstOrCreate(user).Error
+	return r.db.Create(&user).Error
 }
 
 func (r *repository) GetUserByID(userID string) (models.User, error) {

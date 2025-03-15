@@ -12,6 +12,7 @@ func RunMigration() {
 		&models.InvitationTheme{},
 		&models.Invitation{},
 		&models.InvitationData{},
+		&models.Review{},
 	)
 
 	if err != nil {
