@@ -5,6 +5,7 @@ import (
 	"iv_project/dto"
 	invitation_dto "iv_project/dto/invitation"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -49,20 +50,33 @@ func (h *invitationDataHandlers) CreateInvitationData(w http.ResponseWriter, r *
 		return
 	}
 
+	uploadedFiles, ok := r.Context().Value(middleware.UploadedFilesKey).(map[string]string)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "Tidak ada file yang diunggah"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	// Buat objek InvitationData
 	invitationData := models.InvitationData{
 		EventName: request.EventName,
 		EventDate: eventDate,
 		Location:  request.Location,
-		Gallery:   []*models.Gallery{},
-	}
-
-	// If there are uploaded files, update the Gallery
-	for _, gallery := range invitationData.Gallery {
-		invitationData.Gallery = append(invitationData.Gallery, &models.Gallery{
-			Position: gallery.Position,
-			ImageURL: gallery.ImageURL,
-		})
+		Gallery: &models.Gallery{
+			ImageURL1:  uploadedFiles["image_url_1"],
+			ImageURL2:  uploadedFiles["image_url_2"],
+			ImageURL3:  uploadedFiles["image_url_3"],
+			ImageURL4:  uploadedFiles["image_url_4"],
+			ImageURL5:  uploadedFiles["image_url_5"],
+			ImageURL6:  uploadedFiles["image_url_6"],
+			ImageURL7:  uploadedFiles["image_url_7"],
+			ImageURL8:  uploadedFiles["image_url_8"],
+			ImageURL9:  uploadedFiles["image_url_9"],
+			ImageURL10: uploadedFiles["image_url_10"],
+			ImageURL11: uploadedFiles["image_url_11"],
+			ImageURL12: uploadedFiles["image_url_12"],
+		},
 	}
 
 	// Simpan ke database
@@ -122,6 +136,14 @@ func (h *invitationDataHandlers) UpdateInvitationData(w http.ResponseWriter, r *
 		return
 	}
 
+	uploadedFiles, ok := r.Context().Value(middleware.UploadedFilesKey).(map[string]string)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "Tidak ada file yang diunggah"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	if request.EventName != "" {
 		invitationData.EventName = request.EventName
 	}
@@ -131,12 +153,18 @@ func (h *invitationDataHandlers) UpdateInvitationData(w http.ResponseWriter, r *
 	if request.Location != "" {
 		invitationData.Location = request.Location
 	}
-	for _, gallery := range request.Gallery {
-		invitationData.Gallery = append(invitationData.Gallery, &models.Gallery{
-			Position: gallery.Position,
-			ImageURL: gallery.ImageURL,
-		})
-	}
+	invitationData.Gallery.ImageURL1 = uploadedFiles["image_url_1"]
+	invitationData.Gallery.ImageURL2 = uploadedFiles["image_url_2"]
+	invitationData.Gallery.ImageURL3 = uploadedFiles["image_url_3"]
+	invitationData.Gallery.ImageURL4 = uploadedFiles["image_url_4"]
+	invitationData.Gallery.ImageURL5 = uploadedFiles["image_url_5"]
+	invitationData.Gallery.ImageURL6 = uploadedFiles["image_url_6"]
+	invitationData.Gallery.ImageURL7 = uploadedFiles["image_url_7"]
+	invitationData.Gallery.ImageURL8 = uploadedFiles["image_url_8"]
+	invitationData.Gallery.ImageURL9 = uploadedFiles["image_url_9"]
+	invitationData.Gallery.ImageURL10 = uploadedFiles["image_url_10"]
+	invitationData.Gallery.ImageURL11 = uploadedFiles["image_url_11"]
+	invitationData.Gallery.ImageURL12 = uploadedFiles["image_url_12"]
 
 	err = h.InvitationDataRepositories.UpdateInvitationData(invitationData)
 	if err != nil {

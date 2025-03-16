@@ -5,6 +5,7 @@ import (
 	"iv_project/dto"
 	invitation_dto "iv_project/dto/invitation"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -38,6 +39,14 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	uploadedFiles, ok := r.Context().Value(middleware.UploadedFilesKey).(map[string]string)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "Tidak ada file yang diunggah"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	invitation := models.Invitation{
 		UserID: request.UserID,
 		Status: request.Status,
@@ -45,16 +54,21 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 			EventName: request.InvitationData.EventName,
 			EventDate: eventDate,
 			Location:  request.InvitationData.Location,
-			Gallery:   []*models.Gallery{}, // Inisialisasi agar tidak nil
+			Gallery: &models.Gallery{
+				ImageURL1:  uploadedFiles["image_url_1"],
+				ImageURL2:  uploadedFiles["image_url_2"],
+				ImageURL3:  uploadedFiles["image_url_3"],
+				ImageURL4:  uploadedFiles["image_url_4"],
+				ImageURL5:  uploadedFiles["image_url_5"],
+				ImageURL6:  uploadedFiles["image_url_6"],
+				ImageURL7:  uploadedFiles["image_url_7"],
+				ImageURL8:  uploadedFiles["image_url_8"],
+				ImageURL9:  uploadedFiles["image_url_9"],
+				ImageURL10: uploadedFiles["image_url_10"],
+				ImageURL11: uploadedFiles["image_url_11"],
+				ImageURL12: uploadedFiles["image_url_12"],
+			},
 		},
-	}
-
-	// If there are uploaded files, update the Gallery
-	for _, gallery := range request.InvitationData.Gallery {
-		invitation.InvitationData.Gallery = append(invitation.InvitationData.Gallery, &models.Gallery{
-			Position: gallery.Position,
-			ImageURL: gallery.ImageURL,
-		})
 	}
 
 	// Start a database transaction to ensure data consistency
@@ -125,14 +139,6 @@ func (h *invitationHandlers) UpdateInvitation(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	// Parse event date
-	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(err.Error())
-		return
-	}
-
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	invitation, err := h.InvitationRepositories.GetInvitationByID(uint(id))
 	if err != nil {
@@ -141,19 +147,39 @@ func (h *invitationHandlers) UpdateInvitation(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// Parse event date
+	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	uploadedFiles, ok := r.Context().Value(middleware.UploadedFilesKey).(map[string]string)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "Tidak ada file yang diunggah"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	// Update fields of the invitation
 	invitation.Status = request.Status
 	invitation.InvitationData.EventName = request.InvitationData.EventName
 	invitation.InvitationData.EventDate = eventDate
 	invitation.InvitationData.Location = request.InvitationData.Location
-
-	// If there are uploaded files, update the Gallery
-	for _, gallery := range request.InvitationData.Gallery {
-		invitation.InvitationData.Gallery = append(invitation.InvitationData.Gallery, &models.Gallery{
-			Position: gallery.Position,
-			ImageURL: gallery.ImageURL,
-		})
-	}
+	invitation.InvitationData.Gallery.ImageURL1 = uploadedFiles["image_url_1"]
+	invitation.InvitationData.Gallery.ImageURL2 = uploadedFiles["image_url_2"]
+	invitation.InvitationData.Gallery.ImageURL3 = uploadedFiles["image_url_3"]
+	invitation.InvitationData.Gallery.ImageURL4 = uploadedFiles["image_url_4"]
+	invitation.InvitationData.Gallery.ImageURL5 = uploadedFiles["image_url_5"]
+	invitation.InvitationData.Gallery.ImageURL6 = uploadedFiles["image_url_6"]
+	invitation.InvitationData.Gallery.ImageURL7 = uploadedFiles["image_url_7"]
+	invitation.InvitationData.Gallery.ImageURL8 = uploadedFiles["image_url_8"]
+	invitation.InvitationData.Gallery.ImageURL9 = uploadedFiles["image_url_9"]
+	invitation.InvitationData.Gallery.ImageURL10 = uploadedFiles["image_url_10"]
+	invitation.InvitationData.Gallery.ImageURL11 = uploadedFiles["image_url_11"]
+	invitation.InvitationData.Gallery.ImageURL12 = uploadedFiles["image_url_12"]
 
 	// Start a database transaction to ensure data consistency
 	err = h.InvitationRepositories.UpdateInvitation(invitation)
