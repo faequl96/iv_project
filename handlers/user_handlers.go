@@ -135,9 +135,6 @@ func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update only the provided fields
-	if request.UserName != "" {
-		user.UserName = request.UserName
-	}
 	if request.FullName != "" {
 		user.FullName = request.FullName
 	}

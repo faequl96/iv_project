@@ -11,6 +11,5 @@ type CreateUserRequest struct {
 // UpdateUserRequest represents the data structure for updating an existing user
 // Fields are optional; only provided fields will be updated
 type UpdateUserRequest struct {
-	UserName string `json:"user_name"` // New username (optional)
 	FullName string `json:"full_name"` // Updated full name (optional)
 }
