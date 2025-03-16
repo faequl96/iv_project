@@ -38,7 +38,7 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Decode request body
-	request := new(user_dto.UserRequest)
+	request := new(user_dto.CreateUserRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		errorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return
@@ -109,7 +109,7 @@ func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Decode request body
-	request := new(user_dto.UserRequest)
+	request := new(user_dto.UpdateUserRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		errorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return
@@ -126,9 +126,6 @@ func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update only the provided fields
-	if request.Email != "" {
-		user.Email = request.Email
-	}
 	if request.UserName != "" {
 		user.UserName = request.UserName
 	}
