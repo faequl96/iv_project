@@ -22,6 +22,7 @@ func IVCoinHandlers(IVCoinRepositories repositories.IVCoinRepositories) *ivCoinH
 // convertToIVCoinResponse converts the IVCoin model to IVCoinResponse DTO
 func convertToIVCoinResponse(ivCoin *models.IVCoin) iv_coin_dto.IVCoinResponse {
 	return iv_coin_dto.IVCoinResponse{
+		ID:      ivCoin.ID,
 		Balance: ivCoin.Balance,
 	}
 }
