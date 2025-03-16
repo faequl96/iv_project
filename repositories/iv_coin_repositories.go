@@ -9,7 +9,6 @@ import (
 type IVCoinRepositories interface {
 	GetIVCoinByID(ivCoinID uint) (models.IVCoin, error)
 	UpdateIVCoin(ivCoin models.IVCoin) error
-	DeleteIVCoin(ivCoin models.IVCoin) error
 }
 
 func IVCoinRepository(db *gorm.DB) *repository {
@@ -23,11 +22,5 @@ func (r *repository) GetIVCoinByID(ivCoinID uint) (models.IVCoin, error) {
 }
 
 func (r *repository) UpdateIVCoin(ivCoin models.IVCoin) error {
-	err := r.db.Save(&ivCoin).Error
-	return err
-}
-
-func (r *repository) DeleteIVCoin(ivCoin models.IVCoin) error {
-	err := r.db.Delete(&ivCoin).Error
-	return err
+	return r.db.Save(&ivCoin).Error
 }

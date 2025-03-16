@@ -9,6 +9,7 @@ type InvitationData struct {
 	EventName    string      `gorm:"size:255;not null" json:"event_name"`
 	EventDate    time.Time   `gorm:"not null" json:"event_date"`
 	Location     string      `gorm:"size:255;not null" json:"location"`
+	MainImageURL string      `gorm:"size:255;not null" json:"main_image_url"`
 	Gallery      []*Gallery  `gorm:"foreignKey:InvitationDataID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"gallery,omitempty"`
 	CreatedAt    time.Time   `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt    time.Time   `gorm:"autoUpdateTime" json:"updated_at"`

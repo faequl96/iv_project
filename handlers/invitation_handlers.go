@@ -5,7 +5,6 @@ import (
 	"iv_project/dto"
 	invitation_dto "iv_project/dto/invitation"
 	"iv_project/models"
-	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -28,72 +27,56 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 	request := new(invitation_dto.InvitationRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
 	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "Invalid event_date format. Use RFC3339 (e.g. 2025-06-15T14:00:00Z)"}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-
-	uploadedFiles, ok := r.Context().Value(middleware.UploadedFilesKey).(map[string]string)
-	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: "Tidak ada file yang diunggah"}
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
 	invitation := models.Invitation{
 		UserID: request.UserID,
 		Status: request.Status,
-		InvitationData: models.InvitationData{
-			EventName:         request.InvitationData.EventName,
-			EventDate:         eventDate,
-			Location:          request.InvitationData.Location,
-			GalleryImageURL1:  uploadedFiles["gallery_image_url_1"],
-			GalleryImageURL2:  uploadedFiles["gallery_image_url_2"],
-			GalleryImageURL3:  uploadedFiles["gallery_image_url_3"],
-			GalleryImageURL4:  uploadedFiles["gallery_image_url_4"],
-			GalleryImageURL5:  uploadedFiles["gallery_image_url_5"],
-			GalleryImageURL6:  uploadedFiles["gallery_image_url_6"],
-			GalleryImageURL7:  uploadedFiles["gallery_image_url_7"],
-			GalleryImageURL8:  uploadedFiles["gallery_image_url_8"],
-			GalleryImageURL9:  uploadedFiles["gallery_image_url_9"],
-			GalleryImageURL10: uploadedFiles["gallery_image_url_10"],
-			GalleryImageURL11: uploadedFiles["gallery_image_url_11"],
-			GalleryImageURL12: uploadedFiles["gallery_image_url_12"],
+		InvitationData: &models.InvitationData{
+			EventName: request.InvitationData.EventName,
+			EventDate: eventDate,
+			Location:  request.InvitationData.Location,
+			Gallery:   []*models.Gallery{}, // Inisialisasi agar tidak nil
 		},
 	}
 
+	// If there are uploaded files, update the Gallery
+	for _, gallery := range request.InvitationData.Gallery {
+		invitation.InvitationData.Gallery = append(invitation.InvitationData.Gallery, &models.Gallery{
+			Position: gallery.Position,
+			ImageURL: gallery.ImageURL,
+		})
+	}
+
+	// Start a database transaction to ensure data consistency
 	err = h.InvitationRepositories.CreateInvitation(invitation)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: "Success"}
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode("Create Success")
 }
 
 func (h *invitationHandlers) GetInvitationByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-
 	invitation, err := h.InvitationRepositories.GetInvitationByID(uint(id))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
@@ -102,11 +85,24 @@ func (h *invitationHandlers) GetInvitationByID(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(response)
 }
 
+func (h *invitationHandlers) GetInvitations(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	invitations, err := h.InvitationRepositories.GetInvitations()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+	}
+
+	w.WriteHeader(http.StatusOK)
+	response := dto.SuccessResult{Code: http.StatusOK, Data: invitations}
+	json.NewEncoder(w).Encode(response)
+}
+
 func (h *invitationHandlers) GetInvitationsByUserID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id := mux.Vars(r)["userId"]
-
 	invitations, err := h.InvitationRepositories.GetInvitationsByUserID(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -116,4 +112,79 @@ func (h *invitationHandlers) GetInvitationsByUserID(w http.ResponseWriter, r *ht
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: invitations}
 	json.NewEncoder(w).Encode(response)
+}
+
+func (h *invitationHandlers) UpdateInvitation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Decode request body
+	request := new(invitation_dto.InvitationRequest)
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	// Parse event date
+	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	invitation, err := h.InvitationRepositories.GetInvitationByID(uint(id))
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	// Update fields of the invitation
+	invitation.Status = request.Status
+	invitation.InvitationData.EventName = request.InvitationData.EventName
+	invitation.InvitationData.EventDate = eventDate
+	invitation.InvitationData.Location = request.InvitationData.Location
+
+	// If there are uploaded files, update the Gallery
+	for _, gallery := range request.InvitationData.Gallery {
+		invitation.InvitationData.Gallery = append(invitation.InvitationData.Gallery, &models.Gallery{
+			Position: gallery.Position,
+			ImageURL: gallery.ImageURL,
+		})
+	}
+
+	// Start a database transaction to ensure data consistency
+	err = h.InvitationRepositories.UpdateInvitation(invitation)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("Update Success")
+}
+
+func (h *invitationHandlers) DeleteInvitation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	invitation, err := h.InvitationRepositories.GetInvitationByID(uint(id))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	err = h.InvitationRepositories.DeleteInvitation(invitation)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("Delete Success")
 }
