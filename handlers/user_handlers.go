@@ -21,16 +21,16 @@ func UserHandlers(UserRepositories repositories.UserRepositories) *userHandlers 
 	return &userHandlers{UserRepositories}
 }
 
-// successResponse sends a standardized success response with a status code and data
-func successResponse(w http.ResponseWriter, status int, data any) {
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(dto.SuccessResult{Code: status, Data: data})
+// successResponse sends a standardized success response with a status code, message, and data
+func successResponse(w http.ResponseWriter, statusCode int, message string, data interface{}) {
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(dto.SuccessResult{Code: statusCode, Message: message, Data: data})
 }
 
 // errorResponse sends a standardized error response with a status code and message
-func errorResponse(w http.ResponseWriter, status int, message string) {
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(dto.ErrorResult{Code: status, Message: message})
+func errorResponse(w http.ResponseWriter, statusCode int, message string) {
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(dto.ErrorResult{Code: statusCode, Message: message})
 }
 
 // CreateUser handles user registration
@@ -70,22 +70,24 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	successResponse(w, http.StatusCreated, "User registered successfully")
+	successResponse(w, http.StatusCreated, "User registered successfully", user)
 }
 
 // GetUserByID retrieves a user by their ID
 func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Extract ID from request URL
+	// Get user ID from request URL
 	id := mux.Vars(r)["id"]
+
+	// Fetch the user from the database
 	user, err := h.UserRepositories.GetUserByID(id)
 	if err != nil {
 		errorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
 		return
 	}
 
-	successResponse(w, http.StatusOK, user)
+	successResponse(w, http.StatusOK, "User retrieved successfully", user)
 }
 
 // GetUsers retrieves all users
@@ -99,7 +101,7 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	successResponse(w, http.StatusOK, users)
+	successResponse(w, http.StatusOK, "Users retrieved successfully", users)
 }
 
 // UpdateUser modifies an existing user's details
@@ -141,7 +143,7 @@ func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	successResponse(w, http.StatusOK, "User updated successfully")
+	successResponse(w, http.StatusOK, "User updated successfully", user)
 }
 
 // DeleteUser removes a user from the database
@@ -165,5 +167,5 @@ func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	successResponse(w, http.StatusOK, "User deleted successfully")
+	successResponse(w, http.StatusOK, "User deleted successfully", nil)
 }
