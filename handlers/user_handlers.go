@@ -160,15 +160,8 @@ func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from request URL
 	id := mux.Vars(r)["id"]
 
-	// Fetch the user to ensure they exist
-	user, err := h.UserRepositories.GetUserByID(id)
-	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
-		return
-	}
-
 	// Delete the user from the database
-	err = h.UserRepositories.DeleteUser(user)
+	err := h.UserRepositories.DeleteUser(id)
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "Failed to delete user: "+err.Error())
 		return
