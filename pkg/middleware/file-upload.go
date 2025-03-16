@@ -63,7 +63,7 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 			file, header, err := r.FormFile(fieldName)
 			if err != nil {
 				if err == http.ErrMissingFile {
-					continue
+					continue // Lewati jika user tidak mengunggah gambar ini
 				}
 				http.Error(w, fmt.Sprintf("Gagal mengambil file %s: %v", fieldName, err), http.StatusBadRequest)
 				return
