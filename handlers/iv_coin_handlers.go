@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
-	"iv_project/dto"
 	iv_coin_dto "iv_project/dto/iv_coin"
+	"iv_project/models"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -19,54 +19,70 @@ func IVCoinHandlers(IVCoinRepositories repositories.IVCoinRepositories) *ivCoinH
 	return &ivCoinHandlers{IVCoinRepositories}
 }
 
+// convertToIVCoinResponse converts the IVCoin model to IVCoinResponse DTO
+func convertToIVCoinResponse(ivCoin *models.IVCoin) iv_coin_dto.IVCoinResponse {
+	return iv_coin_dto.IVCoinResponse{
+		Balance: ivCoin.Balance,
+	}
+}
+
+// GetIVCoinByID retrieves the IVCoin balance by ID
 func (h *ivCoinHandlers) GetIVCoinByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	ivCoin, err := h.IVCoinRepositories.GetIVCoinByID(uint(id))
+	// Extract the ID from the request URL parameters
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		response := dto.ErrorResult{Code: http.StatusNotFound, Message: "IVCoin not found"}
-		json.NewEncoder(w).Encode(response)
+		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format")
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: ivCoin}
-	json.NewEncoder(w).Encode(response)
+	// Fetch IVCoin data from the database
+	ivCoin, err := h.IVCoinRepositories.GetIVCoinByID(uint(id))
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "IVCoin not found")
+		return
+	}
+
+	// Send a successful response with the IVCoin data
+	SuccessResponse(w, http.StatusOK, "IVCoin retrieved successfully", convertToIVCoinResponse(ivCoin))
 }
 
+// UpdateIVCoin updates the IVCoin balance by ID
 func (h *ivCoinHandlers) UpdateIVCoin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	// Decode the request body
 	request := new(iv_coin_dto.IVCoinRequest)
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
+	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return
 	}
 
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	// Extract the ID from the request URL parameters
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format")
+		return
+	}
+
+	// Fetch IVCoin data from the database
 	ivCoin, err := h.IVCoinRepositories.GetIVCoinByID(uint(id))
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		response := dto.ErrorResult{Code: http.StatusNotFound, Message: "IVCoin not found"}
-		json.NewEncoder(w).Encode(response)
+		ErrorResponse(w, http.StatusNotFound, "IVCoin not found")
 		return
 	}
 
+	// Update the IVCoin balance
 	ivCoin.Balance = request.Balance
 
+	// Save the updated IVCoin data to the database
 	err = h.IVCoinRepositories.UpdateIVCoin(ivCoin)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
+		ErrorResponse(w, http.StatusInternalServerError, "Failed to update IVCoin: "+err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: "IVCoin updated successfully"}
-	json.NewEncoder(w).Encode(response)
+	// Send a successful response with the updated IVCoin data
+	SuccessResponse(w, http.StatusOK, "IVCoin updated successfully", convertToIVCoinResponse(ivCoin))
 }
