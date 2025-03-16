@@ -16,148 +16,154 @@ type userHandlers struct {
 	UserRepositories repositories.UserRepositories
 }
 
+// Constructor function to create a new instance of userHandlers
 func UserHandlers(UserRepositories repositories.UserRepositories) *userHandlers {
 	return &userHandlers{UserRepositories}
 }
 
+// successResponse sends a standardized success response with a status code and data
+func successResponse(w http.ResponseWriter, status int, data any) {
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(dto.SuccessResult{Code: status, Data: data})
+}
+
+// errorResponse sends a standardized error response with a status code and message
+func errorResponse(w http.ResponseWriter, status int, message string) {
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(dto.ErrorResult{Code: status, Message: message})
+}
+
+// CreateUser handles user registration
 func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Decode JSON request
-	var request user_dto.UserRequest
+	// Decode request body
+	request := new(user_dto.UserRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()})
+		errorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return
 	}
 
-	// Validasi request
+	// Validate request fields
 	validation := validator.New()
 	err := validation.Struct(request)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()})
+		errorResponse(w, http.StatusBadRequest, "Validation error: "+err.Error())
 		return
 	}
 
-	// Buat user dengan ID dari Firebase
+	// Create a new user with default IVCoin balance
 	user := models.User{
-		ID:       request.ID, // Gunakan Firebase UID dari request
-		UserName: request.UserName,
+		ID:       request.ID,
 		Email:    request.Email,
+		UserName: request.UserName,
 		FullName: request.FullName,
 		IVCoin: &models.IVCoin{
-			Balance: 0,
+			Balance: 0, // Set default balance
 		},
 	}
 
+	// Store user in the database
 	err = h.UserRepositories.CreateUser(user)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()})
+		errorResponse(w, http.StatusInternalServerError, "Failed to register user: "+err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(dto.SuccessResult{Code: http.StatusOK, Data: "User registered successfully"})
+	successResponse(w, http.StatusCreated, "User registered successfully")
 }
 
+// GetUserByID retrieves a user by their ID
 func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	// Extract ID from request URL
 	id := mux.Vars(r)["id"]
 	user, err := h.UserRepositories.GetUserByID(id)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		response := dto.ErrorResult{Code: http.StatusNotFound, Message: "User not found"}
-		json.NewEncoder(w).Encode(response)
+		errorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: user}
-	json.NewEncoder(w).Encode(response)
+	successResponse(w, http.StatusOK, user)
 }
 
+// GetUsers retrieves all users
 func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	// Fetch all users from the database
 	users, err := h.UserRepositories.GetUsers()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
+		errorResponse(w, http.StatusInternalServerError, "Failed to retrieve users: "+err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: users}
-	json.NewEncoder(w).Encode(response)
+	successResponse(w, http.StatusOK, users)
 }
 
+// UpdateUser modifies an existing user's details
 func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	// Decode request body
 	request := new(user_dto.UserRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
+		errorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return
 	}
 
+	// Get user ID from request URL
+	id := mux.Vars(r)["id"]
+
+	// Fetch the user from the database
 	user, err := h.UserRepositories.GetUserByID(id)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		response := dto.ErrorResult{Code: http.StatusNotFound, Message: "User not found"}
-		json.NewEncoder(w).Encode(response)
+		errorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
 		return
+	}
+
+	// Update only the provided fields
+	if request.Email != "" {
+		user.Email = request.Email
 	}
 	if request.UserName != "" {
 		user.UserName = request.UserName
-	}
-	if request.Email != "" {
-		user.Email = request.Email
 	}
 	if request.FullName != "" {
 		user.FullName = request.FullName
 	}
 
+	// Save the updated user data
 	err = h.UserRepositories.UpdateUser(user)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
+		errorResponse(w, http.StatusInternalServerError, "Failed to update user: "+err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: "User updated successfully"}
-	json.NewEncoder(w).Encode(response)
+	successResponse(w, http.StatusOK, "User updated successfully")
 }
 
+// DeleteUser removes a user from the database
 func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	// Get user ID from request URL
 	id := mux.Vars(r)["id"]
+
+	// Fetch the user to ensure they exist
 	user, err := h.UserRepositories.GetUserByID(id)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		response := dto.ErrorResult{Code: http.StatusNotFound, Message: "User not found"}
-		json.NewEncoder(w).Encode(response)
+		errorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
 		return
 	}
 
+	// Delete the user from the database
 	err = h.UserRepositories.DeleteUser(user)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
+		errorResponse(w, http.StatusInternalServerError, "Failed to delete user: "+err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: "User deleted successfully"}
-	json.NewEncoder(w).Encode(response)
+	successResponse(w, http.StatusOK, "User deleted successfully")
 }
