@@ -31,10 +31,7 @@ func (r *repository) CreateInvitationTheme(invitationTheme *models.InvitationThe
 func (r *repository) GetInvitationThemeByID(id uint) (*models.InvitationTheme, error) {
 	var invitationTheme models.InvitationTheme
 	err := r.db.Preload("Review").First(&invitationTheme, id).Error
-	if err != nil {
-		return nil, err
-	}
-	return &invitationTheme, nil
+	return &invitationTheme, err
 }
 
 func (r *repository) GetInvitationThemes() ([]models.InvitationTheme, error) {

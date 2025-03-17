@@ -39,12 +39,12 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 	}
 
 	return invitation_theme_dto.InvitationThemeResponse{
-		ID:          invitationTheme.ID,
-		Title:       invitationTheme.Title,
-		NormalPrice: invitationTheme.NormalPrice,
-		DiskonPrice: invitationTheme.DiskonPrice,
-		Categories:  categoryResponses,
-		Reviews:     reviewResponses,
+		ID:            invitationTheme.ID,
+		Title:         invitationTheme.Title,
+		Price:         invitationTheme.Price,
+		DiscountPrice: invitationTheme.DiscountPrice,
+		Categories:    categoryResponses,
+		Reviews:       reviewResponses,
 	}
 }
 
@@ -64,10 +64,10 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 	}
 
 	invitationTheme := &models.InvitationTheme{
-		Title:       request.Title,
-		NormalPrice: request.NormalPrice,
-		DiskonPrice: request.DiskonPrice,
-		Categories:  categories,
+		Title:         request.Title,
+		Price:         request.Price,
+		DiscountPrice: request.DiscountPrice,
+		Categories:    categories,
 	}
 
 	if err := h.InvitationThemeRepositories.CreateInvitationTheme(invitationTheme); err != nil {
@@ -172,8 +172,10 @@ func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r
 	if request.Title != "" {
 		invitationTheme.Title = request.Title
 	}
-	invitationTheme.NormalPrice = request.NormalPrice
-	invitationTheme.DiskonPrice = request.DiskonPrice
+	if request.Price != 0 {
+		invitationTheme.Price = request.Price
+	}
+	invitationTheme.DiscountPrice = request.DiscountPrice
 	if len(request.Categories) != 0 {
 		invitationTheme.Categories = categories
 	}
