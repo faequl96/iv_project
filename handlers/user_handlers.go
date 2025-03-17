@@ -16,7 +16,7 @@ type userHandlers struct {
 	UserRepositories repositories.UserRepositories
 }
 
-// Constructor function to create a new instance of userHandlers
+// UserHandlers initializes the handler with the given repository.
 func UserHandlers(UserRepositories repositories.UserRepositories) *userHandlers {
 	return &userHandlers{UserRepositories}
 }
@@ -28,7 +28,7 @@ func convertToUserResponse(user *models.User) user_dto.UserResponse {
 		Email:    user.Email,
 		UserName: user.UserName,
 		FullName: user.FullName,
-		IVCoin: iv_coin_dto.IVCoinResponse{
+		IVCoin: &iv_coin_dto.IVCoinResponse{
 			Balance: user.IVCoin.Balance,
 		},
 	}
@@ -47,8 +47,7 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Validate request fields
 	validation := validator.New()
-	err := validation.Struct(request)
-	if err != nil {
+	if err := validation.Struct(request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Validation error: "+err.Error())
 		return
 	}
@@ -65,8 +64,7 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store user in the database
-	err = h.UserRepositories.CreateUser(user)
-	if err != nil {
+	if err := h.UserRepositories.CreateUser(user); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "Failed to register user: "+err.Error())
 		return
 	}
@@ -107,7 +105,7 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 	// Convert slice of users ke slice UserResponse DTO
 	var userResponses []user_dto.UserResponse
 	for _, user := range users {
-		userResponses = append(userResponses, convertToUserResponse(user))
+		userResponses = append(userResponses, convertToUserResponse(&user))
 	}
 
 	SuccessResponse(w, http.StatusOK, "Users retrieved successfully", userResponses)
@@ -116,13 +114,6 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 // UpdateUser modifies an existing user's details
 func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
-	// Decode request body
-	request := new(user_dto.UpdateUserRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
-		return
-	}
 
 	// Get user ID from request URL
 	id := mux.Vars(r)["id"]
@@ -134,14 +125,20 @@ func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Decode the incoming JSON request body
+	request := new(user_dto.UpdateUserRequest)
+	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
 	// Update only the provided fields
 	if request.FullName != "" {
 		user.FullName = request.FullName
 	}
 
 	// Save the updated user data
-	err = h.UserRepositories.UpdateUser(user)
-	if err != nil {
+	if err = h.UserRepositories.UpdateUser(user); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "Failed to update user: "+err.Error())
 		return
 	}
@@ -157,9 +154,14 @@ func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from request URL
 	id := mux.Vars(r)["id"]
 
+	// Check if the user exists before attempting to delete
+	if _, err := h.UserRepositories.GetUserByID(id); err != nil {
+		ErrorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
+		return
+	}
+
 	// Delete the user from the database
-	err := h.UserRepositories.DeleteUser(id)
-	if err != nil {
+	if err := h.UserRepositories.DeleteUser(id); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "Failed to delete user: "+err.Error())
 		return
 	}

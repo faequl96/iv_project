@@ -15,6 +15,7 @@ type ivCoinHandlers struct {
 	IVCoinRepositories repositories.IVCoinRepositories
 }
 
+// IVCoinHandlers initializes the handler with the given repository.
 func IVCoinHandlers(IVCoinRepositories repositories.IVCoinRepositories) *ivCoinHandlers {
 	return &ivCoinHandlers{IVCoinRepositories}
 }
@@ -78,8 +79,7 @@ func (h *ivCoinHandlers) UpdateIVCoin(w http.ResponseWriter, r *http.Request) {
 	ivCoin.Balance = request.Balance
 
 	// Save the updated IVCoin data to the database
-	err = h.IVCoinRepositories.UpdateIVCoin(ivCoin)
-	if err != nil {
+	if err = h.IVCoinRepositories.UpdateIVCoin(ivCoin); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "Failed to update IVCoin: "+err.Error())
 		return
 	}
