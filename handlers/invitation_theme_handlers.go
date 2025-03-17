@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	invitation_theme_dto "iv_project/dto/invitation_theme"
+	review_dto "iv_project/dto/review"
 	"iv_project/models"
 	"iv_project/repositories"
 	"net/http"
@@ -19,14 +20,20 @@ func InvitationThemeHandler(InvitationThemeRepositories repositories.InvitationT
 	return &invitationThemeHandlers{InvitationThemeRepositories}
 }
 
-func convertToInvitationThemeResponse(theme *models.InvitationTheme) invitation_theme_dto.InvitationThemeResponse {
+func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) invitation_theme_dto.InvitationThemeResponse {
+	var reviewResponses []*review_dto.ReviewResponse
+	for _, review := range invitationTheme.Reviews {
+		reviewCopy := ConvertToReviewResponse(review)
+		reviewResponses = append(reviewResponses, &reviewCopy)
+	}
+
 	return invitation_theme_dto.InvitationThemeResponse{
-		ID:          theme.ID,
-		Title:       theme.Title,
-		NormalPrice: theme.NormalPrice,
-		DiskonPrice: theme.DiskonPrice,
-		Category:    theme.Category,
-		Reviews:     theme.Reviews,
+		ID:          invitationTheme.ID,
+		Title:       invitationTheme.Title,
+		NormalPrice: invitationTheme.NormalPrice,
+		DiskonPrice: invitationTheme.DiskonPrice,
+		Category:    invitationTheme.Category,
+		Reviews:     reviewResponses,
 	}
 }
 
@@ -51,7 +58,7 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 		return
 	}
 
-	SuccessResponse(w, http.StatusCreated, "Invitation theme created successfully", convertToInvitationThemeResponse(invitationTheme))
+	SuccessResponse(w, http.StatusCreated, "Invitation theme created successfully", ConvertToInvitationThemeResponse(invitationTheme))
 }
 
 func (h *invitationThemeHandlers) GetInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +76,7 @@ func (h *invitationThemeHandlers) GetInvitationThemeByID(w http.ResponseWriter, 
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "Invitation theme retrieved successfully", convertToInvitationThemeResponse(invitationTheme))
+	SuccessResponse(w, http.StatusOK, "Invitation theme retrieved successfully", ConvertToInvitationThemeResponse(invitationTheme))
 }
 
 func (h *invitationThemeHandlers) GetInvitationThemes(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +90,7 @@ func (h *invitationThemeHandlers) GetInvitationThemes(w http.ResponseWriter, r *
 
 	var invitationThemeResponses []invitation_theme_dto.InvitationThemeResponse
 	for _, invitationTheme := range invitationThemes {
-		invitationThemeResponses = append(invitationThemeResponses, convertToInvitationThemeResponse(&invitationTheme))
+		invitationThemeResponses = append(invitationThemeResponses, ConvertToInvitationThemeResponse(&invitationTheme))
 	}
 
 	if len(invitationThemes) == 0 {
@@ -107,7 +114,7 @@ func (h *invitationThemeHandlers) GetInvitationThemesByCategory(w http.ResponseW
 
 	var invitationThemeResponses []invitation_theme_dto.InvitationThemeResponse
 	for _, invitationTheme := range invitationThemes {
-		invitationThemeResponses = append(invitationThemeResponses, convertToInvitationThemeResponse(&invitationTheme))
+		invitationThemeResponses = append(invitationThemeResponses, ConvertToInvitationThemeResponse(&invitationTheme))
 	}
 
 	if len(invitationThemes) == 0 {
@@ -153,7 +160,7 @@ func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "Invitation theme updated successfully", convertToInvitationThemeResponse(invitationTheme))
+	SuccessResponse(w, http.StatusOK, "Invitation theme updated successfully", ConvertToInvitationThemeResponse(invitationTheme))
 }
 
 func (h *invitationThemeHandlers) DeleteInvitationTheme(w http.ResponseWriter, r *http.Request) {

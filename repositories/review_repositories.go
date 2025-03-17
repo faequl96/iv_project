@@ -7,25 +7,28 @@ import (
 )
 
 type ReviewRepositories interface {
-	CreateReview(review models.Review) error
-	GetReviewByID(id uint) (models.Review, error)
+	CreateReview(review *models.Review) error
+	GetReviewByID(id uint) (*models.Review, error)
 	GetReviewsByInvitationThemeID(invitationThemeID uint) ([]models.Review, error)
-	UpdateReview(review models.Review) error
-	DeleteReview(review models.Review) error
+	UpdateReview(review *models.Review) error
+	DeleteReview(id uint) error
 }
 
 func ReviewRepository(db *gorm.DB) *repository {
 	return &repository{db}
 }
 
-func (r *repository) CreateReview(review models.Review) error {
-	return r.db.Create(&review).Error
+func (r *repository) CreateReview(review *models.Review) error {
+	return r.db.Create(review).Error
 }
 
-func (r *repository) GetReviewByID(id uint) (models.Review, error) {
+func (r *repository) GetReviewByID(id uint) (*models.Review, error) {
 	var review models.Review
-	err := r.db.Where("id = ?", id).First(&review).Error
-	return review, err
+	err := r.db.First(&review, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &review, nil
 }
 
 func (r *repository) GetReviewsByInvitationThemeID(invitationThemeID uint) ([]models.Review, error) {
@@ -34,10 +37,10 @@ func (r *repository) GetReviewsByInvitationThemeID(invitationThemeID uint) ([]mo
 	return reviews, err
 }
 
-func (r *repository) UpdateReview(review models.Review) error {
-	return r.db.Save(&review).Error
+func (r *repository) UpdateReview(review *models.Review) error {
+	return r.db.Model(review).Updates(review).Error
 }
 
-func (r *repository) DeleteReview(review models.Review) error {
-	return r.db.Delete(&review).Error
+func (r *repository) DeleteReview(id uint) error {
+	return r.db.Delete(&models.Review{}, id).Error
 }

@@ -21,6 +21,14 @@ func ReviewHandlers(ReviewRepositories repositories.ReviewRepositories) *reviewH
 	return &reviewHandlers{ReviewRepositories}
 }
 
+func ConvertToReviewResponse(review *models.Review) review_dto.ReviewResponse {
+	return review_dto.ReviewResponse{
+		ID:      review.ID,
+		Star:    review.Star,
+		Comment: review.Comment,
+	}
+}
+
 func (h *reviewHandlers) CreateReview(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
