@@ -21,10 +21,10 @@ func InvitationThemeHandler(InvitationThemeRepositories repositories.InvitationT
 }
 
 func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) invitation_theme_dto.InvitationThemeResponse {
-	var reviewResponses []*review_dto.ReviewResponse
+	var reviewResponses []review_dto.ReviewResponse
 	for _, review := range invitationTheme.Reviews {
-		reviewCopy := ConvertToReviewResponse(review)
-		reviewResponses = append(reviewResponses, &reviewCopy)
+		reviewCopy := ConvertToReviewResponse(&review)
+		reviewResponses = append(reviewResponses, reviewCopy)
 	}
 
 	return invitation_theme_dto.InvitationThemeResponse{
