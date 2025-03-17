@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	category_dto "iv_project/dto/category"
 	invitation_theme_dto "iv_project/dto/invitation_theme"
 	review_dto "iv_project/dto/review"
 	"iv_project/models"
@@ -14,13 +15,23 @@ import (
 
 type invitationThemeHandlers struct {
 	InvitationThemeRepositories repositories.InvitationThemeRepositories
+	CategoryRepositories        repositories.CategoryRepositories
 }
 
-func InvitationThemeHandler(InvitationThemeRepositories repositories.InvitationThemeRepositories) *invitationThemeHandlers {
-	return &invitationThemeHandlers{InvitationThemeRepositories}
+func InvitationThemeHandler(
+	InvitationThemeRepositories repositories.InvitationThemeRepositories,
+	CategoryRepositories repositories.CategoryRepositories,
+) *invitationThemeHandlers {
+	return &invitationThemeHandlers{InvitationThemeRepositories, CategoryRepositories}
 }
 
 func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) invitation_theme_dto.InvitationThemeResponse {
+	var categoryResponses []category_dto.CategoryResponse
+	for _, category := range invitationTheme.Categories {
+		categoryCopy := ConvertToCategoryResponse(&category)
+		categoryResponses = append(categoryResponses, categoryCopy)
+	}
+
 	var reviewResponses []review_dto.ReviewResponse
 	for _, review := range invitationTheme.Reviews {
 		reviewCopy := ConvertToReviewResponse(&review)
@@ -32,7 +43,7 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 		Title:       invitationTheme.Title,
 		NormalPrice: invitationTheme.NormalPrice,
 		DiskonPrice: invitationTheme.DiskonPrice,
-		Category:    invitationTheme.Category,
+		Categories:  categoryResponses,
 		Reviews:     reviewResponses,
 	}
 }
@@ -46,11 +57,17 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 		return
 	}
 
+	categories, err := h.CategoryRepositories.GetCategoriesByIDs(request.Categories)
+	if err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching categories by ids.")
+		return
+	}
+
 	invitationTheme := &models.InvitationTheme{
 		Title:       request.Title,
 		NormalPrice: request.NormalPrice,
 		DiskonPrice: request.DiskonPrice,
-		Category:    request.Category,
+		Categories:  categories,
 	}
 
 	if err := h.InvitationThemeRepositories.CreateInvitationTheme(invitationTheme); err != nil {
@@ -146,13 +163,19 @@ func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r
 		return
 	}
 
+	categories, err := h.CategoryRepositories.GetCategoriesByIDs(request.Categories)
+	if err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching categories by ids.")
+		return
+	}
+
 	if request.Title != "" {
 		invitationTheme.Title = request.Title
 	}
 	invitationTheme.NormalPrice = request.NormalPrice
 	invitationTheme.DiskonPrice = request.DiskonPrice
-	if request.Category != "" {
-		invitationTheme.Category = request.Category
+	if len(request.Categories) != 0 {
+		invitationTheme.Categories = categories
 	}
 
 	if err := h.InvitationThemeRepositories.UpdateInvitationTheme(invitationTheme); err != nil {
