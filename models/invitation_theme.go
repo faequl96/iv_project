@@ -9,8 +9,8 @@ import (
 type InvitationTheme struct {
 	ID          uint                  `gorm:"primaryKey" json:"id"`
 	Title       string                `gorm:"size:255;not null" json:"title"`
-	NormalPrice int                   `gorm:"not null" json:"normal_price"`
-	DiskonPrice int                   `gorm:"not null" json:"diskon_price"`
+	NormalPrice uint                  `gorm:"not null" json:"normal_price"`
+	DiskonPrice uint                  `gorm:"not null" json:"diskon_price"`
 	Category    string                `gorm:"size:100;not null" json:"category"`
 	Reviews     []*Review             `gorm:"foreignKey:InvitationThemeID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"reviews,omitempty"`
 	CreatedAt   time.Time             `gorm:"autoCreateTime" json:"created_at"`
