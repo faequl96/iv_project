@@ -72,20 +72,6 @@ func (h *reviewHandlers) GetReviewByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(dto.SuccessResult{Code: http.StatusOK, Data: review})
 }
 
-func (h *reviewHandlers) GetReviews(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	reviews, err := h.ReviewRepositories.GetReviews()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(dto.SuccessResult{Code: http.StatusOK, Data: reviews})
-}
-
 func (h *reviewHandlers) GetReviewsByInvitationThemeID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
