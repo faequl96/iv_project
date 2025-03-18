@@ -39,12 +39,14 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 	}
 
 	return invitation_theme_dto.InvitationThemeResponse{
-		ID:            invitationTheme.ID,
-		Title:         invitationTheme.Title,
-		Price:         invitationTheme.Price,
-		DiscountPrice: invitationTheme.DiscountPrice,
-		Categories:    categoryResponses,
-		Reviews:       reviewResponses,
+		ID:               invitationTheme.ID,
+		Title:            invitationTheme.Title,
+		IDRPrice:         invitationTheme.IDRPrice,
+		IDRDiscountPrice: invitationTheme.IDRDiscountPrice,
+		IVCPrice:         invitationTheme.IVCPrice,
+		IVCDiscountPrice: invitationTheme.IVCDiscountPrice,
+		Categories:       categoryResponses,
+		Reviews:          reviewResponses,
 	}
 }
 
@@ -64,10 +66,12 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 	}
 
 	invitationTheme := &models.InvitationTheme{
-		Title:         request.Title,
-		Price:         request.Price,
-		DiscountPrice: request.DiscountPrice,
-		Categories:    categories,
+		Title:            request.Title,
+		IDRPrice:         request.IDRPrice,
+		IDRDiscountPrice: request.IDRDiscountPrice,
+		IVCPrice:         request.IVCPrice,
+		IVCDiscountPrice: request.IVCDiscountPrice,
+		Categories:       categories,
 	}
 
 	if err := h.InvitationThemeRepositories.CreateInvitationTheme(invitationTheme); err != nil {
@@ -172,10 +176,14 @@ func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r
 	if request.Title != "" {
 		invitationTheme.Title = request.Title
 	}
-	if request.Price != 0 {
-		invitationTheme.Price = request.Price
+	if request.IDRPrice != 0 {
+		invitationTheme.IDRPrice = request.IDRPrice
 	}
-	invitationTheme.DiscountPrice = request.DiscountPrice
+	invitationTheme.IDRDiscountPrice = request.IDRDiscountPrice
+	if request.IVCPrice != 0 {
+		invitationTheme.IVCPrice = request.IVCPrice
+	}
+	invitationTheme.IVCDiscountPrice = request.IVCDiscountPrice
 	if len(request.Categories) != 0 {
 		invitationTheme.Categories = categories
 	}

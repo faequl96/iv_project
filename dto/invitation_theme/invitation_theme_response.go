@@ -6,10 +6,12 @@ import (
 )
 
 type InvitationThemeResponse struct {
-	ID            uint                            `json:"id"`
-	Title         string                          `json:"title"`
-	Price         uint                            `json:"price"`
-	DiscountPrice uint                            `json:"discount_price"`
-	Categories    []category_dto.CategoryResponse `json:"categories,omitempty"`
-	Reviews       []review_dto.ReviewResponse     `json:"reviews,omitempty"`
+	ID               uint                            `json:"id"`
+	Title            string                          `json:"title"`
+	IDRPrice         uint                            `json:"idr_price"`
+	IDRDiscountPrice uint                            `json:"idr_discount_price"`
+	IVCPrice         uint                            `json:"ivc_price"`
+	IVCDiscountPrice uint                            `json:"ivc_discount_price"`
+	Categories       []category_dto.CategoryResponse `json:"categories,omitempty"`
+	Reviews          []review_dto.ReviewResponse     `json:"reviews,omitempty"`
 }

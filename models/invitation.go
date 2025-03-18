@@ -8,7 +8,7 @@ import (
 
 type Invitation struct {
 	ID                uint             `gorm:"primaryKey;autoIncrement" json:"id"`
-	Status            string           `gorm:"type:enum('pending','approved','rejected');not null;default:'pending'" json:"status"`
+	Status            string           `gorm:"type:enum('pending','activated');not null;default:'pending'" json:"status"`
 	InvitationData    *InvitationData  `gorm:"foreignKey:InvitationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"invitation_data,omitempty"`
 	InvitationThemeID uint             `gorm:"not null;index" json:"invitation_theme_id"`
 	InvitationTheme   *InvitationTheme `gorm:"foreignKey:InvitationThemeID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"invitation_theme,omitempty"`

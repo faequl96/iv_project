@@ -21,11 +21,13 @@ func IVCoinPackageHandler(IVCoinPackageRepositories repositories.IVCoinPackageRe
 
 func ConvertToIVCoinPackageResponse(ivCoinPackage *models.IVCoinPackage) iv_coin_package_dto.IVCoinPackageResponse {
 	return iv_coin_package_dto.IVCoinPackageResponse{
-		ID:            ivCoinPackage.ID,
-		Name:          ivCoinPackage.Name,
-		CoinAmount:    ivCoinPackage.CoinAmount,
-		Price:         ivCoinPackage.Price,
-		DiscountPrice: ivCoinPackage.DiscountPrice,
+		ID:               ivCoinPackage.ID,
+		Name:             ivCoinPackage.Name,
+		CoinAmount:       ivCoinPackage.CoinAmount,
+		IDRPrice:         ivCoinPackage.IDRPrice,
+		IDRDiscountPrice: ivCoinPackage.IDRDiscountPrice,
+		IVCPrice:         ivCoinPackage.IVCPrice,
+		IVCDiscountPrice: ivCoinPackage.IVCDiscountPrice,
 	}
 }
 
@@ -39,10 +41,12 @@ func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *ht
 	}
 
 	ivCoinPackage := &models.IVCoinPackage{
-		Name:          request.Name,
-		CoinAmount:    request.CoinAmount,
-		Price:         request.Price,
-		DiscountPrice: request.DiscountPrice,
+		Name:             request.Name,
+		CoinAmount:       request.CoinAmount,
+		IDRPrice:         request.IDRPrice,
+		IDRDiscountPrice: request.IDRDiscountPrice,
+		IVCPrice:         request.IVCPrice,
+		IVCDiscountPrice: request.IVCDiscountPrice,
 	}
 
 	if err := h.IVCoinPackageRepositories.CreateIVCoinPackage(ivCoinPackage); err != nil {
@@ -120,10 +124,14 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *ht
 	if request.CoinAmount != 0 {
 		ivCoinPackage.CoinAmount = request.CoinAmount
 	}
-	if request.Price != 0 {
-		ivCoinPackage.Price = request.Price
+	if request.IDRPrice != 0 {
+		ivCoinPackage.IDRPrice = request.IDRPrice
 	}
-	ivCoinPackage.DiscountPrice = request.DiscountPrice
+	ivCoinPackage.IDRDiscountPrice = request.IDRDiscountPrice
+	if request.IVCPrice != 0 {
+		ivCoinPackage.IVCPrice = request.IVCPrice
+	}
+	ivCoinPackage.IVCDiscountPrice = request.IVCDiscountPrice
 
 	if err := h.IVCoinPackageRepositories.UpdateIVCoinPackage(ivCoinPackage); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the IVCoin package.")
