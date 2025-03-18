@@ -17,6 +17,14 @@ func (i InvitationStatusType) String() string {
 	return string(i)
 }
 
+func (i InvitationStatusType) IsValid() bool {
+	switch i {
+	case InvitationStatusDraft, InvitationStatusActive:
+		return true
+	}
+	return false
+}
+
 type Invitation struct {
 	ID                uint                 `gorm:"primaryKey;autoIncrement" json:"id"`
 	Status            InvitationStatusType `gorm:"type:varchar(50);not null;default:'draft'" json:"status"`

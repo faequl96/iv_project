@@ -13,6 +13,14 @@ func (p ProductType) String() string {
 	return string(p)
 }
 
+func (p ProductType) IsValid() bool {
+	switch p {
+	case ProductInvitation, ProductIVCoinPackage:
+		return true
+	}
+	return false
+}
+
 type TransactionStatusType string
 
 const (
@@ -24,6 +32,14 @@ func (t TransactionStatusType) String() string {
 	return string(t)
 }
 
+func (t TransactionStatusType) IsValid() bool {
+	switch t {
+	case TransactionStatusPending, TransactionStatusCompleted:
+		return true
+	}
+	return false
+}
+
 type PaymentMethodType string
 
 const (
@@ -33,6 +49,14 @@ const (
 
 func (p PaymentMethodType) String() string {
 	return string(p)
+}
+
+func (p PaymentMethodType) IsValid() bool {
+	switch p {
+	case PaymentMethodTransfer, PaymentMethodIVCoin:
+		return true
+	}
+	return false
 }
 
 type Transaction struct {
