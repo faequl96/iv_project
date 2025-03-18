@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	review_dto "iv_project/dto/review"
+	user_dto "iv_project/dto/user"
+	user_profile_dto "iv_project/dto/user_profile"
 	"iv_project/models"
 	"iv_project/repositories"
 	"net/http"
@@ -24,6 +26,14 @@ func ConvertToReviewResponse(review *models.Review) review_dto.ReviewResponse {
 		ID:      review.ID,
 		Star:    review.Star,
 		Comment: review.Comment,
+		User: &user_dto.UserResponse{
+			ID: review.User.ID,
+			UserProfile: &user_profile_dto.UserProfileResponse{
+				ID:        review.User.UserProfile.ID,
+				FirstName: review.User.UserProfile.FirstName,
+				LastName:  review.User.UserProfile.LastName,
+			},
+		},
 	}
 }
 

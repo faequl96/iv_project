@@ -7,23 +7,25 @@ import (
 )
 
 type GalleryRepositories interface {
-	GetGalleryByID(galleryID uint) (*models.Gallery, error)
-	DeleteGallery(gallery *models.Gallery) error
+	GetGalleryByID(id uint) (*models.Gallery, error)
+	DeleteGallery(id uint) error
 }
 
 func GalleryRepository(db *gorm.DB) *repository {
 	return &repository{db}
 }
 
-func (r *repository) GetGalleryByID(galleryID uint) (*models.Gallery, error) {
-	var gallery models.Gallery
-	err := r.db.Where("id = ?", galleryID).First(&gallery).Error
-	if err != nil {
-		return nil, err
-	}
-	return &gallery, nil
+func (r *repository) GetGalleryByID(id uint) (*models.Gallery, error) {
+	var Gallery models.Gallery
+	err := r.db.Where("id = ?", id).First(&Gallery).Error
+	return &Gallery, err
 }
 
-func (r *repository) DeleteGallery(gallery *models.Gallery) error {
-	return r.db.Delete(gallery).Error
+func (r *repository) DeleteGallery(id uint) error {
+	tx := r.db.Begin()
+	if err := tx.Where("id = ?", id).Delete(&models.Gallery{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }

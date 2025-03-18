@@ -24,10 +24,12 @@ func convertToUserResponse(user *models.User) user_dto.UserResponse {
 	return user_dto.UserResponse{
 		ID: user.ID,
 		UserProfile: &user_profile_dto.UserProfileResponse{
+			ID:        user.UserProfile.ID,
 			FirstName: user.UserProfile.FirstName,
 			LastName:  user.UserProfile.LastName,
 		},
 		IVCoin: &iv_coin_dto.IVCoinResponse{
+			ID:      user.IVCoin.ID,
 			Balance: user.IVCoin.Balance,
 		},
 	}
