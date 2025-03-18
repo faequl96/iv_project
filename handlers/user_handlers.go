@@ -86,6 +86,11 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(users) == 0 {
+		SuccessResponse(w, http.StatusOK, "No users available at this moment", []user_dto.UserResponse{})
+		return
+	}
+
 	var userResponses []user_dto.UserResponse
 	for _, user := range users {
 		userResponses = append(userResponses, convertToUserResponse(&user))

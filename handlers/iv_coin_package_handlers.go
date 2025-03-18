@@ -80,6 +80,11 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http
 		return
 	}
 
+	if len(ivCoinPackages) == 0 {
+		SuccessResponse(w, http.StatusOK, "No iv coin packages available at this moment", []iv_coin_package_dto.IVCoinPackageResponse{})
+		return
+	}
+
 	var responses []iv_coin_package_dto.IVCoinPackageResponse
 	for _, ivCoinPackage := range ivCoinPackages {
 		responses = append(responses, ConvertToIVCoinPackageResponse(&ivCoinPackage))

@@ -34,6 +34,8 @@ func ConvertToReviewResponse(review *models.Review) review_dto.ReviewResponse {
 				LastName:  review.User.UserProfile.LastName,
 			},
 		},
+		CreatedAt: review.CreatedAt,
+		UpdatedAt: review.UpdatedAt,
 	}
 }
 
