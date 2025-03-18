@@ -6,7 +6,7 @@ type ProductType string
 
 const (
 	ProductInvitation    ProductType = "invitation"
-	ProductIVCoinPackage ProductType = "ivCoinPackage"
+	ProductIVCoinPackage ProductType = "iv_coin_package"
 )
 
 func (p ProductType) String() string {
@@ -14,11 +14,11 @@ func (p ProductType) String() string {
 }
 
 func (p ProductType) IsValid() bool {
-	switch p {
-	case ProductInvitation, ProductIVCoinPackage:
-		return true
+	validProductTypes := map[ProductType]bool{
+		ProductInvitation:    true,
+		ProductIVCoinPackage: true,
 	}
-	return false
+	return validProductTypes[p]
 }
 
 type TransactionStatusType string
@@ -33,18 +33,18 @@ func (t TransactionStatusType) String() string {
 }
 
 func (t TransactionStatusType) IsValid() bool {
-	switch t {
-	case TransactionStatusPending, TransactionStatusCompleted:
-		return true
+	validTransactionStatus := map[TransactionStatusType]bool{
+		TransactionStatusPending:   true,
+		TransactionStatusCompleted: true,
 	}
-	return false
+	return validTransactionStatus[t]
 }
 
 type PaymentMethodType string
 
 const (
 	PaymentMethodTransfer PaymentMethodType = "transfer"
-	PaymentMethodIVCoin   PaymentMethodType = "ivCoin"
+	PaymentMethodIVCoin   PaymentMethodType = "iv_coin"
 )
 
 func (p PaymentMethodType) String() string {
@@ -52,11 +52,11 @@ func (p PaymentMethodType) String() string {
 }
 
 func (p PaymentMethodType) IsValid() bool {
-	switch p {
-	case PaymentMethodTransfer, PaymentMethodIVCoin:
-		return true
+	validPaymentMethods := map[PaymentMethodType]bool{
+		PaymentMethodTransfer: true,
+		PaymentMethodIVCoin:   true,
 	}
-	return false
+	return validPaymentMethods[p]
 }
 
 type Transaction struct {

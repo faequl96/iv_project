@@ -18,11 +18,11 @@ func (i InvitationStatusType) String() string {
 }
 
 func (i InvitationStatusType) IsValid() bool {
-	switch i {
-	case InvitationStatusDraft, InvitationStatusActive:
-		return true
+	validInvitationStatusTypes := map[InvitationStatusType]bool{
+		InvitationStatusDraft:  true,
+		InvitationStatusActive: true,
 	}
-	return false
+	return validInvitationStatusTypes[i]
 }
 
 type Invitation struct {
