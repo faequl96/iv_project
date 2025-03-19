@@ -56,6 +56,10 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user, _ := h.UserRepositories.GetUserByID(request.ID); user != nil {
+		SuccessResponse(w, http.StatusCreated, "User already created", ConvertToUserResponse(user))
+	}
+
 	user := &models.User{
 		ID: request.ID,
 		IVCoin: &models.IVCoin{
@@ -69,7 +73,7 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	SuccessResponse(w, http.StatusCreated, "User registered successfully", ConvertToUserResponse(user))
+	SuccessResponse(w, http.StatusCreated, "User created successfully", ConvertToUserResponse(user))
 }
 
 func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
