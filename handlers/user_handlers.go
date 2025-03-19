@@ -42,40 +42,6 @@ func ConvertToUserResponse(user *models.User) user_dto.UserResponse {
 	return userResponse
 }
 
-func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	request := new(user_dto.CreateUserRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
-		return
-	}
-
-	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
-		return
-	}
-
-	if user, _ := h.UserRepositories.GetUserByID(request.ID); user != nil {
-		SuccessResponse(w, http.StatusCreated, "User already created", ConvertToUserResponse(user))
-	}
-
-	user := &models.User{
-		ID: request.ID,
-		IVCoin: &models.IVCoin{
-			Balance: 0,
-			UserID:  request.ID,
-		},
-	}
-
-	if err := h.UserRepositories.CreateUser(user); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to register user: "+err.Error())
-		return
-	}
-
-	SuccessResponse(w, http.StatusCreated, "User created successfully", ConvertToUserResponse(user))
-}
-
 func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 

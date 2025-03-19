@@ -3,17 +3,17 @@ package middleware
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"image/jpeg"
 	"io"
+	"iv_project/dto"
 	"net/http"
 	"os"
 	"path/filepath"
 )
 
-type contextKey string
-
-const UploadedFilesKey contextKey = "uploadedFiles"
+const UploadedFilesKey middlewareKey = "uploadedFiles"
 
 // Kompres gambar agar ukurannya di bawah 300 KB tanpa package tambahan
 func compressImage(src io.Reader) ([]byte, error) {
@@ -58,7 +58,8 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 				if err == http.ErrMissingFile {
 					continue // Lewati jika user tidak mengunggah gambar ini
 				}
-				http.Error(w, fmt.Sprintf("Gagal mengambil file %s: %v", fieldName, err), http.StatusBadRequest)
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: "Gagal mengambil file"})
 				return
 			}
 			defer file.Close()
@@ -66,7 +67,8 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 			// Kompres gambar
 			compressedData, err := compressImage(file)
 			if err != nil {
-				http.Error(w, fmt.Sprintf("Gagal mengompres file %s: %v", fieldName, err), http.StatusInternalServerError)
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()})
 				return
 			}
 
@@ -74,7 +76,8 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 			filePath := filepath.Join("uploads", header.Filename)
 			err = os.WriteFile(filePath, compressedData, 0644)
 			if err != nil {
-				http.Error(w, "Gagal menyimpan file", http.StatusInternalServerError)
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: "Gagal menyimpan file"})
 				return
 			}
 
