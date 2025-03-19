@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -46,6 +47,11 @@ func (h *reviewHandlers) CreateReview(w http.ResponseWriter, r *http.Request) {
 	var request review_dto.CreateReviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 
@@ -128,6 +134,11 @@ func (h *reviewHandlers) UpdateReview(w http.ResponseWriter, r *http.Request) {
 	var request review_dto.UpdateReviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

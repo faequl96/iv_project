@@ -9,6 +9,7 @@ import (
 	"iv_project/repositories"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -41,6 +42,11 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 	request := new(user_dto.CreateUserRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

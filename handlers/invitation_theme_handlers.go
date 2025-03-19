@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -56,6 +57,11 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 	var request invitation_theme_dto.CreateInvitationThemeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 
@@ -164,6 +170,11 @@ func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r
 	var request invitation_theme_dto.UpdateInvitationThemeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

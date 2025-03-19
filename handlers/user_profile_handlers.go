@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -63,6 +64,11 @@ func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.R
 	request := new(user_profile_dto.UpdateUserProfileRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -53,6 +54,11 @@ func (h *invitationDataHandlers) CreateInvitationData(w http.ResponseWriter, r *
 	var request invitation_data_dto.CreateInvitationDataRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 
@@ -147,6 +153,11 @@ func (h *invitationDataHandlers) UpdateInvitationData(w http.ResponseWriter, r *
 	var request invitation_data_dto.UpdateInvitationDataRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

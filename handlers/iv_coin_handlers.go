@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -75,6 +76,11 @@ func (h *ivCoinHandlers) UpdateIVCoin(w http.ResponseWriter, r *http.Request) {
 	request := new(iv_coin_dto.IVCoinRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

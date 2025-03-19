@@ -1,12 +1,12 @@
 package iv_coin_package_dto
 
 type CreateIVCoinPackageRequest struct {
-	Name             string `json:"name" binding:"required"`
-	CoinAmount       uint   `json:"coin_amount" binding:"required,gte=0"`
-	IDRPrice         uint   `json:"idr_price" binding:"required,gte=0"`
-	IDRDiscountPrice uint   `json:"idr_discount_price" binding:"required,gte=0"`
-	IVCPrice         uint   `json:"ivc_price" binding:"required,gte=0"`
-	IVCDiscountPrice uint   `json:"ivc_discount_price" binding:"required,gte=0"`
+	Name             string `json:"name" validate:"required"`
+	CoinAmount       uint   `json:"coin_amount" validate:"required"`
+	IDRPrice         uint   `json:"idr_price" validate:"required"`
+	IDRDiscountPrice uint   `json:"idr_discount_price" validate:"required"`
+	IVCPrice         uint   `json:"ivc_price" validate:"required"`
+	IVCDiscountPrice uint   `json:"ivc_discount_price" validate:"required"`
 }
 
 type UpdateIVCoinPackageRequest struct {

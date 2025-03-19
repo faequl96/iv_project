@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -94,6 +95,11 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 	var request transaction_dto.CreateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 
@@ -235,6 +241,11 @@ func (h *transactionHandlers) UpdateTransaction(w http.ResponseWriter, r *http.R
 	request := new(transaction_dto.UpdateTransactionRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

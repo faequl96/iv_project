@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -32,6 +33,11 @@ func (h *categoryHandlers) CreateCategory(w http.ResponseWriter, r *http.Request
 	var request category_dto.CreateCategoryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 
@@ -105,6 +111,11 @@ func (h *categoryHandlers) UpdateCategory(w http.ResponseWriter, r *http.Request
 	var request category_dto.UpdateCategoryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

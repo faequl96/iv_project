@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -37,6 +38,11 @@ func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *ht
 	var request iv_coin_package_dto.CreateIVCoinPackageRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 
@@ -115,6 +121,11 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *ht
 	var request iv_coin_package_dto.UpdateIVCoinPackageRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 
