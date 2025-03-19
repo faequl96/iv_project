@@ -9,6 +9,7 @@ import (
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -34,8 +35,8 @@ func ConvertToReviewResponse(review *models.Review) review_dto.ReviewResponse {
 				LastName:  review.User.UserProfile.LastName,
 			},
 		},
-		CreatedAt: review.CreatedAt,
-		UpdatedAt: review.UpdatedAt,
+		CreatedAt: review.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: review.UpdatedAt.Format(time.RFC3339),
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 
 type IVCoinRepositories interface {
 	GetIVCoinByID(id uint) (*models.IVCoin, error)
+	GetIVCoinByUserID(userID string) (*models.IVCoin, error)
 	UpdateIVCoin(ivCoin *models.IVCoin) error
 }
 
@@ -18,10 +19,13 @@ func IVCoinRepository(db *gorm.DB) *repository {
 func (r *repository) GetIVCoinByID(id uint) (*models.IVCoin, error) {
 	var ivCoin models.IVCoin
 	err := r.db.Where("id = ?", id).First(&ivCoin).Error
-	if err != nil {
-		return nil, err
-	}
-	return &ivCoin, nil
+	return &ivCoin, err
+}
+
+func (r *repository) GetIVCoinByUserID(userID string) (*models.IVCoin, error) {
+	var ivCoin models.IVCoin
+	err := r.db.Where("user_id = ?", userID).First(&ivCoin).Error
+	return &ivCoin, err
 }
 
 func (r *repository) UpdateIVCoin(ivCoin *models.IVCoin) error {

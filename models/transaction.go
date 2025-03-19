@@ -9,18 +9,6 @@ const (
 	ProductIVCoinPackage ProductType = "iv_coin_package"
 )
 
-func (p ProductType) String() string {
-	return string(p)
-}
-
-func (p ProductType) IsValid() bool {
-	validProductTypes := map[ProductType]bool{
-		ProductInvitation:    true,
-		ProductIVCoinPackage: true,
-	}
-	return validProductTypes[p]
-}
-
 type TransactionStatusType string
 
 const (
@@ -28,36 +16,12 @@ const (
 	TransactionStatusCompleted TransactionStatusType = "completed"
 )
 
-func (t TransactionStatusType) String() string {
-	return string(t)
-}
-
-func (t TransactionStatusType) IsValid() bool {
-	validTransactionStatus := map[TransactionStatusType]bool{
-		TransactionStatusPending:   true,
-		TransactionStatusCompleted: true,
-	}
-	return validTransactionStatus[t]
-}
-
 type PaymentMethodType string
 
 const (
 	PaymentMethodTransfer PaymentMethodType = "transfer"
 	PaymentMethodIVCoin   PaymentMethodType = "iv_coin"
 )
-
-func (p PaymentMethodType) String() string {
-	return string(p)
-}
-
-func (p PaymentMethodType) IsValid() bool {
-	validPaymentMethods := map[PaymentMethodType]bool{
-		PaymentMethodTransfer: true,
-		PaymentMethodIVCoin:   true,
-	}
-	return validPaymentMethods[p]
-}
 
 type Transaction struct {
 	ID              uint                  `gorm:"primaryKey;autoIncrement" json:"id"`

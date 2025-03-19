@@ -13,5 +13,6 @@ func IVCoinRoutes(r *mux.Router) {
 	h := handlers.IVCoinHandlers(ivCoinRepository)
 
 	r.HandleFunc("/iv-coin/{id}", h.GetIVCoinByID).Methods("GET")
+	r.HandleFunc("/iv-coin/{userId}", h.GetIVCoinByUserID).Methods("GET")
 	r.HandleFunc("/iv-coin/{id}", h.UpdateIVCoin).Methods("PATCH")
 }

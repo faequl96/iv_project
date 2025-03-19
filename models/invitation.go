@@ -13,18 +13,6 @@ const (
 	InvitationStatusActive InvitationStatusType = "active"
 )
 
-func (i InvitationStatusType) String() string {
-	return string(i)
-}
-
-func (i InvitationStatusType) IsValid() bool {
-	validInvitationStatusTypes := map[InvitationStatusType]bool{
-		InvitationStatusDraft:  true,
-		InvitationStatusActive: true,
-	}
-	return validInvitationStatusTypes[i]
-}
-
 type Invitation struct {
 	ID                uint                 `gorm:"primaryKey;autoIncrement" json:"id"`
 	Status            InvitationStatusType `gorm:"type:varchar(50);not null;default:'draft'" json:"status"`

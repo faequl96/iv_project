@@ -88,7 +88,7 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 
 	invitation := &models.Invitation{
 		UserID: request.UserID,
-		Status: request.Status,
+		Status: models.InvitationStatusDraft,
 		InvitationData: &models.InvitationData{
 			EventName: request.InvitationData.EventName,
 			EventDate: eventDate,

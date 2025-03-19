@@ -19,7 +19,7 @@ func IVCoinHandlers(IVCoinRepositories repositories.IVCoinRepositories) *ivCoinH
 	return &ivCoinHandlers{IVCoinRepositories}
 }
 
-func convertToIVCoinResponse(ivCoin *models.IVCoin) iv_coin_dto.IVCoinResponse {
+func ConvertToIVCoinResponse(ivCoin *models.IVCoin) iv_coin_dto.IVCoinResponse {
 	return iv_coin_dto.IVCoinResponse{
 		ID:      ivCoin.ID,
 		Balance: ivCoin.Balance,
@@ -37,11 +37,24 @@ func (h *ivCoinHandlers) GetIVCoinByID(w http.ResponseWriter, r *http.Request) {
 
 	ivCoin, err := h.IVCoinRepositories.GetIVCoinByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "IVCoin not found")
+		ErrorResponse(w, http.StatusNotFound, "IV coin not found")
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "IVCoin retrieved successfully", convertToIVCoinResponse(ivCoin))
+	SuccessResponse(w, http.StatusOK, "IV coin retrieved successfully", ConvertToIVCoinResponse(ivCoin))
+}
+
+func (h *ivCoinHandlers) GetIVCoinByUserID(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	id := mux.Vars(r)["userId"]
+	iVCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(id)
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "No invitation found with the provided user.")
+		return
+	}
+
+	SuccessResponse(w, http.StatusOK, "IV coin retrieved successfully", ConvertToIVCoinResponse(iVCoin))
 }
 
 func (h *ivCoinHandlers) UpdateIVCoin(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +68,7 @@ func (h *ivCoinHandlers) UpdateIVCoin(w http.ResponseWriter, r *http.Request) {
 
 	ivCoin, err := h.IVCoinRepositories.GetIVCoinByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "IVCoin not found")
+		ErrorResponse(w, http.StatusNotFound, "IV coin not found")
 		return
 	}
 
@@ -68,9 +81,9 @@ func (h *ivCoinHandlers) UpdateIVCoin(w http.ResponseWriter, r *http.Request) {
 	ivCoin.Balance = request.Balance
 
 	if err = h.IVCoinRepositories.UpdateIVCoin(ivCoin); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to update IVCoin: "+err.Error())
+		ErrorResponse(w, http.StatusInternalServerError, "Failed to update IV coin: "+err.Error())
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "IVCoin updated successfully", convertToIVCoinResponse(ivCoin))
+	SuccessResponse(w, http.StatusOK, "IV coin updated successfully", ConvertToIVCoinResponse(ivCoin))
 }

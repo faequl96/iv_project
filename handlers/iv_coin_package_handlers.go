@@ -50,11 +50,11 @@ func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *ht
 	}
 
 	if err := h.IVCoinPackageRepositories.CreateIVCoinPackage(ivCoinPackage); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Error occurred while creating IVCoin package. Please try again later.")
+		ErrorResponse(w, http.StatusInternalServerError, "Error occurred while creating IV coin package. Please try again later.")
 		return
 	}
 
-	SuccessResponse(w, http.StatusCreated, "IVCoin package created successfully", ConvertToIVCoinPackageResponse(ivCoinPackage))
+	SuccessResponse(w, http.StatusCreated, "IV coin package created successfully", ConvertToIVCoinPackageResponse(ivCoinPackage))
 }
 
 func (h *ivCoinPackageHandlers) GetIVCoinPackageByID(w http.ResponseWriter, r *http.Request) {
@@ -62,17 +62,17 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackageByID(w http.ResponseWriter, r *h
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid IVCoin package ID format. Please provide a numeric ID.")
+		ErrorResponse(w, http.StatusBadRequest, "Invalid IV coin package ID format. Please provide a numeric ID.")
 		return
 	}
 
 	ivCoinPackage, err := h.IVCoinPackageRepositories.GetIVCoinPackageByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No IVCoin package found with the provided ID.")
+		ErrorResponse(w, http.StatusNotFound, "No IV coin package found with the provided ID.")
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "IVCoin package retrieved successfully", ConvertToIVCoinPackageResponse(ivCoinPackage))
+	SuccessResponse(w, http.StatusOK, "IV coin package retrieved successfully", ConvertToIVCoinPackageResponse(ivCoinPackage))
 }
 
 func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +80,7 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http
 
 	ivCoinPackages, err := h.IVCoinPackageRepositories.GetIVCoinPackages()
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching IVCoin packages.")
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching IV coin packages.")
 		return
 	}
 
@@ -94,7 +94,7 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http
 		responses = append(responses, ConvertToIVCoinPackageResponse(&ivCoinPackage))
 	}
 
-	SuccessResponse(w, http.StatusOK, "IVCoin packages retrieved successfully", responses)
+	SuccessResponse(w, http.StatusOK, "IV coin packages retrieved successfully", responses)
 }
 
 func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *http.Request) {
@@ -102,13 +102,13 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *ht
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid IVCoin package ID format. Please provide a numeric ID.")
+		ErrorResponse(w, http.StatusBadRequest, "Invalid IV coin package ID format. Please provide a numeric ID.")
 		return
 	}
 
 	ivCoinPackage, err := h.IVCoinPackageRepositories.GetIVCoinPackageByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No IVCoin package found with the provided ID.")
+		ErrorResponse(w, http.StatusNotFound, "No IV coin package found with the provided ID.")
 		return
 	}
 
@@ -134,11 +134,11 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *ht
 	ivCoinPackage.IVCDiscountPrice = request.IVCDiscountPrice
 
 	if err := h.IVCoinPackageRepositories.UpdateIVCoinPackage(ivCoinPackage); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the IVCoin package.")
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the IV coin package.")
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "IVCoin package updated successfully", ConvertToIVCoinPackageResponse(ivCoinPackage))
+	SuccessResponse(w, http.StatusOK, "IV coin package updated successfully", ConvertToIVCoinPackageResponse(ivCoinPackage))
 }
 
 func (h *ivCoinPackageHandlers) DeleteIVCoinPackage(w http.ResponseWriter, r *http.Request) {
@@ -146,19 +146,19 @@ func (h *ivCoinPackageHandlers) DeleteIVCoinPackage(w http.ResponseWriter, r *ht
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid IVCoin package ID format. Please provide a numeric ID.")
+		ErrorResponse(w, http.StatusBadRequest, "Invalid IV coin package ID format. Please provide a numeric ID.")
 		return
 	}
 
 	if _, err = h.IVCoinPackageRepositories.GetIVCoinPackageByID(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No IVCoin package found with the provided ID.")
+		ErrorResponse(w, http.StatusNotFound, "No IV coin package found with the provided ID.")
 		return
 	}
 
 	if err := h.IVCoinPackageRepositories.DeleteIVCoinPackage(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while deleting the IVCoin package.")
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while deleting the IV coin package.")
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "IVCoin package deleted successfully", nil)
+	SuccessResponse(w, http.StatusOK, "IV coin package deleted successfully", nil)
 }

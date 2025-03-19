@@ -8,7 +8,6 @@ import (
 type CreateInvitationRequest struct {
 	UserID            string                                          `json:"user_id" binding:"required"`
 	InvitationThemeID uint                                            `json:"invitation_theme_id" binding:"required"`
-	Status            models.InvitationStatusType                     `json:"status" binding:"required"`
 	InvitationData    invitation_data_dto.CreateInvitationDataRequest `json:"invitation_data"`
 }
 
