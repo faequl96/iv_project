@@ -30,7 +30,7 @@ func (r *repository) CreateInvitation(invitation *models.Invitation) error {
 
 func (r *repository) GetInvitationByID(id uint) (*models.Invitation, error) {
 	var invitation models.Invitation
-	err := r.db.Preload("InvitationData.Gallery").Where("id = ?", id).First(&invitation).Error
+	err := r.db.Preload("InvitationData.Gallery").First(&invitation, id).Error
 	return &invitation, err
 }
 
@@ -57,7 +57,7 @@ func (r *repository) UpdateInvitation(invitation *models.Invitation) error {
 
 func (r *repository) DeleteInvitation(id uint) error {
 	tx := r.db.Begin()
-	if err := tx.Where("id = ?", id).Delete(&models.Invitation{}).Error; err != nil {
+	if err := tx.Delete(&models.Invitation{}, id).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

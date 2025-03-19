@@ -23,7 +23,7 @@ func (r *repository) CreateUserProfile(UserProfile *models.UserProfile) error {
 
 func (r *repository) GetUserProfileByID(id uint) (*models.UserProfile, error) {
 	var userProfile models.UserProfile
-	err := r.db.Where("id = ?", id).First(&userProfile).Error
+	err := r.db.First(&userProfile, id).Error
 	return &userProfile, err
 }
 

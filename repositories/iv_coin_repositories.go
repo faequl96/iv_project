@@ -18,7 +18,7 @@ func IVCoinRepository(db *gorm.DB) *repository {
 
 func (r *repository) GetIVCoinByID(id uint) (*models.IVCoin, error) {
 	var ivCoin models.IVCoin
-	err := r.db.Where("id = ?", id).First(&ivCoin).Error
+	err := r.db.First(&ivCoin, id).Error
 	return &ivCoin, err
 }
 

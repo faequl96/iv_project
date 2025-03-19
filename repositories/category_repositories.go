@@ -20,21 +20,13 @@ func CategoryRepository(db *gorm.DB) *repository {
 }
 
 func (r *repository) CreateCategory(category *models.Category) error {
-	tx := r.db.Begin()
-	if err := tx.Create(category).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+	return r.db.Create(category).Error
 }
 
 func (r *repository) GetCategoryByID(id uint) (*models.Category, error) {
 	var category models.Category
 	err := r.db.First(&category, id).Error
-	if err != nil {
-		return nil, err
-	}
-	return &category, nil
+	return &category, err
 }
 
 func (r *repository) GetCategories() ([]models.Category, error) {
@@ -50,19 +42,9 @@ func (r *repository) GetCategoriesByIDs(ids []uint) ([]models.Category, error) {
 }
 
 func (r *repository) UpdateCategory(category *models.Category) error {
-	tx := r.db.Begin()
-	if err := tx.Save(category).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+	return r.db.Save(category).Error
 }
 
 func (r *repository) DeleteCategory(id uint) error {
-	tx := r.db.Begin()
-	if err := tx.Delete(&models.Category{}, id).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+	return r.db.Delete(&models.Category{}, id).Error
 }

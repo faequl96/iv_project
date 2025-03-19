@@ -18,34 +18,19 @@ func InvitationDataRepository(db *gorm.DB) *repository {
 }
 
 func (r *repository) CreateInvitationData(invitationData *models.InvitationData) error {
-	tx := r.db.Begin()
-	if err := tx.Create(invitationData).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+	return r.db.Create(invitationData).Error
 }
 
 func (r *repository) GetInvitationDataByID(id uint) (*models.InvitationData, error) {
 	var invitationData models.InvitationData
-	err := r.db.Preload("Gallery").Where("id = ?", id).First(&invitationData).Error
+	err := r.db.Preload("Gallery").First(&invitationData, id).Error
 	return &invitationData, err
 }
 
 func (r *repository) UpdateInvitationData(invitationData *models.InvitationData) error {
-	tx := r.db.Begin()
-	if err := tx.Save(invitationData).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+	return r.db.Save(invitationData).Error
 }
 
 func (r *repository) DeleteInvitationData(id uint) error {
-	tx := r.db.Begin()
-	if err := tx.Where("id = ?", id).Delete(&models.InvitationData{}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
+	return r.db.Delete(&models.InvitationData{}, id).Error
 }

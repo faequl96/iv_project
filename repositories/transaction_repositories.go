@@ -30,7 +30,7 @@ func (r *repository) CreateTransaction(transaction *models.Transaction) error {
 
 func (r *repository) GetTransactionByID(id uint) (*models.Transaction, error) {
 	var transaction models.Transaction
-	err := r.db.Preload("Invitation").Preload("IVCoinPackage").Where("id = ?", id).First(&transaction).Error
+	err := r.db.Preload("Invitation").Preload("IVCoinPackage").First(&transaction, id).Error
 	return &transaction, err
 }
 
@@ -57,7 +57,7 @@ func (r *repository) UpdateTransaction(transaction *models.Transaction) error {
 
 func (r *repository) DeleteTransaction(id uint) error {
 	tx := r.db.Begin()
-	if err := tx.Where("id = ?", id).Delete(&models.Transaction{}).Error; err != nil {
+	if err := tx.Delete(&models.Transaction{}, id).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

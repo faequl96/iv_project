@@ -35,7 +35,7 @@ func (r *repository) GetReviewsByInvitationThemeID(invitationThemeID uint) ([]mo
 }
 
 func (r *repository) UpdateReview(review *models.Review) error {
-	return r.db.Model(review).Updates(review).Error
+	return r.db.Save(review).Error
 }
 
 func (r *repository) DeleteReview(id uint) error {
