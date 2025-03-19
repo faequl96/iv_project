@@ -25,10 +25,7 @@ func (r *repository) CreateReview(review *models.Review) error {
 func (r *repository) GetReviewByID(id uint) (*models.Review, error) {
 	var review models.Review
 	err := r.db.First(&review, id).Error
-	if err != nil {
-		return nil, err
-	}
-	return &review, nil
+	return &review, err
 }
 
 func (r *repository) GetReviewsByInvitationThemeID(invitationThemeID uint) ([]models.Review, error) {

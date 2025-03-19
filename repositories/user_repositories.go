@@ -29,10 +29,7 @@ func (r *repository) CreateUser(user *models.User) error {
 func (r *repository) GetUserByID(id string) (*models.User, error) {
 	var user models.User
 	err := r.db.Preload("UserProfile").Preload("IVCoin").First(&user, "id = ?", id).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
+	return &user, err
 }
 
 func (r *repository) GetUsers() ([]models.User, error) {

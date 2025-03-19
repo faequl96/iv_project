@@ -21,19 +21,25 @@ func UserHandlers(UserRepositories repositories.UserRepositories) *userHandlers 
 	return &userHandlers{UserRepositories}
 }
 
-func convertToUserResponse(user *models.User) user_dto.UserResponse {
-	return user_dto.UserResponse{
+func ConvertToUserResponse(user *models.User) user_dto.UserResponse {
+	userResponse := user_dto.UserResponse{
 		ID: user.ID,
-		UserProfile: &user_profile_dto.UserProfileResponse{
+	}
+	if user.UserProfile != nil {
+		userResponse.UserProfile = &user_profile_dto.UserProfileResponse{
 			ID:        user.UserProfile.ID,
 			FirstName: user.UserProfile.FirstName,
 			LastName:  user.UserProfile.LastName,
-		},
-		IVCoin: &iv_coin_dto.IVCoinResponse{
+		}
+	}
+	if user.IVCoin != nil {
+		userResponse.IVCoin = &iv_coin_dto.IVCoinResponse{
 			ID:      user.IVCoin.ID,
 			Balance: user.IVCoin.Balance,
-		},
+		}
 	}
+
+	return userResponse
 }
 
 func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -52,12 +58,9 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user := &models.User{
 		ID: request.ID,
-		UserProfile: &models.UserProfile{
-			FirstName: request.UserProfile.FirstName,
-			LastName:  request.UserProfile.LastName,
-		},
 		IVCoin: &models.IVCoin{
 			Balance: 0,
+			UserID:  request.ID,
 		},
 	}
 
@@ -66,7 +69,7 @@ func (h *userHandlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	SuccessResponse(w, http.StatusCreated, "User registered successfully", convertToUserResponse(user))
+	SuccessResponse(w, http.StatusCreated, "User registered successfully", ConvertToUserResponse(user))
 }
 
 func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +83,7 @@ func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "User retrieved successfully", convertToUserResponse(user))
+	SuccessResponse(w, http.StatusOK, "User retrieved successfully", ConvertToUserResponse(user))
 }
 
 func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +102,7 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	var userResponses []user_dto.UserResponse
 	for _, user := range users {
-		userResponses = append(userResponses, convertToUserResponse(&user))
+		userResponses = append(userResponses, ConvertToUserResponse(&user))
 	}
 
 	SuccessResponse(w, http.StatusOK, "Users retrieved successfully", userResponses)

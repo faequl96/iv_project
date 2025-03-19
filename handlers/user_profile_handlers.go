@@ -28,6 +28,34 @@ func ConvertToUserProfileResponse(userProfile *models.UserProfile) user_profile_
 	}
 }
 
+func (h *userProfileHandlers) CreateUserProfile(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var request user_profile_dto.CreateUserProfileRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		return
+	}
+
+	userProfile := &models.UserProfile{
+		FirstName: request.FirstName,
+		LastName:  request.LastName,
+		UserID:    request.UserID,
+	}
+
+	if err := h.UserProfileRepositories.CreateUserProfile(userProfile); err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while create the user profile. Please try again.")
+		return
+	}
+
+	SuccessResponse(w, http.StatusCreated, "User Profile successfully created", ConvertToUserProfileResponse(userProfile))
+}
+
 func (h *userProfileHandlers) GetUserProfileByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
