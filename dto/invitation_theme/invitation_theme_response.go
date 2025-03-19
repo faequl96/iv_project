@@ -12,6 +12,6 @@ type InvitationThemeResponse struct {
 	IDRDiscountPrice uint                            `json:"idr_discount_price"`
 	IVCPrice         uint                            `json:"ivc_price"`
 	IVCDiscountPrice uint                            `json:"ivc_discount_price"`
-	Categories       []category_dto.CategoryResponse `json:"categories,omitempty"`
-	Reviews          []review_dto.ReviewResponse     `json:"reviews,omitempty"`
+	Categories       []category_dto.CategoryResponse `json:"categories"`
+	Reviews          []review_dto.ReviewResponse     `json:"reviews"`
 }

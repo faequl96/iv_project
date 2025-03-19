@@ -70,7 +70,7 @@ func ConvertToTransactionResponse(transaction *models.Transaction) transaction_d
 				MainImageURL: transaction.Invitation.InvitationData.MainImageURL,
 			},
 		}
-		transactionResponse.Invitation = invitationResponse
+		transactionResponse.Invitation = &invitationResponse
 	}
 
 	if transaction.ProductType == models.ProductIVCoinPackage {
@@ -83,7 +83,7 @@ func ConvertToTransactionResponse(transaction *models.Transaction) transaction_d
 			IVCPrice:         transaction.IVCoinPackage.IVCPrice,
 			IVCDiscountPrice: transaction.IVCoinPackage.IVCDiscountPrice,
 		}
-		transactionResponse.IVCoinPackage = ivCoinPackageResponse
+		transactionResponse.IVCoinPackage = &ivCoinPackageResponse
 	}
 
 	return transactionResponse
