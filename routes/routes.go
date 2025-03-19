@@ -6,10 +6,14 @@ import (
 
 func RouteInit(r *mux.Router) {
 	UserRoutes(r)
+	UserProfileRoutes(r)
 	IVCoinRoutes(r)
+	IVCoinPackageRoutes(r)
 	InvitationThemeRoutes(r)
+	CategoryRoutes(r)
+	ReviewRoutes(r)
 	InvitationRoutes(r)
 	InvitationDataRoutes(r)
 	GalleryRoutes(r)
-	ReviewRoutes(r)
+	TransactionRoutes(r)
 }
