@@ -8,6 +8,7 @@ import (
 
 type UserProfileRepositories interface {
 	GetUserProfileByID(id uint) (*models.UserProfile, error)
+	GetUserProfileByUserID(userId string) (*models.UserProfile, error)
 	UpdateUserProfile(userProfile *models.UserProfile) error
 }
 
@@ -18,10 +19,13 @@ func UserProfileRepository(db *gorm.DB) *repository {
 func (r *repository) GetUserProfileByID(id uint) (*models.UserProfile, error) {
 	var userProfile models.UserProfile
 	err := r.db.Where("id = ?", id).First(&userProfile).Error
-	if err != nil {
-		return nil, err
-	}
-	return &userProfile, nil
+	return &userProfile, err
+}
+
+func (r *repository) GetUserProfileByUserID(userID string) (*models.UserProfile, error) {
+	var userProfile models.UserProfile
+	err := r.db.Where("user_id = ?", userID).First(&userProfile).Error
+	return &userProfile, err
 }
 
 func (r *repository) UpdateUserProfile(userProfile *models.UserProfile) error {

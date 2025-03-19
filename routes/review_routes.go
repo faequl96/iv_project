@@ -13,8 +13,8 @@ func ReviewRoutes(r *mux.Router) {
 	h := handlers.ReviewHandlers(reviewRepository)
 
 	r.HandleFunc("/review", h.CreateReview).Methods("POST")
-	r.HandleFunc("/review/{id}", h.GetReviewByID).Methods("GET")
-	r.HandleFunc("/reviews/{invitationThemeId}", h.GetReviewsByInvitationThemeID).Methods("GET")
-	r.HandleFunc("/review/{id}", h.UpdateReview).Methods("PATCH")
-	r.HandleFunc("/review/{id}", h.DeleteReview).Methods("DELETE")
+	r.HandleFunc("/review/id/{id}", h.GetReviewByID).Methods("GET")
+	r.HandleFunc("/reviews/invitation-theme-id/{invitationThemeId}", h.GetReviewsByInvitationThemeID).Methods("GET")
+	r.HandleFunc("/review/id/{id}", h.UpdateReview).Methods("PATCH")
+	r.HandleFunc("/review/id/{id}", h.DeleteReview).Methods("DELETE")
 }

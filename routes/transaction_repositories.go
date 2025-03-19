@@ -16,9 +16,9 @@ func TransactionRoutes(r *mux.Router) {
 	h := handlers.TransactionHandler(transactionRepository, invitationRepository, ivCoinPackageRepository, ivCoinRepository)
 
 	r.HandleFunc("/transaction", h.CreateTransaction).Methods("POST")
-	r.HandleFunc("/transaction/{id}", h.GetTransactionByID).Methods("GET")
+	r.HandleFunc("/transaction/id/{id}", h.GetTransactionByID).Methods("GET")
 	r.HandleFunc("/transactions", h.GetTransactions).Methods("GET")
-	r.HandleFunc("/transactions/{userId}", h.GetTransactionsByUserID).Methods("GET")
-	r.HandleFunc("/transaction/{id}", h.UpdateTransaction).Methods("PATCH")
-	r.HandleFunc("/transaction/{id}", h.CreateTransaction).Methods("DELETE")
+	r.HandleFunc("/transactions/user-id/{userId}", h.GetTransactionsByUserID).Methods("GET")
+	r.HandleFunc("/transaction/id/{id}", h.UpdateTransaction).Methods("PATCH")
+	r.HandleFunc("/transaction/id/{id}", h.CreateTransaction).Methods("DELETE")
 }

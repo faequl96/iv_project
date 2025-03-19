@@ -20,7 +20,7 @@ func UserProfileHandlers(UserProfileRepositories repositories.UserProfileReposit
 	return &userProfileHandlers{UserProfileRepositories}
 }
 
-func convertToUserProfileResponse(userProfile *models.UserProfile) user_profile_dto.UserProfileResponse {
+func ConvertToUserProfileResponse(userProfile *models.UserProfile) user_profile_dto.UserProfileResponse {
 	return user_profile_dto.UserProfileResponse{
 		ID:        userProfile.ID,
 		FirstName: userProfile.FirstName,
@@ -43,7 +43,20 @@ func (h *userProfileHandlers) GetUserProfileByID(w http.ResponseWriter, r *http.
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "UserProfile retrieved successfully", convertToUserProfileResponse(userProfile))
+	SuccessResponse(w, http.StatusOK, "UserProfile retrieved successfully", ConvertToUserProfileResponse(userProfile))
+}
+
+func (h *userProfileHandlers) GetUserProfileByUserID(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	id := mux.Vars(r)["userId"]
+	userProfile, err := h.UserProfileRepositories.GetUserProfileByUserID(id)
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "No user profile found with the provided user.")
+		return
+	}
+
+	SuccessResponse(w, http.StatusOK, "IV coin retrieved successfully", ConvertToUserProfileResponse(userProfile))
 }
 
 func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
@@ -84,5 +97,5 @@ func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "UserProfile updated successfully", convertToUserProfileResponse(userProfile))
+	SuccessResponse(w, http.StatusOK, "UserProfile updated successfully", ConvertToUserProfileResponse(userProfile))
 }

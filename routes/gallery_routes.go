@@ -12,6 +12,6 @@ func GalleryRoutes(r *mux.Router) {
 	galleryRepository := repositories.GalleryRepository(mysql.DB)
 	h := handlers.GalleryHandler(galleryRepository)
 
-	r.HandleFunc("/gallery/{id}", h.GetGalleryByID).Methods("GET")
-	r.HandleFunc("/gallery/{id}", h.DeleteGallery).Methods("DELETE")
+	r.HandleFunc("/gallery/id/{id}", h.GetGalleryByID).Methods("GET")
+	r.HandleFunc("/gallery/id/{id}", h.DeleteGallery).Methods("DELETE")
 }

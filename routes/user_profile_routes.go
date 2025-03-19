@@ -12,6 +12,7 @@ func UserProfileRoutes(r *mux.Router) {
 	userProfileRepository := repositories.UserProfileRepository(mysql.DB)
 	h := handlers.UserProfileHandlers(userProfileRepository)
 
-	r.HandleFunc("/user-profile/{id}", h.GetUserProfileByID).Methods("GET")
-	r.HandleFunc("/user-profile/{id}", h.UpdateUserProfile).Methods("PATCH")
+	r.HandleFunc("/user-profile/id/{id}", h.GetUserProfileByID).Methods("GET")
+	r.HandleFunc("/user-profile/user-id/{userId}", h.GetUserProfileByUserID).Methods("GET")
+	r.HandleFunc("/user-profile/id/{id}", h.UpdateUserProfile).Methods("PATCH")
 }

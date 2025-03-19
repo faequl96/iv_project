@@ -13,7 +13,7 @@ func UserRoutes(r *mux.Router) {
 	h := handlers.UserHandlers(userRepository)
 
 	r.HandleFunc("/user", h.CreateUser).Methods("POST")
-	r.HandleFunc("/user/{id}", h.GetUserByID).Methods("GET")
+	r.HandleFunc("/user/id/{id}", h.GetUserByID).Methods("GET")
 	r.HandleFunc("/users", h.GetUsers).Methods("GET")
-	r.HandleFunc("/user/{id}", h.DeleteUser).Methods("DELETE")
+	r.HandleFunc("/user/id/{id}", h.DeleteUser).Methods("DELETE")
 }

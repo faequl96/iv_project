@@ -14,9 +14,9 @@ func InvitationRoutes(r *mux.Router) {
 	h := handlers.InvitationHandler(invitationRepository)
 
 	r.HandleFunc("/invitation", middleware.InvitationImagesUploader(h.CreateInvitation)).Methods("POST")
-	r.HandleFunc("/invitation/{id}", h.GetInvitationByID).Methods("GET")
+	r.HandleFunc("/invitationid//{id}", h.GetInvitationByID).Methods("GET")
 	r.HandleFunc("/invitations", h.GetInvitations).Methods("GET")
-	r.HandleFunc("/invitations/{userId}", h.GetInvitationsByUserID).Methods("GET")
-	r.HandleFunc("/invitation/{id}", middleware.InvitationImagesUploader(h.UpdateInvitation)).Methods("PATCH")
-	r.HandleFunc("/invitation/{id}", h.CreateInvitation).Methods("DELETE")
+	r.HandleFunc("/invitations/user-id/{userId}", h.GetInvitationsByUserID).Methods("GET")
+	r.HandleFunc("/invitationid//{id}", middleware.InvitationImagesUploader(h.UpdateInvitation)).Methods("PATCH")
+	r.HandleFunc("/invitationid//{id}", h.CreateInvitation).Methods("DELETE")
 }
