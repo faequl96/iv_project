@@ -10,6 +10,7 @@ type UserRepositories interface {
 	CreateUser(user *models.User) error
 	GetUserByID(id string) (*models.User, error)
 	GetUsers() ([]models.User, error)
+	UpdateUser(user *models.User) error
 	DeleteUser(id string) error
 }
 
@@ -36,6 +37,10 @@ func (r *repository) GetUsers() ([]models.User, error) {
 	var users []models.User
 	err := r.db.Preload("UserProfile").Preload("IVCoin").Find(&users).Error
 	return users, err
+}
+
+func (r *repository) UpdateUser(user *models.User) error {
+	return r.db.Save(user).Error
 }
 
 func (r *repository) DeleteUser(id string) error {

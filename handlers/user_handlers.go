@@ -108,6 +108,40 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 	SuccessResponse(w, http.StatusOK, "Users retrieved successfully", userResponses)
 }
 
+func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	id := mux.Vars(r)["id"]
+
+	user, err := h.UserRepositories.GetUserByID(id)
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	request := new(user_dto.UpdateUserRequest)
+	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		return
+	}
+
+	if request.Role != "" {
+		user.Role = request.Role
+	}
+
+	if err = h.UserRepositories.UpdateUser(user); err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "Failed to update User: "+err.Error())
+		return
+	}
+
+	SuccessResponse(w, http.StatusOK, "User updated successfully", ConvertToUserResponse(user))
+}
+
 func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
