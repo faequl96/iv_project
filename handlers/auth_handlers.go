@@ -79,10 +79,11 @@ func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		user = userFinded
 	}
 
-	if user.Email == "faequl96@gmail.com" {
-		user.Role = models.UserRoleSuperAdmin
-	} else {
+	if user.Role == "" {
 		user.Role = models.UserRoleUser
+		if user.Email == "faequl96@gmail.com" {
+			user.Role = models.UserRoleSuperAdmin
+		}
 	}
 
 	if userFinded == nil {

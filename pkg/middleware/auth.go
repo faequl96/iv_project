@@ -48,7 +48,7 @@ func Auth(jwtServices jwtToken.JWTServices, next http.HandlerFunc) http.HandlerF
 			userID = fmt.Sprintf("%v", idValue)
 		}
 
-		roleValue, exists := claims["id"]
+		roleValue, exists := claims["role"]
 		if !exists {
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token claims: missing role"})
