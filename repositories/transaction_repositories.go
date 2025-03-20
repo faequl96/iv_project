@@ -42,7 +42,7 @@ func (r *repository) GetTransactions() ([]models.Transaction, error) {
 
 func (r *repository) GetTransactionsByUserID(userID string) ([]models.Transaction, error) {
 	var transactions []models.Transaction
-	err := r.db.Preload("Invitation").Preload("IVCoinPackage").Where("user_id = ?", userID).Find(&transactions).Error
+	err := r.db.Preload("Invitation").Preload("IVCoinPackage").Find(&transactions, "user_id = ?", userID).Error
 	return transactions, err
 }
 

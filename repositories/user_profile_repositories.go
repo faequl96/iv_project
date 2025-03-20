@@ -29,7 +29,7 @@ func (r *repository) GetUserProfileByID(id uint) (*models.UserProfile, error) {
 
 func (r *repository) GetUserProfileByUserID(userID string) (*models.UserProfile, error) {
 	var userProfile models.UserProfile
-	err := r.db.Where("user_id = ?", userID).First(&userProfile).Error
+	err := r.db.First(&userProfile, "user_id = ?", userID).Error
 	return &userProfile, err
 }
 

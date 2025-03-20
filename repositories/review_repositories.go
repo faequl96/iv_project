@@ -30,7 +30,7 @@ func (r *repository) GetReviewByID(id uint) (*models.Review, error) {
 
 func (r *repository) GetReviewsByInvitationThemeID(invitationThemeID uint) ([]models.Review, error) {
 	var reviews []models.Review
-	err := r.db.Where("invitation_theme_id = ?", invitationThemeID).Find(&reviews).Error
+	err := r.db.Find(&reviews, "invitation_theme_id = ?", invitationThemeID).Error
 	return reviews, err
 }
 

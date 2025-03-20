@@ -42,7 +42,7 @@ func (r *repository) GetInvitationThemes() ([]models.InvitationTheme, error) {
 
 func (r *repository) GetInvitationThemesByCategory(category string) ([]models.InvitationTheme, error) {
 	var invitationThemes []models.InvitationTheme
-	err := r.db.Preload("Review").Where("category = ?", category).Find(&invitationThemes).Error
+	err := r.db.Preload("Review").Find(&invitationThemes, "category = ?", category).Error
 	return invitationThemes, err
 }
 

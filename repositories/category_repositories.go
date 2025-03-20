@@ -37,7 +37,7 @@ func (r *repository) GetCategories() ([]models.Category, error) {
 
 func (r *repository) GetCategoriesByIDs(ids []uint) ([]models.Category, error) {
 	var categories []models.Category
-	err := r.db.Where("id IN ?", ids).Find(&categories).Error
+	err := r.db.Find(&categories, "id IN ?", ids).Error
 	return categories, err
 }
 

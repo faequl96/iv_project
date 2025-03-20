@@ -42,7 +42,7 @@ func (r *repository) GetInvitations() ([]models.Invitation, error) {
 
 func (r *repository) GetInvitationsByUserID(userID string) ([]models.Invitation, error) {
 	var invitations []models.Invitation
-	err := r.db.Preload("InvitationData.Gallery").Where("user_id = ?", userID).Find(&invitations).Error
+	err := r.db.Preload("InvitationData.Gallery").Find(&invitations, "user_id = ?", userID).Error
 	return invitations, err
 }
 
