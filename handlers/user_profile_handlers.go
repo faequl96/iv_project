@@ -67,11 +67,11 @@ func (h *userProfileHandlers) GetUserProfileByID(w http.ResponseWriter, r *http.
 
 	userProfile, err := h.UserProfileRepositories.GetUserProfileByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "UserProfile not found")
+		ErrorResponse(w, http.StatusNotFound, "User profile not found")
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "UserProfile retrieved successfully", ConvertToUserProfileResponse(userProfile))
+	SuccessResponse(w, http.StatusOK, "User profile retrieved successfully", ConvertToUserProfileResponse(userProfile))
 }
 
 func (h *userProfileHandlers) GetUserProfileByUserID(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +84,7 @@ func (h *userProfileHandlers) GetUserProfileByUserID(w http.ResponseWriter, r *h
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "IV coin retrieved successfully", ConvertToUserProfileResponse(userProfile))
+	SuccessResponse(w, http.StatusOK, "User profile retrieved successfully", ConvertToUserProfileResponse(userProfile))
 }
 
 func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +98,7 @@ func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.R
 
 	userProfile, err := h.UserProfileRepositories.GetUserProfileByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "UserProfile not found")
+		ErrorResponse(w, http.StatusNotFound, "User profile not found")
 		return
 	}
 
@@ -121,9 +121,9 @@ func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.R
 	}
 
 	if err = h.UserProfileRepositories.UpdateUserProfile(userProfile); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to update UserProfile: "+err.Error())
+		ErrorResponse(w, http.StatusInternalServerError, "Failed to update User profile: "+err.Error())
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "UserProfile updated successfully", ConvertToUserProfileResponse(userProfile))
+	SuccessResponse(w, http.StatusOK, "User profile updated successfully", ConvertToUserProfileResponse(userProfile))
 }

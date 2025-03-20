@@ -49,10 +49,10 @@ func ConvertToAuthResponse(token string, user *models.User) auth_dto.AuthRespons
 	}
 }
 
-func (h *userHandlers) Login(w http.ResponseWriter, r *http.Request) {
+func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var request user_dto.CreateUserRequest
+	var request auth_dto.LoginAuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return
@@ -64,22 +64,20 @@ func (h *userHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *models.User
-	var message string
 
 	userFinded, err := h.UserRepositories.GetUserByID(request.ID)
 	if err != nil {
 		user = &models.User{
-			ID: request.ID,
+			ID:    request.ID,
+			Email: request.Email,
 			IVCoin: &models.IVCoin{
 				Balance: 0,
 				UserID:  request.ID,
 			},
 		}
-		message = "User created successfully"
 	}
 	if userFinded != nil {
 		user = userFinded
-		message = "User already created"
 	}
 
 	if user.Email == "faequl96@gmail.com" {
@@ -95,12 +93,12 @@ func (h *userHandlers) Login(w http.ResponseWriter, r *http.Request) {
 
 	token, _ := jwtToken.GenerateToken(&claims)
 
-	if userFinded != nil {
+	if userFinded == nil {
 		if err := h.UserRepositories.CreateUser(user); err != nil {
 			ErrorResponse(w, http.StatusInternalServerError, "Failed to create user: "+err.Error())
 			return
 		}
 	}
 
-	SuccessResponse(w, http.StatusCreated, message, ConvertToAuthResponse(token, user))
+	SuccessResponse(w, http.StatusOK, "User login successfully", ConvertToAuthResponse(token, user))
 }

@@ -5,6 +5,7 @@ import (
 )
 
 func RouteInit(r *mux.Router) {
+	AuthRoutes(r)
 	UserRoutes(r)
 	UserProfileRoutes(r)
 	IVCoinRoutes(r)
