@@ -102,7 +102,7 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 		},
 	}
 
-	uploadedFiles, ok := r.Context().Value(middleware.UploadedFilesKey).(map[string]string)
+	uploadedFiles, ok := r.Context().Value(middleware.UploadsKey).(map[string]string)
 	if ok {
 		if val, exists := uploadedFiles["main_image_url"]; exists {
 			invitation.InvitationData.MainImageURL = val
@@ -257,7 +257,7 @@ func (h *invitationHandlers) UpdateInvitation(w http.ResponseWriter, r *http.Req
 
 	invitation.InvitationData.EventDate = eventDate
 
-	uploadedFiles, ok := r.Context().Value(middleware.UploadedFilesKey).(map[string]string)
+	uploadedFiles, ok := r.Context().Value(middleware.UploadsKey).(map[string]string)
 	if ok {
 		if val, exists := uploadedFiles["main_image_url"]; exists {
 			invitation.InvitationData.MainImageURL = val

@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 )
 
-const UploadedFilesKey middlewareKey = "uploadedFiles"
+const UploadsKey MiddlewareKey = "uploadedFiles"
 
 // Kompres gambar agar ukurannya di bawah 300 KB tanpa package tambahan
 func compressImage(src io.Reader) ([]byte, error) {
@@ -85,7 +85,7 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Tambahkan hasil upload ke dalam context
-		ctx := context.WithValue(r.Context(), UploadedFilesKey, uploadedFiles)
+		ctx := context.WithValue(r.Context(), UploadsKey, uploadedFiles)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

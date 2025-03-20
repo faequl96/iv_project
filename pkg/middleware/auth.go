@@ -3,17 +3,18 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	dto "iv_project/dto"
 	jwtToken "iv_project/pkg/jwt"
 	"net/http"
 	"strings"
 )
 
-const userIdKey middlewareKey = "userID"
-const roleKey middlewareKey = "role"
+const UserIdKey MiddlewareKey = "userID"
+const RoleKey MiddlewareKey = "role"
 
 func Auth(jwtServices jwtToken.JWTServices, next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -30,29 +31,37 @@ func Auth(jwtServices jwtToken.JWTServices, next http.HandlerFunc) http.HandlerF
 
 		tokenString := strings.TrimPrefix(authHeader, bearerPrefix)
 		claims, err := jwtServices.DecodeToken(tokenString)
-		if err != nil {
+		if err != nil || claims == nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid or expired token"})
 			return
 		}
 
-		userID, ok := claims["id"].(string)
-		if !ok {
+		idValue, exists := claims["id"]
+		if !exists {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token payload"})
+			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token claims: missing userID"})
 			return
 		}
-
-		role, ok := claims["role"].(string)
+		userID, ok := idValue.(string)
 		if !ok {
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token role"})
-			return
+			userID = fmt.Sprintf("%v", idValue)
 		}
 
-		ctx := context.WithValue(r.Context(), userIdKey, userID)
-		ctx = context.WithValue(ctx, roleKey, role)
+		roleValue, exists := claims["id"]
+		if !exists {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token claims: missing role"})
+			return
+		}
+		role, ok := roleValue.(string)
+		if !ok {
+			role = fmt.Sprintf("%v", roleValue)
+		}
+
+		ctx := context.WithValue(r.Context(), UserIdKey, userID)
+		ctx = context.WithValue(ctx, RoleKey, role)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
-	}
+	})
 }

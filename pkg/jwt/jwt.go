@@ -28,7 +28,7 @@ func JWTService(secretKey string, issuer string) JWTServices {
 func (j *jwtService) GenerateToken(userID string, role models.UserRoleType) (string, error) {
 	claims := jwt.MapClaims{
 		"id":   userID,
-		"role": role,
+		"role": role.String(),
 		"exp":  time.Now().Add(time.Hour * 48).Unix(), // Token berlaku 48 jam
 		"iss":  j.issuer,
 	}
@@ -49,13 +49,16 @@ func (j *jwtService) DecodeToken(tokenString string) (jwt.MapClaims, error) {
 		}
 		return []byte(j.secretKey), nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims, nil
+	claims, ok := token.Claims.(jwt.MapClaims)
+
+	if !ok || !token.Valid {
+		return nil, errors.New("invalid token claims")
 	}
 
-	return nil, errors.New("invalid token")
+	return claims, nil
 }

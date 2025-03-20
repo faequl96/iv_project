@@ -92,7 +92,7 @@ func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	token, _ := h.JwtServices.GenerateToken(user.ID, user.Role)
+	token, _ := h.JwtServices.GenerateToken(user.ID, "user")
 
 	SuccessResponse(w, http.StatusOK, "User login successfully", ConvertToAuthResponse(token, user))
 }

@@ -6,11 +6,11 @@ import (
 	user_dto "iv_project/dto/user"
 	user_profile_dto "iv_project/dto/user_profile"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 )
 
@@ -47,12 +47,11 @@ func ConvertToUserResponse(user *models.User) user_dto.UserResponse {
 func (h *userHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
-	id := userInfo["id"].(string)
+	userID := r.Context().Value(middleware.UserIdKey).(string)
 
-	user, err := h.UserRepositories.GetUserByID(id)
+	user, err := h.UserRepositories.GetUserByID(userID)
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
+		ErrorResponse(w, http.StatusNotFound, "User with ID "+userID+" not found")
 		return
 	}
 

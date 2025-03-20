@@ -1,3 +1,3 @@
 package middleware
 
-type middlewareKey string
+type MiddlewareKey string
