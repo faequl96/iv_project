@@ -48,7 +48,6 @@ func (h *userHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	userID := r.Context().Value(middleware.UserIdKey).(string)
-
 	user, err := h.UserRepositories.GetUserByID(userID)
 	if err != nil {
 		ErrorResponse(w, http.StatusNotFound, "User with ID "+userID+" not found")
@@ -61,8 +60,13 @@ func (h *userHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
 func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
+		ErrorResponse(w, http.StatusInternalServerError, "You do not have permission to access this resource.")
+		return
+	}
 
+	id := mux.Vars(r)["id"]
 	user, err := h.UserRepositories.GetUserByID(id)
 	if err != nil {
 		ErrorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
@@ -74,6 +78,12 @@ func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
+		ErrorResponse(w, http.StatusInternalServerError, "You do not have permission to access this resource.")
+		return
+	}
 
 	users, err := h.UserRepositories.GetUsers()
 	if err != nil {
@@ -94,8 +104,14 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 	SuccessResponse(w, http.StatusOK, "Users retrieved successfully", userResponses)
 }
 
-func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (h *userHandlers) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
+		ErrorResponse(w, http.StatusInternalServerError, "You do not have permission to access this resource.")
+		return
+	}
 
 	var request user_dto.UpdateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -109,20 +125,14 @@ func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := mux.Vars(r)["id"]
-
 	user, err := h.UserRepositories.GetUserByID(id)
 	if err != nil {
 		ErrorResponse(w, http.StatusNotFound, "User not found")
 		return
 	}
 
-	roles := map[string]models.UserRoleType{
-		"super_admin": models.UserRoleSuperAdmin,
-		"admin":       models.UserRoleAdmin,
-		"user":        models.UserRoleUser,
-	}
-	user.Role = roles[request.Role]
-	if user.Role == "" {
+	user.Role = models.StringToUserRole(request.Role)
+	if user.Role.String() == "" {
 		user.Role = models.UserRoleUser
 	}
 
@@ -137,8 +147,30 @@ func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
+	userID := r.Context().Value(middleware.UserIdKey).(string)
+	if _, err := h.UserRepositories.GetUserByID(userID); err != nil {
+		ErrorResponse(w, http.StatusNotFound, "User with ID "+userID+" not found")
+		return
+	}
 
+	if err := h.UserRepositories.DeleteUser(userID); err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "Failed to delete user: "+err.Error())
+		return
+	}
+
+	SuccessResponse(w, http.StatusOK, "User deleted successfully", nil)
+}
+
+func (h *userHandlers) DeleteUserByID(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
+		ErrorResponse(w, http.StatusInternalServerError, "You do not have permission to access this resource.")
+		return
+	}
+
+	id := mux.Vars(r)["id"]
 	if _, err := h.UserRepositories.GetUserByID(id); err != nil {
 		ErrorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
 		return

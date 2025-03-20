@@ -28,7 +28,7 @@ func JWTService(secretKey string, issuer string) JWTServices {
 func (j *jwtService) GenerateToken(userID string, role models.UserRoleType) (string, error) {
 	claims := jwt.MapClaims{
 		"id":   userID,
-		"role": role,
+		"role": role.String(),
 		"exp":  time.Now().Add(time.Hour * 48).Unix(), // Token berlaku 48 jam
 		"iss":  j.issuer,
 	}

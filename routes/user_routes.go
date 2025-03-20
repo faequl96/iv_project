@@ -15,8 +15,9 @@ func UserRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	h := handlers.UserHandlers(userRepository)
 
 	r.HandleFunc("/user", middleware.Auth(jwtServices, h.GetUser)).Methods("GET")
-	r.HandleFunc("/user/id/{id}", h.GetUserByID).Methods("GET")
-	r.HandleFunc("/users", h.GetUsers).Methods("GET")
-	r.HandleFunc("/user/id/{id}", h.UpdateUser).Methods("PATCH")
-	r.HandleFunc("/user/id/{id}", h.DeleteUser).Methods("DELETE")
+	r.HandleFunc("/user/id/{id}", middleware.Auth(jwtServices, h.GetUserByID)).Methods("GET")
+	r.HandleFunc("/users", middleware.Auth(jwtServices, h.GetUsers)).Methods("GET")
+	r.HandleFunc("/user/id/{id}", middleware.Auth(jwtServices, h.UpdateUserByID)).Methods("PATCH")
+	r.HandleFunc("/user", middleware.Auth(jwtServices, h.DeleteUser)).Methods("DELETE")
+	r.HandleFunc("/user/id/{id}", middleware.Auth(jwtServices, h.DeleteUserByID)).Methods("DELETE")
 }

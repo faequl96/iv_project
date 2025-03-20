@@ -14,6 +14,24 @@ const (
 	UserRoleUser       UserRoleType = "user"
 )
 
+func (u UserRoleType) String() string {
+	maps := map[UserRoleType]string{
+		UserRoleSuperAdmin: "super_admin",
+		UserRoleAdmin:      "admin",
+		UserRoleUser:       "user",
+	}
+	return maps[u]
+}
+
+func StringToUserRole(value string) UserRoleType {
+	maps := map[string]UserRoleType{
+		"super_admin": UserRoleSuperAdmin,
+		"admin":       UserRoleAdmin,
+		"user":        UserRoleUser,
+	}
+	return maps[value]
+}
+
 type User struct {
 	ID          string       `gorm:"primaryKey;size:36" json:"id"` // Firebase UID
 	Email       string       `gorm:"size:100" json:"email"`
