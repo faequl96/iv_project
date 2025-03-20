@@ -155,6 +155,17 @@ func (h *invitationThemeHandlers) GetInvitationThemesByCategory(w http.ResponseW
 func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	var request invitation_theme_dto.UpdateInvitationThemeRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		return
+	}
+
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation theme ID format. Please provide a numeric ID.")
@@ -164,17 +175,6 @@ func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r
 	invitationTheme, err := h.InvitationThemeRepositories.GetInvitationThemeByID(uint(id))
 	if err != nil {
 		ErrorResponse(w, http.StatusNotFound, "No invitation theme found with the provided ID.")
-		return
-	}
-
-	var request invitation_theme_dto.UpdateInvitationThemeRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
-		return
-	}
-
-	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

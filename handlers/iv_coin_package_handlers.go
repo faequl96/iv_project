@@ -106,6 +106,17 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http
 func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	var request iv_coin_package_dto.UpdateIVCoinPackageRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		return
+	}
+
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid IV coin package ID format. Please provide a numeric ID.")
@@ -115,17 +126,6 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *ht
 	ivCoinPackage, err := h.IVCoinPackageRepositories.GetIVCoinPackageByID(uint(id))
 	if err != nil {
 		ErrorResponse(w, http.StatusNotFound, "No IV coin package found with the provided ID.")
-		return
-	}
-
-	var request iv_coin_package_dto.UpdateIVCoinPackageRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
-		return
-	}
-
-	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

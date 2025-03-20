@@ -119,6 +119,17 @@ func (h *reviewHandlers) GetReviewsByInvitationThemeID(w http.ResponseWriter, r 
 func (h *reviewHandlers) UpdateReview(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	var request review_dto.UpdateReviewRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		return
+	}
+
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format. Please use a number.")
@@ -128,17 +139,6 @@ func (h *reviewHandlers) UpdateReview(w http.ResponseWriter, r *http.Request) {
 	review, err := h.ReviewRepositories.GetReviewByID(uint(id))
 	if err != nil {
 		ErrorResponse(w, http.StatusNotFound, "Review not found with the given ID.")
-		return
-	}
-
-	var request review_dto.UpdateReviewRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
-		return
-	}
-
-	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

@@ -1,12 +1,17 @@
 package routes
 
 import (
+	jwtToken "iv_project/pkg/jwt"
+	"os"
+
 	"github.com/gorilla/mux"
 )
 
 func RouteInit(r *mux.Router) {
-	AuthRoutes(r)
-	UserRoutes(r)
+	j := jwtToken.JWTService(os.Getenv("JWT_SECRET"), "iv_project")
+
+	AuthRoutes(r, j)
+	UserRoutes(r, j)
 	UserProfileRoutes(r)
 	IVCoinRoutes(r)
 	IVCoinPackageRoutes(r)

@@ -10,18 +10,17 @@ import (
 	jwtToken "iv_project/pkg/jwt"
 	"iv_project/repositories"
 	"net/http"
-	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/golang-jwt/jwt"
 )
 
 type authHandlers struct {
+	JwtServices      jwtToken.JWTServices
 	UserRepositories repositories.UserRepositories
 }
 
-func AuthHandlers(UserRepositories repositories.UserRepositories) *authHandlers {
-	return &authHandlers{UserRepositories}
+func AuthHandlers(JwtServices jwtToken.JWTServices, UserRepositories repositories.UserRepositories) *authHandlers {
+	return &authHandlers{JwtServices, UserRepositories}
 }
 
 func ConvertToAuthResponse(token string, user *models.User) auth_dto.AuthResponse {
@@ -86,19 +85,14 @@ func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		user.Role = models.UserRoleUser
 	}
 
-	claims := jwt.MapClaims{}
-	claims["id"] = user.ID
-	claims["role"] = user.Role
-	claims["exp"] = time.Now().Add(time.Hour * 48).Unix() // 2 day expired
-
-	token, _ := jwtToken.GenerateToken(&claims)
-
 	if userFinded == nil {
 		if err := h.UserRepositories.CreateUser(user); err != nil {
 			ErrorResponse(w, http.StatusInternalServerError, "Failed to create user: "+err.Error())
 			return
 		}
 	}
+
+	token, _ := h.JwtServices.GenerateToken(user.ID, user.Role)
 
 	SuccessResponse(w, http.StatusOK, "User login successfully", ConvertToAuthResponse(token, user))
 }

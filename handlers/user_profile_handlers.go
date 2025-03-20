@@ -90,6 +90,17 @@ func (h *userProfileHandlers) GetUserProfileByUserID(w http.ResponseWriter, r *h
 func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	var request user_profile_dto.UpdateUserProfileRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		return
+	}
+
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format")
@@ -99,17 +110,6 @@ func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.R
 	userProfile, err := h.UserProfileRepositories.GetUserProfileByID(uint(id))
 	if err != nil {
 		ErrorResponse(w, http.StatusNotFound, "User profile not found")
-		return
-	}
-
-	request := new(user_profile_dto.UpdateUserProfileRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
-		return
-	}
-
-	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
 		return
 	}
 

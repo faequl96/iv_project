@@ -224,7 +224,7 @@ func (h *invitationHandlers) GetInvitationsByUserID(w http.ResponseWriter, r *ht
 func (h *invitationHandlers) UpdateInvitation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(invitation_dto.UpdateInvitationRequest)
+	var request invitation_dto.UpdateInvitationRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
 		return

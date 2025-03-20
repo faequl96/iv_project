@@ -9,27 +9,50 @@ import (
 	"strings"
 )
 
-const authKey middlewareKey = "userInfo"
+const userIdKey middlewareKey = "userID"
+const roleKey middlewareKey = "role"
 
-func Auth(next http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		token := r.Header.Get("Authorization")
-		if token == "" {
+func Auth(jwtServices jwtToken.JWTServices, next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "unauthorized"})
+			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Authorization header is required"})
 			return
 		}
 
-		claims, err := jwtToken.DecodeToken(strings.Split(token, " ")[1])
+		const bearerPrefix = "Bearer "
+		if !strings.HasPrefix(authHeader, bearerPrefix) {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token format"})
+			return
+		}
+
+		tokenString := strings.TrimPrefix(authHeader, bearerPrefix)
+		claims, err := jwtServices.DecodeToken(tokenString)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "unauthorized"})
+			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid or expired token"})
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), authKey, claims)
+		userID, ok := claims["id"].(string)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token payload"})
+			return
+		}
+
+		role, ok := claims["role"].(string)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token role"})
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), userIdKey, userID)
+		ctx = context.WithValue(ctx, roleKey, role)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+	}
 }

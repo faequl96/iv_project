@@ -73,8 +73,8 @@ func (h *ivCoinHandlers) UpdateIVCoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request := new(iv_coin_dto.IVCoinRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
+	var request iv_coin_dto.IVCoinRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return
 	}

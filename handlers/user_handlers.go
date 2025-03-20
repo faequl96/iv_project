@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 )
 
@@ -23,7 +24,8 @@ func UserHandlers(UserRepositories repositories.UserRepositories) *userHandlers 
 
 func ConvertToUserResponse(user *models.User) user_dto.UserResponse {
 	userResponse := user_dto.UserResponse{
-		ID: user.ID,
+		ID:   user.ID,
+		Role: user.Role,
 	}
 	if user.UserProfile != nil {
 		userResponse.UserProfile = &user_profile_dto.UserProfileResponse{
@@ -40,6 +42,21 @@ func ConvertToUserResponse(user *models.User) user_dto.UserResponse {
 	}
 
 	return userResponse
+}
+
+func (h *userHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	id := userInfo["id"].(string)
+
+	user, err := h.UserRepositories.GetUserByID(id)
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
+		return
+	}
+
+	SuccessResponse(w, http.StatusOK, "User retrieved successfully", ConvertToUserResponse(user))
 }
 
 func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
@@ -81,16 +98,8 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["id"]
-
-	user, err := h.UserRepositories.GetUserByID(id)
-	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User not found")
-		return
-	}
-
-	request := new(user_dto.UpdateUserRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
+	var request user_dto.UpdateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return
 	}
@@ -100,8 +109,22 @@ func (h *userHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Role != "" {
-		user.Role = request.Role
+	id := mux.Vars(r)["id"]
+
+	user, err := h.UserRepositories.GetUserByID(id)
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	roles := map[string]models.UserRoleType{
+		"super_admin": models.UserRoleSuperAdmin,
+		"admin":       models.UserRoleAdmin,
+		"user":        models.UserRoleUser,
+	}
+	user.Role = roles[request.Role]
+	if user.Role == "" {
+		user.Role = models.UserRoleUser
 	}
 
 	if err = h.UserRepositories.UpdateUser(user); err != nil {

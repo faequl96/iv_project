@@ -238,7 +238,7 @@ func (h *transactionHandlers) GetTransactionsByUserID(w http.ResponseWriter, r *
 func (h *transactionHandlers) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(transaction_dto.UpdateTransactionRequest)
+	var request transaction_dto.UpdateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
 		return

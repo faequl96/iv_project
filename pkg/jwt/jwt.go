@@ -1,40 +1,61 @@
 package jwtToken
 
 import (
-	"fmt"
-	"os"
+	"errors"
+	"iv_project/models"
+	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-var SecretKey = os.Getenv("JWT_SECRET")
+type JWTServices interface {
+	GenerateToken(userID string, role models.UserRoleType) (string, error)
+	DecodeToken(tokenString string) (jwt.MapClaims, error)
+}
 
-func GenerateToken(claims *jwt.MapClaims) (string, error) {
+type jwtService struct {
+	secretKey string
+	issuer    string
+}
+
+func JWTService(secretKey string, issuer string) JWTServices {
+	return &jwtService{
+		secretKey: secretKey,
+		issuer:    issuer,
+	}
+}
+
+func (j *jwtService) GenerateToken(userID string, role models.UserRoleType) (string, error) {
+	claims := jwt.MapClaims{
+		"id":   userID,
+		"role": role,
+		"exp":  time.Now().Add(time.Hour * 48).Unix(), // Token berlaku 48 jam
+		"iss":  j.issuer,
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	webtoken, err := token.SignedString([]byte(SecretKey))
-	return webtoken, err
+	signedToken, err := token.SignedString([]byte(j.secretKey))
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
 }
 
-func VerifyToken(tokenString string) (*jwt.Token, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		if _, isValid := token.Method.(*jwt.SigningMethodHMAC); !isValid {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+func (j *jwtService) DecodeToken(tokenString string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
 		}
-		return []byte(SecretKey), nil
+		return []byte(j.secretKey), nil
 	})
-	return token, err
-}
-
-func DecodeToken(tokenString string) (jwt.MapClaims, error) {
-	token, err := VerifyToken(tokenString)
 	if err != nil {
 		return nil, err
 	}
 
-	claims, isOk := token.Claims.(jwt.MapClaims)
-	if isOk && token.Valid {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		return claims, nil
 	}
 
-	return nil, fmt.Errorf("invalid token")
+	return nil, errors.New("invalid token")
 }
