@@ -24,10 +24,7 @@ func AuthHandlers(JwtServices jwtToken.JWTServices, UserRepositories repositorie
 }
 
 func ConvertToAuthResponse(token string, user *models.User) auth_dto.AuthResponse {
-	userResponse := user_dto.UserResponse{
-		ID:   user.ID,
-		Role: user.Role,
-	}
+	userResponse := user_dto.UserResponse{ID: user.ID, Role: user.Role}
 	if user.UserProfile != nil {
 		userResponse.UserProfile = &user_profile_dto.UserProfileResponse{
 			ID:        user.UserProfile.ID,
@@ -42,10 +39,7 @@ func ConvertToAuthResponse(token string, user *models.User) auth_dto.AuthRespons
 		}
 	}
 
-	return auth_dto.AuthResponse{
-		Token: token,
-		User:  userResponse,
-	}
+	return auth_dto.AuthResponse{Token: token, User: userResponse}
 }
 
 func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
@@ -67,12 +61,10 @@ func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	userFinded, err := h.UserRepositories.GetUserByID(request.ID)
 	if err != nil {
 		user = &models.User{
-			ID:    request.ID,
-			Email: request.Email,
-			IVCoin: &models.IVCoin{
-				Balance: 0,
-				UserID:  request.ID,
-			},
+			ID:          request.ID,
+			Email:       request.Email,
+			UserProfile: &models.UserProfile{UserID: request.ID},
+			IVCoin:      &models.IVCoin{Balance: 0, UserID: request.ID},
 		}
 	}
 	if userFinded != nil {

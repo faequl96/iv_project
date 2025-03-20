@@ -23,10 +23,7 @@ func UserHandlers(UserRepositories repositories.UserRepositories) *userHandlers 
 }
 
 func ConvertToUserResponse(user *models.User) user_dto.UserResponse {
-	userResponse := user_dto.UserResponse{
-		ID:   user.ID,
-		Role: user.Role,
-	}
+	userResponse := user_dto.UserResponse{ID: user.ID, Role: user.Role}
 	if user.UserProfile != nil {
 		userResponse.UserProfile = &user_profile_dto.UserProfileResponse{
 			ID:        user.UserProfile.ID,
@@ -62,7 +59,7 @@ func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
-		ErrorResponse(w, http.StatusInternalServerError, "You do not have permission to access this resource.")
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
 		return
 	}
 
@@ -81,7 +78,7 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
-		ErrorResponse(w, http.StatusInternalServerError, "You do not have permission to access this resource.")
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
 		return
 	}
 
@@ -109,7 +106,7 @@ func (h *userHandlers) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
-		ErrorResponse(w, http.StatusInternalServerError, "You do not have permission to access this resource.")
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
 		return
 	}
 
@@ -166,7 +163,7 @@ func (h *userHandlers) DeleteUserByID(w http.ResponseWriter, r *http.Request) {
 
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
-		ErrorResponse(w, http.StatusInternalServerError, "You do not have permission to access this resource.")
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
 		return
 	}
 

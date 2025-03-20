@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	user_profile_dto "iv_project/dto/user_profile"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -28,36 +29,27 @@ func ConvertToUserProfileResponse(userProfile *models.UserProfile) user_profile_
 	}
 }
 
-func (h *userProfileHandlers) CreateUserProfile(w http.ResponseWriter, r *http.Request) {
+func (h *userProfileHandlers) GetUserProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var request user_profile_dto.CreateUserProfileRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+	userID := r.Context().Value(middleware.UserIdKey).(string)
+	userProfile, err := h.UserProfileRepositories.GetUserProfileByUserID(userID)
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "No user profile found with the provided user.")
 		return
 	}
 
-	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
-		return
-	}
-
-	userProfile := &models.UserProfile{
-		FirstName: request.FirstName,
-		LastName:  request.LastName,
-		UserID:    request.UserID,
-	}
-
-	if err := h.UserProfileRepositories.CreateUserProfile(userProfile); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while create the user profile. Please try again.")
-		return
-	}
-
-	SuccessResponse(w, http.StatusCreated, "User Profile successfully created", ConvertToUserProfileResponse(userProfile))
+	SuccessResponse(w, http.StatusOK, "User profile retrieved successfully", ConvertToUserProfileResponse(userProfile))
 }
 
 func (h *userProfileHandlers) GetUserProfileByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
@@ -74,21 +66,50 @@ func (h *userProfileHandlers) GetUserProfileByID(w http.ResponseWriter, r *http.
 	SuccessResponse(w, http.StatusOK, "User profile retrieved successfully", ConvertToUserProfileResponse(userProfile))
 }
 
-func (h *userProfileHandlers) GetUserProfileByUserID(w http.ResponseWriter, r *http.Request) {
+func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["userId"]
-	userProfile, err := h.UserProfileRepositories.GetUserProfileByUserID(id)
+	userID := r.Context().Value(middleware.UserIdKey).(string)
+	userProfile, err := h.UserProfileRepositories.GetUserProfileByUserID(userID)
 	if err != nil {
 		ErrorResponse(w, http.StatusNotFound, "No user profile found with the provided user.")
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "User profile retrieved successfully", ConvertToUserProfileResponse(userProfile))
+	var request user_profile_dto.UpdateUserProfileRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		return
+	}
+
+	if request.FirstName != "" {
+		userProfile.FirstName = request.FirstName
+	}
+	if request.LastName != "" {
+		userProfile.LastName = request.LastName
+	}
+
+	if err = h.UserProfileRepositories.UpdateUserProfile(userProfile); err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "Failed to update User profile: "+err.Error())
+		return
+	}
+
+	SuccessResponse(w, http.StatusOK, "User profile updated successfully", ConvertToUserProfileResponse(userProfile))
 }
 
-func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
+func (h *userProfileHandlers) UpdateUserProfileByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
 
 	var request user_profile_dto.UpdateUserProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {

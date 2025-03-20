@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	iv_coin_dto "iv_project/dto/iv_coin"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -27,8 +28,27 @@ func ConvertToIVCoinResponse(ivCoin *models.IVCoin) iv_coin_dto.IVCoinResponse {
 	}
 }
 
+func (h *ivCoinHandlers) GetIVCoin(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userID := r.Context().Value(middleware.UserIdKey).(string)
+	iVCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(userID)
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "No iv coin found with the provided user.")
+		return
+	}
+
+	SuccessResponse(w, http.StatusOK, "IV coin retrieved successfully", ConvertToIVCoinResponse(iVCoin))
+}
+
 func (h *ivCoinHandlers) GetIVCoinByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
@@ -45,21 +65,14 @@ func (h *ivCoinHandlers) GetIVCoinByID(w http.ResponseWriter, r *http.Request) {
 	SuccessResponse(w, http.StatusOK, "IV coin retrieved successfully", ConvertToIVCoinResponse(ivCoin))
 }
 
-func (h *ivCoinHandlers) GetIVCoinByUserID(w http.ResponseWriter, r *http.Request) {
+func (h *ivCoinHandlers) UpdateIVCoinByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	id := mux.Vars(r)["userId"]
-	iVCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(id)
-	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No invitation found with the provided user.")
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
 		return
 	}
-
-	SuccessResponse(w, http.StatusOK, "IV coin retrieved successfully", ConvertToIVCoinResponse(iVCoin))
-}
-
-func (h *ivCoinHandlers) UpdateIVCoin(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
@@ -87,7 +100,7 @@ func (h *ivCoinHandlers) UpdateIVCoin(w http.ResponseWriter, r *http.Request) {
 	ivCoin.Balance = request.Balance
 
 	if err = h.IVCoinRepositories.UpdateIVCoin(ivCoin); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to update IV coin: "+err.Error())
+		ErrorResponse(w, http.StatusInternalServerError, "Failed to update iv coin: "+err.Error())
 		return
 	}
 
