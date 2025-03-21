@@ -6,4 +6,5 @@ type UserProfile struct {
 	LastName  string `gorm:"size:120;not null" json:"last_name"`
 
 	UserID string `gorm:"uniqueIndex;not null" json:"user_id"`
+	User   *User  `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
 }
