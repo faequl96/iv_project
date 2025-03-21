@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"iv_project/dto"
+	"math"
 	"math/rand"
 	"net/http"
 	"time"
@@ -38,4 +39,10 @@ func randomString(n int) string {
 		b[i] = charset[r.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+func CalculateDiscountedPrice(price uint, discountPercentage uint) uint {
+	discount := (float64(discountPercentage) / 100) * float64(price)
+	finalPrice := math.Round(float64(price) - discount)
+	return uint(finalPrice)
 }

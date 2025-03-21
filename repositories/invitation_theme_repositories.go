@@ -11,6 +11,7 @@ type InvitationThemeRepositories interface {
 	GetInvitationThemeByID(id uint) (*models.InvitationTheme, error)
 	GetInvitationThemes() ([]models.InvitationTheme, error)
 	GetInvitationThemesByCategory(category string) ([]models.InvitationTheme, error)
+	GetInvitationThemesByDiscountCategory(discountCategory string) ([]models.InvitationTheme, error)
 	UpdateInvitationTheme(invitationTheme *models.InvitationTheme) error
 	DeleteInvitationTheme(id uint) error
 }
@@ -43,6 +44,12 @@ func (r *repository) GetInvitationThemes() ([]models.InvitationTheme, error) {
 func (r *repository) GetInvitationThemesByCategory(category string) ([]models.InvitationTheme, error) {
 	var invitationThemes []models.InvitationTheme
 	err := r.db.Preload("Category").Preload("Review").Find(&invitationThemes, "category = ?", category).Error
+	return invitationThemes, err
+}
+
+func (r *repository) GetInvitationThemesByDiscountCategory(discountCategory string) ([]models.InvitationTheme, error) {
+	var invitationThemes []models.InvitationTheme
+	err := r.db.Preload("Category").Preload("Review").Find(&invitationThemes, "discount_category = ?", discountCategory).Error
 	return invitationThemes, err
 }
 

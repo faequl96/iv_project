@@ -10,7 +10,8 @@ import (
 
 func IVCoinPackageRoutes(r *mux.Router) {
 	ivCoinPackageRepository := repositories.IVCoinPackageRepository(mysql.DB)
-	h := handlers.IVCoinPackageHandler(ivCoinPackageRepository)
+	discountCategoryRepository := repositories.DiscountCategoryRepository(mysql.DB)
+	h := handlers.IVCoinPackageHandler(ivCoinPackageRepository, discountCategoryRepository)
 
 	r.HandleFunc("/iv-coin-package", h.CreateIVCoinPackage).Methods("POST")
 	r.HandleFunc("/iv-coin-package/id/{id}", h.GetIVCoinPackageByID).Methods("GET")
