@@ -2,19 +2,21 @@ package routes
 
 import (
 	"iv_project/handlers"
+	jwtToken "iv_project/pkg/jwt"
+	"iv_project/pkg/middleware"
 	"iv_project/pkg/mysql"
 	"iv_project/repositories"
 
 	"github.com/gorilla/mux"
 )
 
-func CategoryRoutes(r *mux.Router) {
+func CategoryRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	iategoryRepository := repositories.CategoryRepository(mysql.DB)
 	h := handlers.CategoryHandler(iategoryRepository)
 
-	r.HandleFunc("/category", h.CreateCategory).Methods("POST")
-	r.HandleFunc("/category/id/{id}", h.GetCategoryByID).Methods("GET")
-	r.HandleFunc("/categories", h.GetCategories).Methods("GET")
-	r.HandleFunc("/category/id/{id}", h.UpdateCategory).Methods("PATCH")
-	r.HandleFunc("/category/id/{id}", h.DeleteCategory).Methods("DELETE")
+	r.HandleFunc("/category", middleware.Auth(jwtServices, h.CreateCategory)).Methods("POST")
+	r.HandleFunc("/category/id/{id}", middleware.Auth(jwtServices, h.GetCategoryByID)).Methods("GET")
+	r.HandleFunc("/categories", middleware.Auth(jwtServices, h.GetCategories)).Methods("GET")
+	r.HandleFunc("/category/id/{id}", middleware.Auth(jwtServices, h.UpdateCategoryByID)).Methods("PATCH")
+	r.HandleFunc("/category/id/{id}", middleware.Auth(jwtServices, h.DeleteCategoryByID)).Methods("DELETE")
 }

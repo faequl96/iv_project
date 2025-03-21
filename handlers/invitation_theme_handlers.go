@@ -173,7 +173,7 @@ func (h *invitationThemeHandlers) GetInvitationThemesByCategoryID(w http.Respons
 	SuccessResponse(w, http.StatusOK, "Invitation themes retrieved successfully", invitationThemeResponses)
 }
 
-func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r *http.Request) {
+func (h *invitationThemeHandlers) UpdateInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var request invitation_theme_dto.UpdateInvitationThemeRequest
@@ -237,7 +237,7 @@ func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r
 	SuccessResponse(w, http.StatusOK, "Invitation theme updated successfully", ConvertToInvitationThemeResponse(invitationTheme))
 }
 
-func (h *invitationThemeHandlers) DeleteInvitationTheme(w http.ResponseWriter, r *http.Request) {
+func (h *invitationThemeHandlers) DeleteInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])

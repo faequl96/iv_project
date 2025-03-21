@@ -125,7 +125,7 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http
 	SuccessResponse(w, http.StatusOK, "IV coin packages retrieved successfully", responses)
 }
 
-func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *http.Request) {
+func (h *ivCoinPackageHandlers) UpdateIVCoinPackageByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	role := r.Context().Value(middleware.RoleKey).(string)
@@ -185,7 +185,7 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *ht
 	SuccessResponse(w, http.StatusOK, "IV coin package updated successfully", ConvertToIVCoinPackageResponse(ivCoinPackage))
 }
 
-func (h *ivCoinPackageHandlers) DeleteIVCoinPackage(w http.ResponseWriter, r *http.Request) {
+func (h *ivCoinPackageHandlers) DeleteIVCoinPackageByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	role := r.Context().Value(middleware.RoleKey).(string)

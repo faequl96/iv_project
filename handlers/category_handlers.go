@@ -93,7 +93,7 @@ func (h *categoryHandlers) GetCategories(w http.ResponseWriter, r *http.Request)
 	SuccessResponse(w, http.StatusOK, "Categories retrieved successfully", categoryResponses)
 }
 
-func (h *categoryHandlers) UpdateCategory(w http.ResponseWriter, r *http.Request) {
+func (h *categoryHandlers) UpdateCategoryByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var request category_dto.UpdateCategoryRequest
@@ -131,7 +131,7 @@ func (h *categoryHandlers) UpdateCategory(w http.ResponseWriter, r *http.Request
 	SuccessResponse(w, http.StatusOK, "Category updated successfully", ConvertToCategoryResponse(category))
 }
 
-func (h *categoryHandlers) DeleteCategory(w http.ResponseWriter, r *http.Request) {
+func (h *categoryHandlers) DeleteCategoryByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])

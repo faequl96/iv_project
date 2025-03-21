@@ -12,6 +12,7 @@ type InvitationData struct {
 
 	InvitationID uint        `gorm:"not null;index" json:"invitation_id"`
 	Invitation   *Invitation `gorm:"foreignKey:InvitationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
-	CreatedAt    time.Time   `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt    time.Time   `gorm:"autoUpdateTime" json:"updated_at"`
+
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
