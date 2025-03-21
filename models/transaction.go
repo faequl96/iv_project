@@ -9,6 +9,22 @@ const (
 	ProductIVCoinPackage ProductType = "iv_coin_package"
 )
 
+func (u ProductType) String() string {
+	maps := map[ProductType]string{
+		ProductInvitation:    "invitation",
+		ProductIVCoinPackage: "iv_coin_package",
+	}
+	return maps[u]
+}
+
+func StringToProductType(value string) ProductType {
+	maps := map[string]ProductType{
+		"invitation":      ProductInvitation,
+		"iv_coin_package": ProductIVCoinPackage,
+	}
+	return maps[value]
+}
+
 type TransactionStatusType string
 
 const (
@@ -16,12 +32,44 @@ const (
 	TransactionStatusCompleted TransactionStatusType = "completed"
 )
 
+func (u TransactionStatusType) String() string {
+	maps := map[TransactionStatusType]string{
+		TransactionStatusPending:   "pending",
+		TransactionStatusCompleted: "completed",
+	}
+	return maps[u]
+}
+
+func StringToTransactionStatusType(value string) TransactionStatusType {
+	maps := map[string]TransactionStatusType{
+		"pending":   TransactionStatusPending,
+		"completed": TransactionStatusCompleted,
+	}
+	return maps[value]
+}
+
 type PaymentMethodType string
 
 const (
 	PaymentMethodTransfer PaymentMethodType = "transfer"
 	PaymentMethodIVCoin   PaymentMethodType = "iv_coin"
 )
+
+func (u PaymentMethodType) String() string {
+	maps := map[PaymentMethodType]string{
+		PaymentMethodTransfer: "transfer",
+		PaymentMethodIVCoin:   "iv_coin",
+	}
+	return maps[u]
+}
+
+func StringToPaymentMethodType(value string) PaymentMethodType {
+	maps := map[string]PaymentMethodType{
+		"transfer": PaymentMethodTransfer,
+		"iv_coin":  PaymentMethodIVCoin,
+	}
+	return maps[value]
+}
 
 type Transaction struct {
 	ID              uint                  `gorm:"primaryKey;autoIncrement" json:"id"`

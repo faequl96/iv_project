@@ -23,7 +23,7 @@ func (u UserRoleType) String() string {
 	return maps[u]
 }
 
-func StringToUserRole(value string) UserRoleType {
+func StringToUserRoleType(value string) UserRoleType {
 	maps := map[string]UserRoleType{
 		"super_admin": UserRoleSuperAdmin,
 		"admin":       UserRoleAdmin,
@@ -34,7 +34,7 @@ func StringToUserRole(value string) UserRoleType {
 
 type User struct {
 	ID          string       `gorm:"primaryKey;size:36" json:"id"` // Firebase UID
-	Email       string       `gorm:"size:100" json:"email"`
+	Email       string       `gorm:"size:100;uniqueIndex;not null" json:"email"`
 	Role        UserRoleType `gorm:"type:varchar(50);not null;default:'user'" json:"role"`
 	UserProfile *UserProfile `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user_profile,omitempty"`
 	IVCoin      *IVCoin      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"iv_coin,omitempty"`

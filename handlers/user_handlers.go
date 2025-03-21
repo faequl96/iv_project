@@ -128,7 +128,7 @@ func (h *userHandlers) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.Role = models.StringToUserRole(request.Role)
+	user.Role = models.StringToUserRoleType(request.Role)
 	if user.Role.String() == "" {
 		user.Role = models.UserRoleUser
 	}
