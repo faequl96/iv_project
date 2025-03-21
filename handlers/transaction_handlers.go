@@ -80,8 +80,6 @@ func ConvertToTransactionResponse(transaction *models.Transaction) transaction_d
 			CoinAmount:       transaction.IVCoinPackage.CoinAmount,
 			IDRPrice:         transaction.IVCoinPackage.IDRPrice,
 			IDRDiscountPrice: transaction.IVCoinPackage.IDRDiscountPrice,
-			IVCPrice:         transaction.IVCoinPackage.IVCPrice,
-			IVCDiscountPrice: transaction.IVCoinPackage.IVCDiscountPrice,
 		}
 		transactionResponse.IVCoinPackage = &ivCoinPackageResponse
 	}

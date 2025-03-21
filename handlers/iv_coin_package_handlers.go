@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	discount_category_dto "iv_project/dto/discount_category"
 	iv_coin_package_dto "iv_project/dto/iv_coin_package"
 	"iv_project/models"
 	"iv_project/repositories"
@@ -13,22 +14,31 @@ import (
 )
 
 type ivCoinPackageHandlers struct {
-	IVCoinPackageRepositories repositories.IVCoinPackageRepositories
+	IVCoinPackageRepositories    repositories.IVCoinPackageRepositories
+	DiscountCategoryRepositories repositories.DiscountCategoryRepositories
 }
 
-func IVCoinPackageHandler(IVCoinPackageRepositories repositories.IVCoinPackageRepositories) *ivCoinPackageHandlers {
-	return &ivCoinPackageHandlers{IVCoinPackageRepositories}
+func IVCoinPackageHandler(
+	IVCoinPackageRepositories repositories.IVCoinPackageRepositories,
+	DiscountCategoryRepositories repositories.DiscountCategoryRepositories,
+) *ivCoinPackageHandlers {
+	return &ivCoinPackageHandlers{IVCoinPackageRepositories, DiscountCategoryRepositories}
 }
 
 func ConvertToIVCoinPackageResponse(ivCoinPackage *models.IVCoinPackage) iv_coin_package_dto.IVCoinPackageResponse {
+	var discountCategoryResponses []discount_category_dto.DiscountCategoryResponse
+	for _, discountCategory := range ivCoinPackage.DiscountCategories {
+		discountCategoryCopy := ConvertToDiscountCategoryResponse(&discountCategory)
+		discountCategoryResponses = append(discountCategoryResponses, discountCategoryCopy)
+	}
+
 	return iv_coin_package_dto.IVCoinPackageResponse{
-		ID:               ivCoinPackage.ID,
-		Name:             ivCoinPackage.Name,
-		CoinAmount:       ivCoinPackage.CoinAmount,
-		IDRPrice:         ivCoinPackage.IDRPrice,
-		IDRDiscountPrice: ivCoinPackage.IDRDiscountPrice,
-		IVCPrice:         ivCoinPackage.IVCPrice,
-		IVCDiscountPrice: ivCoinPackage.IVCDiscountPrice,
+		ID:                 ivCoinPackage.ID,
+		Name:               ivCoinPackage.Name,
+		CoinAmount:         ivCoinPackage.CoinAmount,
+		IDRPrice:           ivCoinPackage.IDRPrice,
+		IDRDiscountPrice:   ivCoinPackage.IDRDiscountPrice,
+		DiscountCategories: discountCategoryResponses,
 	}
 }
 
@@ -46,13 +56,18 @@ func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *ht
 		return
 	}
 
+	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategoriesByIDs(request.DiscountCategoryIDs)
+	if err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching discount categories by ids.")
+		return
+	}
+
 	ivCoinPackage := &models.IVCoinPackage{
-		Name:             request.Name,
-		CoinAmount:       request.CoinAmount,
-		IDRPrice:         request.IDRPrice,
-		IDRDiscountPrice: request.IDRDiscountPrice,
-		IVCPrice:         request.IVCPrice,
-		IVCDiscountPrice: request.IVCDiscountPrice,
+		Name:               request.Name,
+		CoinAmount:         request.CoinAmount,
+		IDRPrice:           request.IDRPrice,
+		IDRDiscountPrice:   request.IDRDiscountPrice,
+		DiscountCategories: discountCategories,
 	}
 
 	if err := h.IVCoinPackageRepositories.CreateIVCoinPackage(ivCoinPackage); err != nil {
@@ -129,6 +144,12 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *ht
 		return
 	}
 
+	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategoriesByIDs(request.DiscountCategoryIDs)
+	if err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching discount categories by ids.")
+		return
+	}
+
 	if request.Name != "" {
 		ivCoinPackage.Name = request.Name
 	}
@@ -139,10 +160,9 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *ht
 		ivCoinPackage.IDRPrice = request.IDRPrice
 	}
 	ivCoinPackage.IDRDiscountPrice = request.IDRDiscountPrice
-	if request.IVCPrice != 0 {
-		ivCoinPackage.IVCPrice = request.IVCPrice
+	if len(discountCategories) != 0 {
+		ivCoinPackage.DiscountCategories = discountCategories
 	}
-	ivCoinPackage.IVCDiscountPrice = request.IVCDiscountPrice
 
 	if err := h.IVCoinPackageRepositories.UpdateIVCoinPackage(ivCoinPackage); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the IV coin package.")

@@ -30,19 +30,19 @@ func (r *repository) CreateInvitationTheme(invitationTheme *models.InvitationThe
 
 func (r *repository) GetInvitationThemeByID(id uint) (*models.InvitationTheme, error) {
 	var invitationTheme models.InvitationTheme
-	err := r.db.Preload("Review").First(&invitationTheme, id).Error
+	err := r.db.Preload("Category").Preload("Review").First(&invitationTheme, id).Error
 	return &invitationTheme, err
 }
 
 func (r *repository) GetInvitationThemes() ([]models.InvitationTheme, error) {
 	var invitationThemes []models.InvitationTheme
-	err := r.db.Preload("Review").Find(&invitationThemes).Error
+	err := r.db.Preload("Category").Preload("Review").Find(&invitationThemes).Error
 	return invitationThemes, err
 }
 
 func (r *repository) GetInvitationThemesByCategory(category string) ([]models.InvitationTheme, error) {
 	var invitationThemes []models.InvitationTheme
-	err := r.db.Preload("Review").Find(&invitationThemes, "category = ?", category).Error
+	err := r.db.Preload("Category").Preload("Review").Find(&invitationThemes, "category = ?", category).Error
 	return invitationThemes, err
 }
 

@@ -9,8 +9,8 @@ import (
 )
 
 func CategoryRoutes(r *mux.Router) {
-	CategoryRepository := repositories.CategoryRepository(mysql.DB)
-	h := handlers.CategoryHandler(CategoryRepository)
+	iategoryRepository := repositories.CategoryRepository(mysql.DB)
+	h := handlers.CategoryHandler(iategoryRepository)
 
 	r.HandleFunc("/category", h.CreateCategory).Methods("POST")
 	r.HandleFunc("/category/id/{id}", h.GetCategoryByID).Methods("GET")

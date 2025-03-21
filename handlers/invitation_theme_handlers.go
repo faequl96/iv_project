@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	category_dto "iv_project/dto/category"
+	discount_category_dto "iv_project/dto/discount_category"
 	invitation_theme_dto "iv_project/dto/invitation_theme"
 	review_dto "iv_project/dto/review"
 	"iv_project/models"
@@ -15,15 +16,17 @@ import (
 )
 
 type invitationThemeHandlers struct {
-	InvitationThemeRepositories repositories.InvitationThemeRepositories
-	CategoryRepositories        repositories.CategoryRepositories
+	InvitationThemeRepositories  repositories.InvitationThemeRepositories
+	CategoryRepositories         repositories.CategoryRepositories
+	DiscountCategoryRepositories repositories.DiscountCategoryRepositories
 }
 
 func InvitationThemeHandler(
 	InvitationThemeRepositories repositories.InvitationThemeRepositories,
 	CategoryRepositories repositories.CategoryRepositories,
+	DiscountCategoryRepositories repositories.DiscountCategoryRepositories,
 ) *invitationThemeHandlers {
-	return &invitationThemeHandlers{InvitationThemeRepositories, CategoryRepositories}
+	return &invitationThemeHandlers{InvitationThemeRepositories, CategoryRepositories, DiscountCategoryRepositories}
 }
 
 func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) invitation_theme_dto.InvitationThemeResponse {
@@ -33,6 +36,12 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 		categoryResponses = append(categoryResponses, categoryCopy)
 	}
 
+	var discountCategoryResponses []discount_category_dto.DiscountCategoryResponse
+	for _, discountCategory := range invitationTheme.DiscountCategories {
+		discountCategoryCopy := ConvertToDiscountCategoryResponse(&discountCategory)
+		discountCategoryResponses = append(discountCategoryResponses, discountCategoryCopy)
+	}
+
 	var reviewResponses []review_dto.ReviewResponse
 	for _, review := range invitationTheme.Reviews {
 		reviewCopy := ConvertToReviewResponse(&review)
@@ -40,14 +49,15 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 	}
 
 	return invitation_theme_dto.InvitationThemeResponse{
-		ID:               invitationTheme.ID,
-		Title:            invitationTheme.Title,
-		IDRPrice:         invitationTheme.IDRPrice,
-		IDRDiscountPrice: invitationTheme.IDRDiscountPrice,
-		IVCPrice:         invitationTheme.IVCPrice,
-		IVCDiscountPrice: invitationTheme.IVCDiscountPrice,
-		Categories:       categoryResponses,
-		Reviews:          reviewResponses,
+		ID:                 invitationTheme.ID,
+		Title:              invitationTheme.Title,
+		IDRPrice:           invitationTheme.IDRPrice,
+		IDRDiscountPrice:   invitationTheme.IDRDiscountPrice,
+		IVCPrice:           invitationTheme.IVCPrice,
+		IVCDiscountPrice:   invitationTheme.IVCDiscountPrice,
+		Categories:         categoryResponses,
+		DiscountCategories: discountCategoryResponses,
+		Reviews:            reviewResponses,
 	}
 }
 
@@ -65,19 +75,26 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 		return
 	}
 
-	categories, err := h.CategoryRepositories.GetCategoriesByIDs(request.Categories)
+	categories, err := h.CategoryRepositories.GetCategoriesByIDs(request.CategoryIDs)
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching categories by ids.")
 		return
 	}
 
+	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategoriesByIDs(request.DiscountCategoryIDs)
+	if err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching discount categories by ids.")
+		return
+	}
+
 	invitationTheme := &models.InvitationTheme{
-		Title:            request.Title,
-		IDRPrice:         request.IDRPrice,
-		IDRDiscountPrice: request.IDRDiscountPrice,
-		IVCPrice:         request.IVCPrice,
-		IVCDiscountPrice: request.IVCDiscountPrice,
-		Categories:       categories,
+		Title:              request.Title,
+		IDRPrice:           request.IDRPrice,
+		IDRDiscountPrice:   request.IDRDiscountPrice,
+		IVCPrice:           request.IVCPrice,
+		IVCDiscountPrice:   request.IVCDiscountPrice,
+		Categories:         categories,
+		DiscountCategories: discountCategories,
 	}
 
 	if err := h.InvitationThemeRepositories.CreateInvitationTheme(invitationTheme); err != nil {
@@ -178,9 +195,15 @@ func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r
 		return
 	}
 
-	categories, err := h.CategoryRepositories.GetCategoriesByIDs(request.Categories)
+	categories, err := h.CategoryRepositories.GetCategoriesByIDs(request.CategoryIDs)
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching categories by ids.")
+		return
+	}
+
+	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategoriesByIDs(request.DiscountCategoryIDs)
+	if err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching discount categories by ids.")
 		return
 	}
 
@@ -195,8 +218,11 @@ func (h *invitationThemeHandlers) UpdateInvitationTheme(w http.ResponseWriter, r
 		invitationTheme.IVCPrice = request.IVCPrice
 	}
 	invitationTheme.IVCDiscountPrice = request.IVCDiscountPrice
-	if len(request.Categories) != 0 {
+	if len(categories) != 0 {
 		invitationTheme.Categories = categories
+	}
+	if len(discountCategories) != 0 {
+		invitationTheme.DiscountCategories = discountCategories
 	}
 
 	if err := h.InvitationThemeRepositories.UpdateInvitationTheme(invitationTheme); err != nil {
