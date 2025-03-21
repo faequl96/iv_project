@@ -145,12 +145,16 @@ func (h *invitationThemeHandlers) GetInvitationThemes(w http.ResponseWriter, r *
 	SuccessResponse(w, http.StatusOK, "Invitation themes retrieved successfully", invitationThemeResponses)
 }
 
-func (h *invitationThemeHandlers) GetInvitationThemesByCategory(w http.ResponseWriter, r *http.Request) {
+func (h *invitationThemeHandlers) GetInvitationThemesByCategoryID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	category := mux.Vars(r)["category"]
+	categoryID, err := strconv.Atoi(mux.Vars(r)["categoryId"])
+	if err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid category ID format. Please provide a numeric ID.")
+		return
+	}
 
-	invitationThemes, err := h.InvitationThemeRepositories.GetInvitationThemesByCategory(category)
+	invitationThemes, err := h.InvitationThemeRepositories.GetInvitationThemesByCategoryID(uint(categoryID))
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching invitation themes by category.")
 		return

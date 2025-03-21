@@ -17,7 +17,7 @@ func InvitationThemeRoutes(r *mux.Router) {
 	r.HandleFunc("/invitation-theme", h.CreateInvitationTheme).Methods("POST")
 	r.HandleFunc("/invitation-theme/id/{id}", h.GetInvitationThemeByID).Methods("GET")
 	r.HandleFunc("/invitation-themes", h.GetInvitationThemes).Methods("GET")
-	r.HandleFunc("/invitation-themes/category/{category}", h.GetInvitationThemesByCategory).Methods("GET")
+	r.HandleFunc("/invitation-themes/category-id/{categoryId}", h.GetInvitationThemesByCategoryID).Methods("GET")
 	r.HandleFunc("/invitation-theme/id/{id}", h.UpdateInvitationTheme).Methods("PATCH")
 	r.HandleFunc("/invitation-theme/id/{id}", h.DeleteInvitationTheme).Methods("DELETE")
 }
