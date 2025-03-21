@@ -15,6 +15,6 @@ type Gallery struct {
 	ImageURL11 string `gorm:"type:varchar(255)" json:"image_url_11"`
 	ImageURL12 string `gorm:"type:varchar(255)" json:"image_url_12"`
 
-	InvitationDataID uint            `gorm:"uniqueIndex;not null" json:"invitation_data_id"`
+	InvitationDataID uint            `gorm:"not null;index" json:"invitation_data_id"`
 	InvitationData   *InvitationData `gorm:"foreignKey:InvitationDataID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
 }

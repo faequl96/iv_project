@@ -5,6 +5,7 @@ import (
 	discount_category_dto "iv_project/dto/discount_category"
 	iv_coin_package_dto "iv_project/dto/iv_coin_package"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -44,6 +45,12 @@ func ConvertToIVCoinPackageResponse(ivCoinPackage *models.IVCoinPackage) iv_coin
 
 func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
 
 	var request iv_coin_package_dto.CreateIVCoinPackageRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -121,6 +128,12 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http
 func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
+
 	var request iv_coin_package_dto.UpdateIVCoinPackageRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
@@ -174,6 +187,12 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackage(w http.ResponseWriter, r *ht
 
 func (h *ivCoinPackageHandlers) DeleteIVCoinPackage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {

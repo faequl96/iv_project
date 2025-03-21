@@ -165,9 +165,6 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		transaction.IDRPrice = ivCoinPackage.IDRPrice
 		transaction.IDRDiscount = ivCoinPackage.IDRPrice - ivCoinPackage.IDRDiscountPrice
 		transaction.IDRTotalPrice = ivCoinPackage.IDRDiscountPrice
-		transaction.IVCPrice = ivCoinPackage.IVCPrice
-		transaction.IVCDiscount = ivCoinPackage.IVCPrice - ivCoinPackage.IVCDiscountPrice
-		transaction.IVCTotalPrice = ivCoinPackage.IVCDiscountPrice
 	}
 
 	err := h.TransactionRepositories.CreateTransaction(transaction)

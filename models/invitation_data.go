@@ -10,7 +10,7 @@ type InvitationData struct {
 	MainImageURL string    `gorm:"size:255;not null" json:"main_image_url"`
 	Gallery      *Gallery  `gorm:"foreignKey:InvitationDataID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"gallery,omitempty"`
 
-	InvitationID uint        `gorm:"uniqueIndex;not null" json:"invitation_id"`
+	InvitationID uint        `gorm:"not null;index" json:"invitation_id"`
 	Invitation   *Invitation `gorm:"foreignKey:InvitationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
 	CreatedAt    time.Time   `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt    time.Time   `gorm:"autoUpdateTime" json:"updated_at"`

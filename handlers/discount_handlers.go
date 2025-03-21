@@ -58,13 +58,14 @@ func (h *dicountHandlers) SetProductPrices(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	invitationThemes, err := h.InvitationThemeRepositories.GetInvitationThemesByDiscountCategory(request.DiscountCategory)
+	invitationThemes, err := h.InvitationThemeRepositories.GetInvitationThemesByDiscountCategoryID(request.DiscountCategoryID)
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching invitation themes by discount category.")
 		return
 	}
 
-	for _, invitationTheme := range invitationThemes {
+	for index, invitationTheme := range invitationThemes {
+		invitationThemes[index].IDRDiscountPrice = CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
 		invitationTheme.IDRDiscountPrice = CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
 		if err := h.InvitationThemeRepositories.UpdateInvitationTheme(&invitationTheme); err != nil {
 			ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the invitation theme.")
@@ -72,13 +73,14 @@ func (h *dicountHandlers) SetProductPrices(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	ivCoinPackages, err := h.IVCoinPackageRepositories.GetIVCoinPackagesByDiscountCategory(request.DiscountCategory)
+	ivCoinPackages, err := h.IVCoinPackageRepositories.GetIVCoinPackagesByDiscountCategoryID(request.DiscountCategoryID)
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching iv coins by discount category.")
 		return
 	}
 
-	for _, ivCoinPackage := range ivCoinPackages {
+	for index, ivCoinPackage := range ivCoinPackages {
+		ivCoinPackages[index].IDRDiscountPrice = CalculateDiscountedPrice(ivCoinPackage.IDRPrice, request.Percentage)
 		ivCoinPackage.IDRDiscountPrice = CalculateDiscountedPrice(ivCoinPackage.IDRPrice, request.Percentage)
 		if err := h.IVCoinPackageRepositories.UpdateIVCoinPackage(&ivCoinPackage); err != nil {
 			ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the iv coin package.")

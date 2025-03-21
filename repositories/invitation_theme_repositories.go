@@ -11,7 +11,7 @@ type InvitationThemeRepositories interface {
 	GetInvitationThemeByID(id uint) (*models.InvitationTheme, error)
 	GetInvitationThemes() ([]models.InvitationTheme, error)
 	GetInvitationThemesByCategory(category string) ([]models.InvitationTheme, error)
-	GetInvitationThemesByDiscountCategory(discountCategory string) ([]models.InvitationTheme, error)
+	GetInvitationThemesByDiscountCategoryID(discountCategoryID uint) ([]models.InvitationTheme, error)
 	UpdateInvitationTheme(invitationTheme *models.InvitationTheme) error
 	DeleteInvitationTheme(id uint) error
 }
@@ -47,10 +47,16 @@ func (r *repository) GetInvitationThemesByCategory(category string) ([]models.In
 	return invitationThemes, err
 }
 
-func (r *repository) GetInvitationThemesByDiscountCategory(discountCategory string) ([]models.InvitationTheme, error) {
+func (r *repository) GetInvitationThemesByDiscountCategoryID(discountCategoryID uint) ([]models.InvitationTheme, error) {
 	var invitationThemes []models.InvitationTheme
-	err := r.db.Preload("Category").Preload("Review").Find(&invitationThemes, "discount_category = ?", discountCategory).Error
-	return invitationThemes, err
+	err := r.db.Where("id IN (?)", r.db.Table("invitation_theme_discount_categories").
+		Select("invitation_theme_id").
+		Where("discount_category_id = ?", discountCategoryID)).
+		Find(&invitationThemes).Error
+	if err != nil {
+		return nil, err
+	}
+	return invitationThemes, nil
 }
 
 func (r *repository) UpdateInvitationTheme(invitationTheme *models.InvitationTheme) error {
