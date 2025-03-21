@@ -37,7 +37,7 @@ func (r *repository) GetIVCoinPackages() ([]models.IVCoinPackage, error) {
 
 func (r *repository) GetIVCoinPackagesByDiscountCategoryID(discountCategoryID uint) ([]models.IVCoinPackage, error) {
 	var ivCoinPackages []models.IVCoinPackage
-	err := r.db.Where("id IN (?)", r.db.Table("iv_coin_package_discount_categories").
+	err := r.db.Preload("DiscountCategories").Where("id IN (?)", r.db.Table("iv_coin_package_discount_categories").
 		Select("iv_coin_package_id").
 		Where("discount_category_id = ?", discountCategoryID)).
 		Find(&ivCoinPackages).Error
