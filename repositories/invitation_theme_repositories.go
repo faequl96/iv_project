@@ -31,21 +31,22 @@ func (r *repository) CreateInvitationTheme(invitationTheme *models.InvitationThe
 
 func (r *repository) GetInvitationThemeByID(id uint) (*models.InvitationTheme, error) {
 	var invitationTheme models.InvitationTheme
-	err := r.db.Preload("Categories").Preload("Reviews").First(&invitationTheme, id).Error
+	err := r.db.Preload("Categories").Preload("DiscountCategories").Preload("Reviews").First(&invitationTheme, id).Error
 	return &invitationTheme, err
 }
 
 func (r *repository) GetInvitationThemes() ([]models.InvitationTheme, error) {
 	var invitationThemes []models.InvitationTheme
-	err := r.db.Preload("Categories").Preload("Reviews").Find(&invitationThemes).Error
+	err := r.db.Preload("Categories").Preload("DiscountCategories").Preload("Reviews").Find(&invitationThemes).Error
 	return invitationThemes, err
 }
 
 func (r *repository) GetInvitationThemesByCategoryID(categoryID uint) ([]models.InvitationTheme, error) {
 	var invitationThemes []models.InvitationTheme
-	err := r.db.Preload("Categories").Preload("Reviews").Where("id IN (?)", r.db.Table("invitation_theme_categories").
-		Select("invitation_theme_id").
-		Where("category_id = ?", categoryID)).
+	err := r.db.Preload("Categories").Preload("DiscountCategories").Preload("Reviews").
+		Where("id IN (?)", r.db.Table("invitation_theme_categories").
+			Select("invitation_theme_id").
+			Where("category_id = ?", categoryID)).
 		Find(&invitationThemes).Error
 	if err != nil {
 		return nil, err
@@ -55,9 +56,10 @@ func (r *repository) GetInvitationThemesByCategoryID(categoryID uint) ([]models.
 
 func (r *repository) GetInvitationThemesByDiscountCategoryID(discountCategoryID uint) ([]models.InvitationTheme, error) {
 	var invitationThemes []models.InvitationTheme
-	err := r.db.Preload("Categories").Preload("Reviews").Where("id IN (?)", r.db.Table("invitation_theme_discount_categories").
-		Select("invitation_theme_id").
-		Where("discount_category_id = ?", discountCategoryID)).
+	err := r.db.Preload("Categories").Preload("DiscountCategories").Preload("Reviews").
+		Where("id IN (?)", r.db.Table("invitation_theme_discount_categories").
+			Select("invitation_theme_id").
+			Where("discount_category_id = ?", discountCategoryID)).
 		Find(&invitationThemes).Error
 	if err != nil {
 		return nil, err
