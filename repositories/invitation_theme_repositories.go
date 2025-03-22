@@ -73,6 +73,14 @@ func (r *repository) UpdateInvitationTheme(invitationTheme *models.InvitationThe
 		tx.Rollback()
 		return err
 	}
+	if err := tx.Model(invitationTheme).Association("Categories").Replace(invitationTheme.Categories); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Model(invitationTheme).Association("DiscountCategories").Replace(invitationTheme.DiscountCategories); err != nil {
+		tx.Rollback()
+		return err
+	}
 	return tx.Commit().Error
 }
 

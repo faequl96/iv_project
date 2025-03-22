@@ -1,7 +1,7 @@
 package invitation_theme_dto
 
 type CreateInvitationThemeRequest struct {
-	Title               string `json:"title" validate:"required"`
+	Name                string `json:"name" validate:"required"`
 	IDRPrice            uint   `json:"idr_price" validate:"required"`
 	IDRDiscountPrice    uint   `json:"idr_discount_price" validate:"required"`
 	IVCPrice            uint   `json:"ivc_price" validate:"required"`
@@ -11,7 +11,7 @@ type CreateInvitationThemeRequest struct {
 }
 
 type UpdateInvitationThemeRequest struct {
-	Title               string `json:"title"`
+	Name                string `json:"n"`
 	IDRPrice            uint   `json:"idr_price"`
 	IDRDiscountPrice    uint   `json:"idr_discount_price"`
 	IVCPrice            uint   `json:"ivc_price"`

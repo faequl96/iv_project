@@ -7,6 +7,7 @@ import (
 	invitation_theme_dto "iv_project/dto/invitation_theme"
 	review_dto "iv_project/dto/review"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -50,7 +51,7 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 
 	return invitation_theme_dto.InvitationThemeResponse{
 		ID:                 invitationTheme.ID,
-		Title:              invitationTheme.Title,
+		Name:               invitationTheme.Name,
 		IDRPrice:           invitationTheme.IDRPrice,
 		IDRDiscountPrice:   invitationTheme.IDRDiscountPrice,
 		IVCPrice:           invitationTheme.IVCPrice,
@@ -63,6 +64,12 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 
 func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
 
 	var request invitation_theme_dto.CreateInvitationThemeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -88,7 +95,7 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 	}
 
 	invitationTheme := &models.InvitationTheme{
-		Title:              request.Title,
+		Name:               request.Name,
 		IDRPrice:           request.IDRPrice,
 		IDRDiscountPrice:   request.IDRDiscountPrice,
 		IVCPrice:           request.IVCPrice,
@@ -176,6 +183,12 @@ func (h *invitationThemeHandlers) GetInvitationThemesByCategoryID(w http.Respons
 func (h *invitationThemeHandlers) UpdateInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
+
 	var request invitation_theme_dto.UpdateInvitationThemeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
@@ -211,8 +224,8 @@ func (h *invitationThemeHandlers) UpdateInvitationThemeByID(w http.ResponseWrite
 		return
 	}
 
-	if request.Title != "" {
-		invitationTheme.Title = request.Title
+	if request.Name != "" {
+		invitationTheme.Name = request.Name
 	}
 	if request.IDRPrice != 0 {
 		invitationTheme.IDRPrice = request.IDRPrice
@@ -239,6 +252,12 @@ func (h *invitationThemeHandlers) UpdateInvitationThemeByID(w http.ResponseWrite
 
 func (h *invitationThemeHandlers) DeleteInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {

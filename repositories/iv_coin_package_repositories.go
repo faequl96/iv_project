@@ -20,7 +20,12 @@ func IVCoinPackageRepository(db *gorm.DB) *repository {
 }
 
 func (r *repository) CreateIVCoinPackage(ivCoinPackage *models.IVCoinPackage) error {
-	return r.db.Create(ivCoinPackage).Error
+	tx := r.db.Begin()
+	if err := tx.Create(ivCoinPackage).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }
 
 func (r *repository) GetIVCoinPackageByID(id uint) (*models.IVCoinPackage, error) {
@@ -48,9 +53,23 @@ func (r *repository) GetIVCoinPackagesByDiscountCategoryID(discountCategoryID ui
 }
 
 func (r *repository) UpdateIVCoinPackage(ivCoinPackage *models.IVCoinPackage) error {
-	return r.db.Save(ivCoinPackage).Error
+	tx := r.db.Begin()
+	if err := tx.Save(ivCoinPackage).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Model(ivCoinPackage).Association("DiscountCategories").Replace(ivCoinPackage.DiscountCategories); err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }
 
 func (r *repository) DeleteIVCoinPackage(id uint) error {
-	return r.db.Delete(&models.IVCoinPackage{}, id).Error
+	tx := r.db.Begin()
+	if err := tx.Delete(&models.IVCoinPackage{}, id).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }

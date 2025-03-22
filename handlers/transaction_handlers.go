@@ -55,7 +55,7 @@ func ConvertToTransactionResponse(transaction *models.Transaction) transaction_d
 			ID: transaction.Invitation.ID,
 			InvitationTheme: &invitation_theme_dto.InvitationThemeResponse{
 				ID:               transaction.Invitation.InvitationTheme.ID,
-				Title:            transaction.Invitation.InvitationTheme.Title,
+				Name:             transaction.Invitation.InvitationTheme.Name,
 				IDRPrice:         transaction.Invitation.InvitationTheme.IDRPrice,
 				IDRDiscountPrice: transaction.Invitation.InvitationTheme.IDRDiscountPrice,
 				IVCPrice:         transaction.Invitation.InvitationTheme.IVCPrice,

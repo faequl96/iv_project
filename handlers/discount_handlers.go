@@ -66,7 +66,9 @@ func (h *dicountHandlers) SetProductPrices(w http.ResponseWriter, r *http.Reques
 
 	for index, invitationTheme := range invitationThemes {
 		invitationThemes[index].IDRDiscountPrice = CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
+		invitationThemes[index].IVCDiscountPrice = CalculateDiscountedPrice(invitationTheme.IVCPrice, request.Percentage)
 		invitationTheme.IDRDiscountPrice = CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
+		invitationTheme.IVCDiscountPrice = CalculateDiscountedPrice(invitationTheme.IVCPrice, request.Percentage)
 		if err := h.InvitationThemeRepositories.UpdateInvitationTheme(&invitationTheme); err != nil {
 			ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the invitation theme.")
 			return

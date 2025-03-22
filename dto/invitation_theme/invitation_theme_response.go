@@ -8,7 +8,7 @@ import (
 
 type InvitationThemeResponse struct {
 	ID                 uint                                             `json:"id"`
-	Title              string                                           `json:"title"`
+	Name               string                                           `json:"name"`
 	IDRPrice           uint                                             `json:"idr_price"`
 	IDRDiscountPrice   uint                                             `json:"idr_discount_price"`
 	IVCPrice           uint                                             `json:"ivc_price"`

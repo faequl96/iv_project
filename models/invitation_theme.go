@@ -8,7 +8,7 @@ import (
 
 type InvitationTheme struct {
 	ID                 uint               `gorm:"primaryKey" json:"id"`
-	Title              string             `gorm:"size:255;not null;index" json:"title"`
+	Name               string             `gorm:"size:255;not null;index" json:"name"`
 	IDRPrice           uint               `gorm:"not null;default:0" json:"idr_price"`
 	IDRDiscountPrice   uint               `gorm:"not null;default:0" json:"idr_discount_price"`
 	IVCPrice           uint               `gorm:"not null;default:0" json:"ivc_price"`

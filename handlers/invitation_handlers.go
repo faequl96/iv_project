@@ -40,7 +40,7 @@ func ConvertToInvitationResponse(invitation *models.Invitation) invitation_dto.I
 		},
 		InvitationTheme: &invitation_theme_dto.InvitationThemeResponse{
 			ID:               invitation.InvitationTheme.ID,
-			Title:            invitation.InvitationTheme.Title,
+			Name:             invitation.InvitationTheme.Name,
 			IDRPrice:         invitation.InvitationTheme.IDRPrice,
 			IDRDiscountPrice: invitation.InvitationTheme.IDRDiscountPrice,
 			IVCPrice:         invitation.InvitationTheme.IVCPrice,
