@@ -15,22 +15,21 @@ import (
 )
 
 type invitationHandlers struct {
-	InvitationRepositories repositories.InvitationRepositories
+	InvitationRepositories      repositories.InvitationRepositories
+	InvitationThemeRepositories repositories.InvitationThemeRepositories
 }
 
-func InvitationHandler(InvitationRepositories repositories.InvitationRepositories) *invitationHandlers {
-	return &invitationHandlers{InvitationRepositories}
+func InvitationHandler(
+	InvitationRepositories repositories.InvitationRepositories,
+	InvitationThemeRepositories repositories.InvitationThemeRepositories,
+) *invitationHandlers {
+	return &invitationHandlers{InvitationRepositories, InvitationThemeRepositories}
 }
 
 func ConvertToInvitationResponse(invitation *models.Invitation) invitation_dto.InvitationResponse {
 	invitationResponse := invitation_dto.InvitationResponse{
 		ID:     invitation.ID,
 		Status: invitation.Status,
-	}
-
-	if invitation.InvitationTheme != nil {
-		invitationThemeResponse := ConvertToInvitationThemeResponse(invitation.InvitationTheme)
-		invitationResponse.InvitationTheme = &invitationThemeResponse
 	}
 
 	if invitation.InvitationData != nil {
@@ -59,6 +58,12 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	invitationTheme, err := h.InvitationThemeRepositories.GetInvitationThemeByID(request.InvitationThemeID)
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "No invitation theme found with the provided ID.")
+		return
+	}
+
 	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid EventDate format. Use RFC3339.")
@@ -66,13 +71,15 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 	}
 
 	invitation := &models.Invitation{
-		UserID: request.UserID,
-		Status: models.InvitationStatusDraft,
+		Status:              models.InvitationStatusDraft,
+		InvitationThemeID:   request.InvitationThemeID,
+		InvitationThemeName: invitationTheme.Name,
 		InvitationData: &models.InvitationData{
 			EventName: request.InvitationData.EventName,
 			EventDate: eventDate,
 			Location:  request.InvitationData.Location,
 		},
+		UserID: request.UserID,
 	}
 
 	uploadedFiles, ok := r.Context().Value(middleware.UploadsKey).(map[string]string)

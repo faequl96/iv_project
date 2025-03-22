@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	category_dto "iv_project/dto/category"
+	discount_category_dto "iv_project/dto/discount_category"
 	invitation_theme_dto "iv_project/dto/invitation_theme"
 	"iv_project/models"
 	"iv_project/pkg/middleware"
@@ -45,6 +46,15 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 			categoryResponses = append(categoryResponses, categoryCopy)
 		}
 		invitationThemeResponse.Categories = categoryResponses
+	}
+
+	if len(invitationTheme.DiscountCategories) != 0 {
+		var discountCategoryResponses []discount_category_dto.DiscountCategoryResponse
+		for _, discountCategory := range invitationTheme.DiscountCategories {
+			discountCategoryCopy := ConvertToDiscountCategoryResponse(&discountCategory)
+			discountCategoryResponses = append(discountCategoryResponses, discountCategoryCopy)
+		}
+		invitationThemeResponse.DiscountCategories = discountCategoryResponses
 	}
 
 	return invitationThemeResponse
