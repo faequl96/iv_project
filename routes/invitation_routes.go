@@ -11,7 +11,8 @@ import (
 
 func InvitationRoutes(r *mux.Router) {
 	invitationRepository := repositories.InvitationRepository(mysql.DB)
-	h := handlers.InvitationHandler(invitationRepository)
+	invitationThemeRepository := repositories.InvitationThemeRepository(mysql.DB)
+	h := handlers.InvitationHandler(invitationRepository, invitationThemeRepository)
 
 	r.HandleFunc("/invitation", middleware.InvitationImagesUploader(h.CreateInvitation)).Methods("POST")
 	r.HandleFunc("/invitationid//{id}", h.GetInvitationByID).Methods("GET")
