@@ -3,10 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	invitation_dto "iv_project/dto/invitation"
-	invitation_data_dto "iv_project/dto/invitation_data"
-	invitation_theme_dto "iv_project/dto/invitation_theme"
-	iv_coin_package_dto "iv_project/dto/iv_coin_package"
 	transaction_dto "iv_project/dto/transaction"
 	"iv_project/models"
 	"iv_project/repositories"
@@ -38,6 +34,7 @@ func ConvertToTransactionResponse(transaction *models.Transaction) transaction_d
 	transactionResponse := transaction_dto.TransactionResponse{
 		ID:              transaction.ID,
 		ProductType:     transaction.ProductType,
+		ProductName:     transaction.ProductName,
 		Status:          transaction.Status,
 		PaymentMethod:   transaction.PaymentMethod,
 		ReferenceNumber: transaction.ReferenceNumber,
@@ -48,40 +45,6 @@ func ConvertToTransactionResponse(transaction *models.Transaction) transaction_d
 		IVCDiscount:     transaction.IVCDiscount,
 		IVCTotalPrice:   transaction.IVCTotalPrice,
 		CreatedAt:       transaction.CreatedAt.Format(time.RFC3339),
-	}
-
-	if transaction.ProductType == models.ProductInvitation {
-		invitationResponse := invitation_dto.InvitationResponse{
-			ID: transaction.Invitation.ID,
-			InvitationTheme: &invitation_theme_dto.InvitationThemeResponse{
-				ID:               transaction.Invitation.InvitationTheme.ID,
-				Name:             transaction.Invitation.InvitationTheme.Name,
-				IDRPrice:         transaction.Invitation.InvitationTheme.IDRPrice,
-				IDRDiscountPrice: transaction.Invitation.InvitationTheme.IDRDiscountPrice,
-				IVCPrice:         transaction.Invitation.InvitationTheme.IVCPrice,
-				IVCDiscountPrice: transaction.Invitation.InvitationTheme.IVCDiscountPrice,
-			},
-			Status: transaction.Invitation.Status,
-			InvitationData: &invitation_data_dto.InvitationDataResponse{
-				ID:           transaction.Invitation.InvitationData.ID,
-				EventName:    transaction.Invitation.InvitationData.EventName,
-				EventDate:    transaction.Invitation.InvitationData.EventDate.Format(time.RFC3339),
-				Location:     transaction.Invitation.InvitationData.Location,
-				MainImageURL: transaction.Invitation.InvitationData.MainImageURL,
-			},
-		}
-		transactionResponse.Invitation = &invitationResponse
-	}
-
-	if transaction.ProductType == models.ProductIVCoinPackage {
-		ivCoinPackageResponse := iv_coin_package_dto.IVCoinPackageResponse{
-			ID:               transaction.IVCoinPackage.ID,
-			Name:             transaction.IVCoinPackage.Name,
-			CoinAmount:       transaction.IVCoinPackage.CoinAmount,
-			IDRPrice:         transaction.IVCoinPackage.IDRPrice,
-			IDRDiscountPrice: transaction.IVCoinPackage.IDRDiscountPrice,
-		}
-		transactionResponse.IVCoinPackage = &ivCoinPackageResponse
 	}
 
 	return transactionResponse
@@ -123,6 +86,9 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		transaction.IVCPrice = invitation.InvitationTheme.IVCPrice
 		transaction.IVCDiscount = invitation.InvitationTheme.IVCPrice - invitation.InvitationTheme.IVCDiscountPrice
 		transaction.IVCTotalPrice = invitation.InvitationTheme.IVCDiscountPrice
+
+		transaction.ProductName = invitation.InvitationTheme.Name
+
 		if request.PaymentMethod == models.PaymentMethodIVCoin {
 			transaction.Status = models.TransactionStatusCompleted
 			invitation.Status = models.InvitationStatusActive
@@ -165,6 +131,8 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		transaction.IDRPrice = ivCoinPackage.IDRPrice
 		transaction.IDRDiscount = ivCoinPackage.IDRPrice - ivCoinPackage.IDRDiscountPrice
 		transaction.IDRTotalPrice = ivCoinPackage.IDRDiscountPrice
+
+		transaction.ProductName = ivCoinPackage.Name
 	}
 
 	err := h.TransactionRepositories.CreateTransaction(transaction)

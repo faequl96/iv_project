@@ -21,10 +21,12 @@ func CategoryHandler(CategoryRepositories repositories.CategoryRepositories) *ca
 }
 
 func ConvertToCategoryResponse(category *models.Category) category_dto.CategoryResponse {
-	return category_dto.CategoryResponse{
+	categoryResponse := category_dto.CategoryResponse{
 		ID:   category.ID,
 		Name: category.Name,
 	}
+
+	return categoryResponse
 }
 
 func (h *categoryHandlers) CreateCategory(w http.ResponseWriter, r *http.Request) {

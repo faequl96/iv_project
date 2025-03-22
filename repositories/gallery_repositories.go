@@ -16,9 +16,12 @@ func GalleryRepository(db *gorm.DB) *repository {
 }
 
 func (r *repository) GetGalleryByID(id uint) (*models.Gallery, error) {
-	var Gallery models.Gallery
-	err := r.db.First(&Gallery, id).Error
-	return &Gallery, err
+	var gallery models.Gallery
+	err := r.db.First(&gallery, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &gallery, nil
 }
 
 func (r *repository) DeleteGallery(id uint) error {

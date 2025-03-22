@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	gallery_dto "iv_project/dto/gallery"
 	invitation_data_dto "iv_project/dto/invitation_data"
 	"iv_project/models"
 	"iv_project/pkg/middleware"
@@ -24,28 +23,20 @@ func InvitationDataHandler(InvitationDataRepositories repositories.InvitationDat
 }
 
 func ConvertToInvitationDataResponse(invitationData *models.InvitationData) invitation_data_dto.InvitationDataResponse {
-	return invitation_data_dto.InvitationDataResponse{
+	invitationDataResponse := invitation_data_dto.InvitationDataResponse{
 		ID:           invitationData.ID,
 		EventName:    invitationData.EventName,
 		EventDate:    invitationData.EventDate.Format(time.RFC3339),
 		Location:     invitationData.Location,
 		MainImageURL: invitationData.MainImageURL,
-		Gallery: &gallery_dto.GalleryResponse{
-			ID:         invitationData.Gallery.ID,
-			ImageURL1:  invitationData.Gallery.ImageURL1,
-			ImageURL2:  invitationData.Gallery.ImageURL2,
-			ImageURL3:  invitationData.Gallery.ImageURL3,
-			ImageURL4:  invitationData.Gallery.ImageURL4,
-			ImageURL5:  invitationData.Gallery.ImageURL5,
-			ImageURL6:  invitationData.Gallery.ImageURL6,
-			ImageURL7:  invitationData.Gallery.ImageURL7,
-			ImageURL8:  invitationData.Gallery.ImageURL8,
-			ImageURL9:  invitationData.Gallery.ImageURL9,
-			ImageURL10: invitationData.Gallery.ImageURL10,
-			ImageURL11: invitationData.Gallery.ImageURL11,
-			ImageURL12: invitationData.Gallery.ImageURL12,
-		},
 	}
+
+	if invitationData.Gallery != nil {
+		galleryResponse := ConvertToGalleryResponse(invitationData.Gallery)
+		invitationDataResponse.Gallery = &galleryResponse
+	}
+
+	return invitationDataResponse
 }
 
 func (h *invitationDataHandlers) CreateInvitationData(w http.ResponseWriter, r *http.Request) {

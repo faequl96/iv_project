@@ -3,9 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	auth_dto "iv_project/dto/auth"
-	iv_coin_dto "iv_project/dto/iv_coin"
-	user_dto "iv_project/dto/user"
-	user_profile_dto "iv_project/dto/user_profile"
 	"iv_project/models"
 	jwtToken "iv_project/pkg/jwt"
 	"iv_project/repositories"
@@ -24,22 +21,14 @@ func AuthHandlers(JwtServices jwtToken.JWTServices, UserRepositories repositorie
 }
 
 func ConvertToAuthResponse(token string, user *models.User) auth_dto.AuthResponse {
-	userResponse := user_dto.UserResponse{ID: user.ID, Role: user.Role}
-	if user.UserProfile != nil {
-		userResponse.UserProfile = &user_profile_dto.UserProfileResponse{
-			ID:        user.UserProfile.ID,
-			FirstName: user.UserProfile.FirstName,
-			LastName:  user.UserProfile.LastName,
-		}
-	}
-	if user.IVCoin != nil {
-		userResponse.IVCoin = &iv_coin_dto.IVCoinResponse{
-			ID:      user.IVCoin.ID,
-			Balance: user.IVCoin.Balance,
-		}
+	authResponse := auth_dto.AuthResponse{Token: token}
+
+	if user != nil {
+		userResponse := ConvertToUserResponse(user)
+		authResponse.User = userResponse
 	}
 
-	return auth_dto.AuthResponse{Token: token, User: userResponse}
+	return authResponse
 }
 
 func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {

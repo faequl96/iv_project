@@ -27,20 +27,24 @@ func IVCoinPackageHandler(
 }
 
 func ConvertToIVCoinPackageResponse(ivCoinPackage *models.IVCoinPackage) iv_coin_package_dto.IVCoinPackageResponse {
-	var discountCategoryResponses []discount_category_dto.DiscountCategoryResponse
-	for _, discountCategory := range ivCoinPackage.DiscountCategories {
-		discountCategoryCopy := ConvertToDiscountCategoryResponse(&discountCategory)
-		discountCategoryResponses = append(discountCategoryResponses, discountCategoryCopy)
+	ivCoinPackageResponse := iv_coin_package_dto.IVCoinPackageResponse{
+		ID:               ivCoinPackage.ID,
+		Name:             ivCoinPackage.Name,
+		CoinAmount:       ivCoinPackage.CoinAmount,
+		IDRPrice:         ivCoinPackage.IDRPrice,
+		IDRDiscountPrice: ivCoinPackage.IDRDiscountPrice,
 	}
 
-	return iv_coin_package_dto.IVCoinPackageResponse{
-		ID:                 ivCoinPackage.ID,
-		Name:               ivCoinPackage.Name,
-		CoinAmount:         ivCoinPackage.CoinAmount,
-		IDRPrice:           ivCoinPackage.IDRPrice,
-		IDRDiscountPrice:   ivCoinPackage.IDRDiscountPrice,
-		DiscountCategories: discountCategoryResponses,
+	if len(ivCoinPackage.DiscountCategories) != 0 {
+		var discountCategoryResponses []discount_category_dto.DiscountCategoryResponse
+		for _, discountCategory := range ivCoinPackage.DiscountCategories {
+			discountCategoryCopy := ConvertToDiscountCategoryResponse(&discountCategory)
+			discountCategoryResponses = append(discountCategoryResponses, discountCategoryCopy)
+		}
+		ivCoinPackageResponse.DiscountCategories = discountCategoryResponses
 	}
+
+	return ivCoinPackageResponse
 }
 
 func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *http.Request) {

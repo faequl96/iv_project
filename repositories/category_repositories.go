@@ -26,7 +26,10 @@ func (r *repository) CreateCategory(category *models.Category) error {
 func (r *repository) GetCategoryByID(id uint) (*models.Category, error) {
 	var category models.Category
 	err := r.db.First(&category, id).Error
-	return &category, err
+	if err != nil {
+		return nil, err
+	}
+	return &category, nil
 }
 
 func (r *repository) GetCategories() ([]models.Category, error) {

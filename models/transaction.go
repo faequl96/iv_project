@@ -74,6 +74,7 @@ func StringToPaymentMethodType(value string) PaymentMethodType {
 type Transaction struct {
 	ID              uint                  `gorm:"primaryKey;autoIncrement" json:"id"`
 	ProductType     ProductType           `gorm:"type:varchar(50);not null" json:"product_type"`
+	ProductName     string                `gorm:"size:150;not null;index" json:"product_name"`
 	Status          TransactionStatusType `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
 	PaymentMethod   PaymentMethodType     `gorm:"type:varchar(50);not null" json:"payment_method"`
 	ReferenceNumber string                `gorm:"size:100;uniqueIndex;not null" json:"reference_number"`

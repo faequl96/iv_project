@@ -31,7 +31,10 @@ func (r *repository) CreateTransaction(transaction *models.Transaction) error {
 func (r *repository) GetTransactionByID(id uint) (*models.Transaction, error) {
 	var transaction models.Transaction
 	err := r.db.Preload("Invitation").Preload("IVCoinPackage").First(&transaction, id).Error
-	return &transaction, err
+	if err != nil {
+		return nil, err
+	}
+	return &transaction, nil
 }
 
 func (r *repository) GetTransactions() ([]models.Transaction, error) {

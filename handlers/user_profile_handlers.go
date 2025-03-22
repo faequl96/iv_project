@@ -71,13 +71,6 @@ func (h *userProfileHandlers) GetUserProfileByID(w http.ResponseWriter, r *http.
 func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	userID := r.Context().Value(middleware.UserIdKey).(string)
-	userProfile, err := h.UserProfileRepositories.GetUserProfileByUserID(userID)
-	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No user profile found with the provided user.")
-		return
-	}
-
 	var request user_profile_dto.UpdateUserProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
@@ -86,6 +79,13 @@ func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.R
 
 	if err := validator.New().Struct(request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		return
+	}
+
+	userID := r.Context().Value(middleware.UserIdKey).(string)
+	userProfile, err := h.UserProfileRepositories.GetUserProfileByUserID(userID)
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "No user profile found with the provided user.")
 		return
 	}
 

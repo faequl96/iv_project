@@ -22,10 +22,12 @@ func IVCoinHandlers(IVCoinRepositories repositories.IVCoinRepositories) *ivCoinH
 }
 
 func ConvertToIVCoinResponse(ivCoin *models.IVCoin) iv_coin_dto.IVCoinResponse {
-	return iv_coin_dto.IVCoinResponse{
+	ivCoinResponse := iv_coin_dto.IVCoinResponse{
 		ID:      ivCoin.ID,
 		Balance: ivCoin.Balance,
 	}
+
+	return ivCoinResponse
 }
 
 func (h *ivCoinHandlers) GetIVCoin(w http.ResponseWriter, r *http.Request) {

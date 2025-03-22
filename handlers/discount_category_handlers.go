@@ -22,10 +22,12 @@ func DiscountCategoryHandler(DiscountCategoryRepositories repositories.DiscountC
 }
 
 func ConvertToDiscountCategoryResponse(discountCategory *models.DiscountCategory) discount_category_dto.DiscountCategoryResponse {
-	return discount_category_dto.DiscountCategoryResponse{
+	discountCategoryResponse := discount_category_dto.DiscountCategoryResponse{
 		ID:   discountCategory.ID,
 		Name: discountCategory.Name,
 	}
+
+	return discountCategoryResponse
 }
 
 func (h *discountCategoryHandlers) CreateDiscountCategory(w http.ResponseWriter, r *http.Request) {

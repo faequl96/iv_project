@@ -27,15 +27,20 @@ func ReviewHandlers(
 }
 
 func ConvertToReviewResponse(review *models.Review) review_dto.ReviewResponse {
-	userResponse := ConvertToUserResponse(review.User)
-	return review_dto.ReviewResponse{
+	reviewResponse := review_dto.ReviewResponse{
 		ID:        review.ID,
 		Star:      review.Star,
 		Comment:   review.Comment,
-		User:      &userResponse,
 		CreatedAt: review.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: review.UpdatedAt.Format(time.RFC3339),
 	}
+
+	if review.User != nil {
+		userResponse := ConvertToUserResponse(review.User)
+		reviewResponse.User = &userResponse
+	}
+
+	return reviewResponse
 }
 
 func (h *reviewHandlers) CreateReview(w http.ResponseWriter, r *http.Request) {

@@ -3,9 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	category_dto "iv_project/dto/category"
-	discount_category_dto "iv_project/dto/discount_category"
 	invitation_theme_dto "iv_project/dto/invitation_theme"
-	review_dto "iv_project/dto/review"
 	"iv_project/models"
 	"iv_project/pkg/middleware"
 	"iv_project/repositories"
@@ -31,35 +29,25 @@ func InvitationThemeHandler(
 }
 
 func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) invitation_theme_dto.InvitationThemeResponse {
-	var categoryResponses []category_dto.CategoryResponse
-	for _, category := range invitationTheme.Categories {
-		categoryCopy := ConvertToCategoryResponse(&category)
-		categoryResponses = append(categoryResponses, categoryCopy)
+	invitationThemeResponse := invitation_theme_dto.InvitationThemeResponse{
+		ID:               invitationTheme.ID,
+		Name:             invitationTheme.Name,
+		IDRPrice:         invitationTheme.IDRPrice,
+		IDRDiscountPrice: invitationTheme.IDRDiscountPrice,
+		IVCPrice:         invitationTheme.IVCPrice,
+		IVCDiscountPrice: invitationTheme.IVCDiscountPrice,
 	}
 
-	var discountCategoryResponses []discount_category_dto.DiscountCategoryResponse
-	for _, discountCategory := range invitationTheme.DiscountCategories {
-		discountCategoryCopy := ConvertToDiscountCategoryResponse(&discountCategory)
-		discountCategoryResponses = append(discountCategoryResponses, discountCategoryCopy)
+	if len(invitationTheme.Categories) != 0 {
+		var categoryResponses []category_dto.CategoryResponse
+		for _, category := range invitationTheme.Categories {
+			categoryCopy := ConvertToCategoryResponse(&category)
+			categoryResponses = append(categoryResponses, categoryCopy)
+		}
+		invitationThemeResponse.Categories = categoryResponses
 	}
 
-	var reviewResponses []review_dto.ReviewResponse
-	for _, review := range invitationTheme.Reviews {
-		reviewCopy := ConvertToReviewResponse(&review)
-		reviewResponses = append(reviewResponses, reviewCopy)
-	}
-
-	return invitation_theme_dto.InvitationThemeResponse{
-		ID:                 invitationTheme.ID,
-		Name:               invitationTheme.Name,
-		IDRPrice:           invitationTheme.IDRPrice,
-		IDRDiscountPrice:   invitationTheme.IDRDiscountPrice,
-		IVCPrice:           invitationTheme.IVCPrice,
-		IVCDiscountPrice:   invitationTheme.IVCDiscountPrice,
-		Categories:         categoryResponses,
-		DiscountCategories: discountCategoryResponses,
-		Reviews:            reviewResponses,
-	}
+	return invitationThemeResponse
 }
 
 func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r *http.Request) {

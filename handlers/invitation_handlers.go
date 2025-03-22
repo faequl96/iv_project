@@ -2,12 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	gallery_dto "iv_project/dto/gallery"
 	invitation_dto "iv_project/dto/invitation"
-	invitation_data_dto "iv_project/dto/invitation_data"
-	invitation_theme_dto "iv_project/dto/invitation_theme"
-	user_dto "iv_project/dto/user"
-	user_profile_dto "iv_project/dto/user_profile"
 	"iv_project/models"
 	"iv_project/pkg/middleware"
 	"iv_project/repositories"
@@ -28,48 +23,26 @@ func InvitationHandler(InvitationRepositories repositories.InvitationRepositorie
 }
 
 func ConvertToInvitationResponse(invitation *models.Invitation) invitation_dto.InvitationResponse {
-	return invitation_dto.InvitationResponse{
-		ID: invitation.ID,
-		User: &user_dto.UserResponse{
-			ID: invitation.User.ID,
-			UserProfile: &user_profile_dto.UserProfileResponse{
-				ID:        invitation.User.UserProfile.ID,
-				FirstName: invitation.User.UserProfile.FirstName,
-				LastName:  invitation.User.UserProfile.LastName,
-			},
-		},
-		InvitationTheme: &invitation_theme_dto.InvitationThemeResponse{
-			ID:               invitation.InvitationTheme.ID,
-			Name:             invitation.InvitationTheme.Name,
-			IDRPrice:         invitation.InvitationTheme.IDRPrice,
-			IDRDiscountPrice: invitation.InvitationTheme.IDRDiscountPrice,
-			IVCPrice:         invitation.InvitationTheme.IVCPrice,
-			IVCDiscountPrice: invitation.InvitationTheme.IVCDiscountPrice,
-		},
+	invitationResponse := invitation_dto.InvitationResponse{
+		ID:     invitation.ID,
 		Status: invitation.Status,
-		InvitationData: &invitation_data_dto.InvitationDataResponse{
-			ID:           invitation.InvitationData.ID,
-			EventName:    invitation.InvitationData.EventName,
-			EventDate:    invitation.InvitationData.EventDate.Format(time.RFC3339),
-			Location:     invitation.InvitationData.Location,
-			MainImageURL: invitation.InvitationData.MainImageURL,
-			Gallery: &gallery_dto.GalleryResponse{
-				ID:         invitation.InvitationData.Gallery.ID,
-				ImageURL1:  invitation.InvitationData.Gallery.ImageURL1,
-				ImageURL2:  invitation.InvitationData.Gallery.ImageURL2,
-				ImageURL3:  invitation.InvitationData.Gallery.ImageURL3,
-				ImageURL4:  invitation.InvitationData.Gallery.ImageURL4,
-				ImageURL5:  invitation.InvitationData.Gallery.ImageURL5,
-				ImageURL6:  invitation.InvitationData.Gallery.ImageURL6,
-				ImageURL7:  invitation.InvitationData.Gallery.ImageURL7,
-				ImageURL8:  invitation.InvitationData.Gallery.ImageURL8,
-				ImageURL9:  invitation.InvitationData.Gallery.ImageURL9,
-				ImageURL10: invitation.InvitationData.Gallery.ImageURL10,
-				ImageURL11: invitation.InvitationData.Gallery.ImageURL11,
-				ImageURL12: invitation.InvitationData.Gallery.ImageURL12,
-			},
-		},
 	}
+
+	if invitation.InvitationTheme != nil {
+		invitationThemeResponse := ConvertToInvitationThemeResponse(invitation.InvitationTheme)
+		invitationResponse.InvitationTheme = &invitationThemeResponse
+	}
+
+	if invitation.InvitationData != nil {
+		invitationDataResponse := ConvertToInvitationDataResponse(invitation.InvitationData)
+		invitationResponse.InvitationData = &invitationDataResponse
+		if invitation.InvitationData.Gallery != nil {
+			galleryResponse := ConvertToGalleryResponse(invitation.InvitationData.Gallery)
+			invitationResponse.InvitationData.Gallery = &galleryResponse
+		}
+	}
+
+	return invitationResponse
 }
 
 func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Request) {

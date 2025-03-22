@@ -28,20 +28,25 @@ func ConvertToDiscountResponse(
 	invitationThemes []models.InvitationTheme,
 	ivCoinPackages []models.IVCoinPackage,
 ) discount_dto.DiscountResponse {
-	var invitationThemeResponses []invitation_theme_dto.InvitationThemeResponse
-	for _, invitationTheme := range invitationThemes {
-		invitationThemeResponses = append(invitationThemeResponses, ConvertToInvitationThemeResponse(&invitationTheme))
+	discountResponse := discount_dto.DiscountResponse{}
+
+	if len(invitationThemes) != 0 {
+		var invitationThemeResponses []invitation_theme_dto.InvitationThemeResponse
+		for _, invitationTheme := range invitationThemes {
+			invitationThemeResponses = append(invitationThemeResponses, ConvertToInvitationThemeResponse(&invitationTheme))
+		}
+		discountResponse.InvitationThemes = invitationThemeResponses
 	}
 
-	var ivCoinPackageResponses []iv_coin_package_dto.IVCoinPackageResponse
-	for _, ivCoinPackage := range ivCoinPackages {
-		ivCoinPackageResponses = append(ivCoinPackageResponses, ConvertToIVCoinPackageResponse(&ivCoinPackage))
+	if len(ivCoinPackages) != 0 {
+		var ivCoinPackageResponses []iv_coin_package_dto.IVCoinPackageResponse
+		for _, ivCoinPackage := range ivCoinPackages {
+			ivCoinPackageResponses = append(ivCoinPackageResponses, ConvertToIVCoinPackageResponse(&ivCoinPackage))
+		}
+		discountResponse.IVCoinPackages = ivCoinPackageResponses
 	}
 
-	return discount_dto.DiscountResponse{
-		InvitationThemes: invitationThemeResponses,
-		IVCoinPackages:   ivCoinPackageResponses,
-	}
+	return discountResponse
 }
 
 func (h *dicountHandlers) SetProductPrices(w http.ResponseWriter, r *http.Request) {

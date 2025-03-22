@@ -26,7 +26,10 @@ func (r *repository) CreateDiscountCategory(discountCategory *models.DiscountCat
 func (r *repository) GetDiscountCategoryByID(id uint) (*models.DiscountCategory, error) {
 	var discountCategory models.DiscountCategory
 	err := r.db.First(&discountCategory, id).Error
-	return &discountCategory, err
+	if err != nil {
+		return nil, err
+	}
+	return &discountCategory, nil
 }
 
 func (r *repository) GetDiscountCategories() ([]models.DiscountCategory, error) {

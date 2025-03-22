@@ -19,13 +19,19 @@ func IVCoinRepository(db *gorm.DB) *repository {
 func (r *repository) GetIVCoinByID(id uint) (*models.IVCoin, error) {
 	var ivCoin models.IVCoin
 	err := r.db.First(&ivCoin, id).Error
-	return &ivCoin, err
+	if err != nil {
+		return nil, err
+	}
+	return &ivCoin, nil
 }
 
 func (r *repository) GetIVCoinByUserID(userID string) (*models.IVCoin, error) {
 	var ivCoin models.IVCoin
 	err := r.db.Where("user_id = ?", userID).First(&ivCoin).Error
-	return &ivCoin, err
+	if err != nil {
+		return nil, err
+	}
+	return &ivCoin, nil
 }
 
 func (r *repository) UpdateIVCoin(ivCoin *models.IVCoin) error {

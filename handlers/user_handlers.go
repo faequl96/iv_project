@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	iv_coin_dto "iv_project/dto/iv_coin"
 	user_dto "iv_project/dto/user"
-	user_profile_dto "iv_project/dto/user_profile"
 	"iv_project/models"
 	"iv_project/pkg/middleware"
 	"iv_project/repositories"
@@ -24,18 +22,15 @@ func UserHandlers(UserRepositories repositories.UserRepositories) *userHandlers 
 
 func ConvertToUserResponse(user *models.User) user_dto.UserResponse {
 	userResponse := user_dto.UserResponse{ID: user.ID, Role: user.Role}
+
 	if user.UserProfile != nil {
-		userResponse.UserProfile = &user_profile_dto.UserProfileResponse{
-			ID:        user.UserProfile.ID,
-			FirstName: user.UserProfile.FirstName,
-			LastName:  user.UserProfile.LastName,
-		}
+		userProfileResponse := ConvertToUserProfileResponse(user.UserProfile)
+		userResponse.UserProfile = &userProfileResponse
 	}
+
 	if user.IVCoin != nil {
-		userResponse.IVCoin = &iv_coin_dto.IVCoinResponse{
-			ID:      user.IVCoin.ID,
-			Balance: user.IVCoin.Balance,
-		}
+		ivCoinResponse := ConvertToIVCoinResponse(user.IVCoin)
+		userResponse.IVCoin = &ivCoinResponse
 	}
 
 	return userResponse

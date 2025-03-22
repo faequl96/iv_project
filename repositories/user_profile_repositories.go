@@ -19,13 +19,19 @@ func UserProfileRepository(db *gorm.DB) *repository {
 func (r *repository) GetUserProfileByID(id uint) (*models.UserProfile, error) {
 	var userProfile models.UserProfile
 	err := r.db.First(&userProfile, id).Error
-	return &userProfile, err
+	if err != nil {
+		return nil, err
+	}
+	return &userProfile, nil
 }
 
 func (r *repository) GetUserProfileByUserID(userID string) (*models.UserProfile, error) {
 	var userProfile models.UserProfile
 	err := r.db.First(&userProfile, "user_id = ?", userID).Error
-	return &userProfile, err
+	if err != nil {
+		return nil, err
+	}
+	return &userProfile, nil
 }
 
 func (r *repository) UpdateUserProfile(userProfile *models.UserProfile) error {

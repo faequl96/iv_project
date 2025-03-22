@@ -27,7 +27,10 @@ func (r *repository) CreateReview(review *models.Review) error {
 func (r *repository) GetReviewByID(id uint) (*models.Review, error) {
 	var review models.Review
 	err := r.db.Preload("User.UserProfile").First(&review, id).Error
-	return &review, err
+	if err != nil {
+		return nil, err
+	}
+	return &review, nil
 }
 
 func (r *repository) GetReviews() ([]models.Review, error) {

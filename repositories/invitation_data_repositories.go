@@ -24,7 +24,10 @@ func (r *repository) CreateInvitationData(invitationData *models.InvitationData)
 func (r *repository) GetInvitationDataByID(id uint) (*models.InvitationData, error) {
 	var invitationData models.InvitationData
 	err := r.db.Preload("Gallery").First(&invitationData, id).Error
-	return &invitationData, err
+	if err != nil {
+		return nil, err
+	}
+	return &invitationData, nil
 }
 
 func (r *repository) UpdateInvitationData(invitationData *models.InvitationData) error {

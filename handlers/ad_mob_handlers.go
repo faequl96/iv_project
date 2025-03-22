@@ -20,10 +20,9 @@ func AdMobHandlers(IVCoinRepositories repositories.IVCoinRepositories) *adMobHan
 }
 
 func ConvertToAdMobResponse(ivCoin *models.IVCoin) ad_mob_dto.AdMobResponse {
-	return ad_mob_dto.AdMobResponse{
-		ID:      ivCoin.ID,
-		Balance: ivCoin.Balance,
-	}
+	adMobResponse := ConvertToIVCoinResponse(ivCoin)
+
+	return ad_mob_dto.AdMobResponse(adMobResponse)
 }
 
 func (h *adMobHandlers) AddExtraIVCoins(w http.ResponseWriter, r *http.Request) {

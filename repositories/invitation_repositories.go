@@ -31,7 +31,10 @@ func (r *repository) CreateInvitation(invitation *models.Invitation) error {
 func (r *repository) GetInvitationByID(id uint) (*models.Invitation, error) {
 	var invitation models.Invitation
 	err := r.db.Preload("InvitationData.Gallery").First(&invitation, id).Error
-	return &invitation, err
+	if err != nil {
+		return nil, err
+	}
+	return &invitation, nil
 }
 
 func (r *repository) GetInvitations() ([]models.Invitation, error) {

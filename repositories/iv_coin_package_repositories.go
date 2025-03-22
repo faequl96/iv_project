@@ -31,7 +31,10 @@ func (r *repository) CreateIVCoinPackage(ivCoinPackage *models.IVCoinPackage) er
 func (r *repository) GetIVCoinPackageByID(id uint) (*models.IVCoinPackage, error) {
 	var ivCoinPackage models.IVCoinPackage
 	err := r.db.Preload("DiscountCategories").First(&ivCoinPackage, id).Error
-	return &ivCoinPackage, err
+	if err != nil {
+		return nil, err
+	}
+	return &ivCoinPackage, nil
 }
 
 func (r *repository) GetIVCoinPackages() ([]models.IVCoinPackage, error) {
