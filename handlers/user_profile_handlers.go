@@ -22,11 +22,13 @@ func UserProfileHandlers(UserProfileRepositories repositories.UserProfileReposit
 }
 
 func ConvertToUserProfileResponse(userProfile *models.UserProfile) user_profile_dto.UserProfileResponse {
-	return user_profile_dto.UserProfileResponse{
+	userProfileResponse := user_profile_dto.UserProfileResponse{
 		ID:        userProfile.ID,
 		FirstName: userProfile.FirstName,
 		LastName:  userProfile.LastName,
 	}
+
+	return userProfileResponse
 }
 
 func (h *userProfileHandlers) GetUserProfile(w http.ResponseWriter, r *http.Request) {

@@ -3,9 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	review_dto "iv_project/dto/review"
-	user_dto "iv_project/dto/user"
-	user_profile_dto "iv_project/dto/user_profile"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -17,25 +16,23 @@ import (
 
 type reviewHandlers struct {
 	ReviewRepositories repositories.ReviewRepositories
+	UserRepositories   repositories.UserRepositories
 }
 
-func ReviewHandlers(ReviewRepositories repositories.ReviewRepositories) *reviewHandlers {
-	return &reviewHandlers{ReviewRepositories}
+func ReviewHandlers(
+	ReviewRepositories repositories.ReviewRepositories,
+	UserRepositories repositories.UserRepositories,
+) *reviewHandlers {
+	return &reviewHandlers{ReviewRepositories, UserRepositories}
 }
 
 func ConvertToReviewResponse(review *models.Review) review_dto.ReviewResponse {
+	userResponse := ConvertToUserResponse(review.User)
 	return review_dto.ReviewResponse{
-		ID:      review.ID,
-		Star:    review.Star,
-		Comment: review.Comment,
-		User: &user_dto.UserResponse{
-			ID: review.User.ID,
-			UserProfile: &user_profile_dto.UserProfileResponse{
-				ID:        review.User.UserProfile.ID,
-				FirstName: review.User.UserProfile.FirstName,
-				LastName:  review.User.UserProfile.LastName,
-			},
-		},
+		ID:        review.ID,
+		Star:      review.Star,
+		Comment:   review.Comment,
+		User:      &userResponse,
 		CreatedAt: review.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: review.UpdatedAt.Format(time.RFC3339),
 	}
@@ -55,17 +52,26 @@ func (h *reviewHandlers) CreateReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := r.Context().Value(middleware.UserIdKey).(string)
 	review := &models.Review{
-		UserID:            request.UserID,
-		InvitationThemeID: request.InvitationThemeID,
 		Star:              request.Star,
 		Comment:           request.Comment,
+		UserID:            userID,
+		InvitationThemeID: request.InvitationThemeID,
 	}
 
 	if err := h.ReviewRepositories.CreateReview(review); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while create the review. Please try again.")
 		return
 	}
+
+	user, err := h.UserRepositories.GetUserByID(userID)
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "User with ID "+userID+" not found")
+		return
+	}
+
+	review.User = user
 
 	SuccessResponse(w, http.StatusCreated, "Review successfully created", ConvertToReviewResponse(review))
 }
@@ -86,6 +92,34 @@ func (h *reviewHandlers) GetReviewByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	SuccessResponse(w, http.StatusOK, "Review found successfully", ConvertToReviewResponse(review))
+}
+
+func (h *reviewHandlers) GetReviews(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
+
+	reviews, err := h.ReviewRepositories.GetReviews()
+	if err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching iv coin packages.")
+		return
+	}
+
+	if len(reviews) == 0 {
+		SuccessResponse(w, http.StatusOK, "No reviews available at this moment", []review_dto.ReviewResponse{})
+		return
+	}
+
+	var responses []review_dto.ReviewResponse
+	for _, review := range reviews {
+		responses = append(responses, ConvertToReviewResponse(&review))
+	}
+
+	SuccessResponse(w, http.StatusOK, "Reviews retrieved successfully", responses)
 }
 
 func (h *reviewHandlers) GetReviewsByInvitationThemeID(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +150,7 @@ func (h *reviewHandlers) GetReviewsByInvitationThemeID(w http.ResponseWriter, r 
 	SuccessResponse(w, http.StatusOK, "Reviews retrieved successfully", response)
 }
 
-func (h *reviewHandlers) UpdateReview(w http.ResponseWriter, r *http.Request) {
+func (h *reviewHandlers) UpdateReviewByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var request review_dto.UpdateReviewRequest
@@ -157,12 +191,17 @@ func (h *reviewHandlers) UpdateReview(w http.ResponseWriter, r *http.Request) {
 	SuccessResponse(w, http.StatusOK, "Review successfully updated", ConvertToReviewResponse(review))
 }
 
-func (h *reviewHandlers) DeleteReview(w http.ResponseWriter, r *http.Request) {
+func (h *reviewHandlers) DeleteReviewByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format. Please use a number.")
+		return
+	}
+
+	if _, err = h.ReviewRepositories.GetReviewByID(uint(id)); err != nil {
+		ErrorResponse(w, http.StatusNotFound, "No review found with the provided ID.")
 		return
 	}
 
