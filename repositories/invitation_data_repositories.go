@@ -7,18 +7,12 @@ import (
 )
 
 type InvitationDataRepositories interface {
-	CreateInvitationData(invitationData *models.InvitationData) error
 	GetInvitationDataByID(id uint) (*models.InvitationData, error)
 	UpdateInvitationData(invitationData *models.InvitationData) error
-	DeleteInvitationData(id uint) error
 }
 
 func InvitationDataRepository(db *gorm.DB) *repository {
 	return &repository{db}
-}
-
-func (r *repository) CreateInvitationData(invitationData *models.InvitationData) error {
-	return r.db.Create(invitationData).Error
 }
 
 func (r *repository) GetInvitationDataByID(id uint) (*models.InvitationData, error) {
@@ -31,9 +25,16 @@ func (r *repository) GetInvitationDataByID(id uint) (*models.InvitationData, err
 }
 
 func (r *repository) UpdateInvitationData(invitationData *models.InvitationData) error {
-	return r.db.Save(invitationData).Error
-}
-
-func (r *repository) DeleteInvitationData(id uint) error {
-	return r.db.Delete(&models.InvitationData{}, id).Error
+	tx := r.db.Begin()
+	if err := tx.Save(invitationData).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if invitationData.Gallery != nil {
+		if err := tx.Save(invitationData.Gallery).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit().Error
 }

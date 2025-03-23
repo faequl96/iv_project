@@ -16,9 +16,9 @@ func InvitationRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	h := handlers.InvitationHandler(invitationRepository, invitationThemeRepository)
 
 	r.HandleFunc("/invitation", middleware.Auth(jwtServices, middleware.InvitationImagesUploader(h.CreateInvitation))).Methods("POST")
-	r.HandleFunc("/invitationid//{id}", middleware.Auth(jwtServices, h.GetInvitationByID)).Methods("GET")
+	r.HandleFunc("/invitation/id/{id}", middleware.Auth(jwtServices, h.GetInvitationByID)).Methods("GET")
 	r.HandleFunc("/invitations", middleware.Auth(jwtServices, h.GetInvitations)).Methods("GET")
 	r.HandleFunc("/invitations/user-id/{userId}", middleware.Auth(jwtServices, h.GetInvitationsByUserID)).Methods("GET")
-	r.HandleFunc("/invitationid//{id}", middleware.Auth(jwtServices, middleware.InvitationImagesUploader(h.UpdateInvitation))).Methods("PATCH")
-	r.HandleFunc("/invitationid//{id}", middleware.Auth(jwtServices, h.CreateInvitation)).Methods("DELETE")
+	r.HandleFunc("/invitation/id/{id}", middleware.Auth(jwtServices, middleware.InvitationImagesUploader(h.UpdateInvitationByID))).Methods("PATCH")
+	r.HandleFunc("/invitation/id/{id}", middleware.Auth(jwtServices, h.DeleteInvitationByID)).Methods("DELETE")
 }

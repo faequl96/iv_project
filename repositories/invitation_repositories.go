@@ -55,6 +55,16 @@ func (r *repository) UpdateInvitation(invitation *models.Invitation) error {
 		tx.Rollback()
 		return err
 	}
+	if err := tx.Save(invitation.InvitationData).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if invitation.InvitationData.Gallery != nil {
+		if err := tx.Save(invitation.InvitationData.Gallery).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
 	return tx.Commit().Error
 }
 

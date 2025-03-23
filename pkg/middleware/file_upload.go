@@ -1,11 +1,9 @@
 package middleware
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"image/jpeg"
 	"io"
 	"iv_project/dto"
 	"net/http"
@@ -15,30 +13,27 @@ import (
 
 const UploadsKey MiddlewareKey = "uploadedFiles"
 
-// Kompres gambar agar ukurannya di bawah 300 KB tanpa package tambahan
-func compressImage(src io.Reader) ([]byte, error) {
-	img, err := jpeg.Decode(src)
+func saveImage(src io.Reader, filename string) (string, error) {
+	fileBytes, err := io.ReadAll(src)
 	if err != nil {
-		return nil, fmt.Errorf("gagal decode gambar: %w", err)
+		return "", fmt.Errorf("gagal membaca file: %w", err)
 	}
 
-	var buf bytes.Buffer
-	quality := 75
-	err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: quality})
-	if err != nil {
-		return nil, fmt.Errorf("gagal mengompres gambar: %w", err)
-	}
-
-	for buf.Len() > 300*1024 && quality > 10 {
-		buf.Reset()
-		quality -= 5
-		err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: quality})
+	uploadDir := "uploads"
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		err := os.Mkdir(uploadDir, os.ModePerm)
 		if err != nil {
-			return nil, fmt.Errorf("gagal mengompres gambar: %w", err)
+			return "", fmt.Errorf("gagal membuat folder upload: %w", err)
 		}
 	}
 
-	return buf.Bytes(), nil
+	filePath := filepath.Join(uploadDir, filename)
+	err = os.WriteFile(filePath, fileBytes, 0644)
+	if err != nil {
+		return "", fmt.Errorf("gagal menyimpan file")
+	}
+
+	return filePath, nil
 }
 
 func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
@@ -50,6 +45,7 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 			"image_url_4", "image_url_5", "image_url_6",
 			"image_url_7", "image_url_8", "image_url_9",
 			"image_url_10", "image_url_11", "image_url_12"}
+
 		uploadedFiles := make(map[string]string)
 
 		for _, fieldName := range fields {
@@ -64,27 +60,16 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 			}
 			defer file.Close()
 
-			// Kompres gambar
-			compressedData, err := compressImage(file)
+			filePath, err := saveImage(file, header.Filename)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()})
 				return
 			}
 
-			// Simpan file yang sudah dikompres
-			filePath := filepath.Join("uploads", header.Filename)
-			err = os.WriteFile(filePath, compressedData, 0644)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: "Gagal menyimpan file"})
-				return
-			}
-
 			uploadedFiles[fieldName] = filePath
 		}
 
-		// Tambahkan hasil upload ke dalam context
 		ctx := context.WithValue(r.Context(), UploadsKey, uploadedFiles)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

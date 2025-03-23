@@ -13,6 +13,22 @@ const (
 	InvitationStatusActive InvitationStatusType = "active"
 )
 
+func (u InvitationStatusType) String() string {
+	maps := map[InvitationStatusType]string{
+		InvitationStatusDraft:  "draft",
+		InvitationStatusActive: "active",
+	}
+	return maps[u]
+}
+
+func StringToInvitationStatusType(value string) InvitationStatusType {
+	maps := map[string]InvitationStatusType{
+		"draft":  InvitationStatusDraft,
+		"active": InvitationStatusActive,
+	}
+	return maps[value]
+}
+
 type Invitation struct {
 	ID                  uint                 `gorm:"primaryKey;autoIncrement" json:"id"`
 	Status              InvitationStatusType `gorm:"type:varchar(50);not null;default:'draft'" json:"status"`

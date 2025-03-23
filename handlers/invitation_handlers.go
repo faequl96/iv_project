@@ -28,8 +28,10 @@ func InvitationHandler(
 
 func ConvertToInvitationResponse(invitation *models.Invitation) invitation_dto.InvitationResponse {
 	invitationResponse := invitation_dto.InvitationResponse{
-		ID:     invitation.ID,
-		Status: invitation.Status,
+		ID:                  invitation.ID,
+		Status:              invitation.Status,
+		InvitationThemeID:   invitation.InvitationThemeID,
+		InvitationThemeName: invitation.InvitationThemeName,
 	}
 
 	if invitation.InvitationData != nil {
@@ -79,6 +81,7 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 			EventName: request.InvitationData.EventName,
 			EventDate: eventDate,
 			Location:  request.InvitationData.Location,
+			Gallery:   &models.Gallery{},
 		},
 		UserID: request.UserID,
 	}
@@ -202,7 +205,7 @@ func (h *invitationHandlers) GetInvitationsByUserID(w http.ResponseWriter, r *ht
 	SuccessResponse(w, http.StatusOK, "Invitations retrieved successfully", invitationResponses)
 }
 
-func (h *invitationHandlers) UpdateInvitation(w http.ResponseWriter, r *http.Request) {
+func (h *invitationHandlers) UpdateInvitationByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	invitationJSON := r.FormValue("invitation")
@@ -229,15 +232,19 @@ func (h *invitationHandlers) UpdateInvitation(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if request.InvitationData.EventName != "" {
+		invitation.InvitationData.EventName = request.InvitationData.EventName
+	}
 	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid EventDate format. Use RFC3339.")
 		return
 	}
-
 	invitation.Status = request.Status
-
 	invitation.InvitationData.EventDate = eventDate
+	if request.InvitationData.Location != "" {
+		invitation.InvitationData.Location = request.InvitationData.Location
+	}
 
 	uploadedFiles, ok := r.Context().Value(middleware.UploadsKey).(map[string]string)
 	if ok {
@@ -291,10 +298,10 @@ func (h *invitationHandlers) UpdateInvitation(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	SuccessResponse(w, http.StatusCreated, "Invitation updated successfully", ConvertToInvitationResponse(invitation))
+	SuccessResponse(w, http.StatusOK, "Invitation updated successfully", ConvertToInvitationResponse(invitation))
 }
 
-func (h *invitationHandlers) DeleteInvitation(w http.ResponseWriter, r *http.Request) {
+func (h *invitationHandlers) DeleteInvitationByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])

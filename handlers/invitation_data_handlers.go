@@ -39,87 +39,6 @@ func ConvertToInvitationDataResponse(invitationData *models.InvitationData) invi
 	return invitationDataResponse
 }
 
-func (h *invitationDataHandlers) CreateInvitationData(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	var request invitation_data_dto.CreateInvitationDataRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
-		return
-	}
-
-	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
-		return
-	}
-
-	eventDate, err := time.Parse(time.RFC3339, request.EventDate)
-	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid EventDate format. Use RFC3339.")
-		return
-	}
-
-	invitationData := &models.InvitationData{
-		EventName: request.EventName,
-		EventDate: eventDate,
-		Location:  request.Location,
-	}
-
-	uploadedFiles, ok := r.Context().Value(middleware.UploadsKey).(map[string]string)
-	if ok {
-		if val, exists := uploadedFiles["main_image_url"]; exists {
-			invitationData.MainImageURL = val
-		}
-
-		if invitationData.Gallery != nil {
-			if val, exists := uploadedFiles["image_url_1"]; exists {
-				invitationData.Gallery.ImageURL1 = val
-			}
-			if val, exists := uploadedFiles["image_url_2"]; exists {
-				invitationData.Gallery.ImageURL2 = val
-			}
-			if val, exists := uploadedFiles["image_url_3"]; exists {
-				invitationData.Gallery.ImageURL3 = val
-			}
-			if val, exists := uploadedFiles["image_url_4"]; exists {
-				invitationData.Gallery.ImageURL4 = val
-			}
-			if val, exists := uploadedFiles["image_url_5"]; exists {
-				invitationData.Gallery.ImageURL5 = val
-			}
-			if val, exists := uploadedFiles["image_url_6"]; exists {
-				invitationData.Gallery.ImageURL6 = val
-			}
-			if val, exists := uploadedFiles["image_url_7"]; exists {
-				invitationData.Gallery.ImageURL7 = val
-			}
-			if val, exists := uploadedFiles["image_url_8"]; exists {
-				invitationData.Gallery.ImageURL8 = val
-			}
-			if val, exists := uploadedFiles["image_url_9"]; exists {
-				invitationData.Gallery.ImageURL9 = val
-			}
-			if val, exists := uploadedFiles["image_url_10"]; exists {
-				invitationData.Gallery.ImageURL10 = val
-			}
-			if val, exists := uploadedFiles["image_url_11"]; exists {
-				invitationData.Gallery.ImageURL11 = val
-			}
-			if val, exists := uploadedFiles["image_url_12"]; exists {
-				invitationData.Gallery.ImageURL12 = val
-			}
-		}
-	}
-
-	err = h.InvitationDataRepositories.CreateInvitationData(invitationData)
-	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to create invitation data.")
-		return
-	}
-
-	SuccessResponse(w, http.StatusCreated, "Invitation data created successfully", ConvertToInvitationDataResponse(invitationData))
-}
-
 func (h *invitationDataHandlers) GetInvitationDataByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -138,11 +57,12 @@ func (h *invitationDataHandlers) GetInvitationDataByID(w http.ResponseWriter, r 
 	SuccessResponse(w, http.StatusOK, "Invitation data retrieved successfully", ConvertToInvitationDataResponse(invitationData))
 }
 
-func (h *invitationDataHandlers) UpdateInvitationData(w http.ResponseWriter, r *http.Request) {
+func (h *invitationDataHandlers) UpdateInvitationDataByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	invitationDataJSON := r.FormValue("invitation_data")
 	var request invitation_data_dto.UpdateInvitationDataRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := json.Unmarshal([]byte(invitationDataJSON), &request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
 		return
 	}
@@ -164,13 +84,18 @@ func (h *invitationDataHandlers) UpdateInvitationData(w http.ResponseWriter, r *
 		return
 	}
 
+	if request.EventName != "" {
+		invitationData.EventName = request.EventName
+	}
 	eventDate, err := time.Parse(time.RFC3339, request.EventDate)
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid EventDate format. Use RFC3339.")
 		return
 	}
-
 	invitationData.EventDate = eventDate
+	if request.Location != "" {
+		invitationData.Location = request.Location
+	}
 
 	uploadedFiles, ok := r.Context().Value(middleware.UploadsKey).(map[string]string)
 	if ok {
@@ -224,27 +149,5 @@ func (h *invitationDataHandlers) UpdateInvitationData(w http.ResponseWriter, r *
 		return
 	}
 
-	SuccessResponse(w, http.StatusCreated, "Invitation data updated successfully", ConvertToInvitationDataResponse(invitationData))
-}
-
-func (h *invitationDataHandlers) DeleteInvitationData(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation data ID format. Please provide a numeric ID.")
-		return
-	}
-
-	if _, err = h.InvitationDataRepositories.GetInvitationDataByID(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No invitation data found with the provided ID.")
-		return
-	}
-
-	if err := h.InvitationDataRepositories.DeleteInvitationData(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while deleting the invitation data.")
-		return
-	}
-
-	SuccessResponse(w, http.StatusOK, "Invitation data deleted successfully", nil)
+	SuccessResponse(w, http.StatusOK, "Invitation data updated successfully", ConvertToInvitationDataResponse(invitationData))
 }
