@@ -47,8 +47,9 @@ func ConvertToInvitationResponse(invitation *models.Invitation) invitation_dto.I
 func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	invitationJSON := r.FormValue("invitation")
 	var request invitation_dto.CreateInvitationRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := json.Unmarshal([]byte(invitationJSON), &request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
 		return
 	}
@@ -204,8 +205,9 @@ func (h *invitationHandlers) GetInvitationsByUserID(w http.ResponseWriter, r *ht
 func (h *invitationHandlers) UpdateInvitation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	invitationJSON := r.FormValue("invitation")
 	var request invitation_dto.UpdateInvitationRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := json.Unmarshal([]byte(invitationJSON), &request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
 		return
 	}

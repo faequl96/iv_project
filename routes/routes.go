@@ -21,7 +21,7 @@ func RouteInit(r *mux.Router) {
 	InvitationThemeRoutes(r, j)
 	DiscountRoutes(r, j)
 	ReviewRoutes(r, j)
-	InvitationRoutes(r)
+	InvitationRoutes(r, j)
 	InvitationDataRoutes(r)
 	GalleryRoutes(r)
 	TransactionRoutes(r)
