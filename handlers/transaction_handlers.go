@@ -108,7 +108,7 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 			}
 
 			if ivCoin.Balance < transaction.IVCTotalPrice {
-				ErrorResponse(w, http.StatusNotFound, fmt.Sprintf("Insufficient IVCoin balance: %d/%d IVC.", ivCoin.Balance, transaction.IVCTotalPrice))
+				ErrorResponse(w, http.StatusPaymentRequired, fmt.Sprintf("Insufficient IVCoin balance: %d/%d IVC.", ivCoin.Balance, transaction.IVCTotalPrice))
 				return
 			}
 
@@ -179,14 +179,17 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		}
 		if request.PaymentMethod == models.PaymentMethodGopay {
 			snapReq.EnabledPayments = append(snapReq.EnabledPayments, snap.PaymentTypeGopay)
+			snapReq.Gopay = &snap.GopayDetails{
+				EnableCallback: true,
+				CallbackUrl:    "yourapp://payment-callback",
+			}
 		}
 
 		snapResp, _ := s.CreateTransaction(snapReq)
 
 		SuccessResponse(w, http.StatusCreated, "Transaction created successfully", map[string]any{
-			"transaction":           ConvertToTransactionResponse(transaction),
-			"midtrans_token":        snapResp.Token,
 			"midtrans_redirect_url": snapResp.RedirectURL,
+			"transaction":           ConvertToTransactionResponse(transaction),
 		})
 		return
 	}

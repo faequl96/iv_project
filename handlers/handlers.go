@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func SuccessResponse(w http.ResponseWriter, statusCode int, message string, data interface{}) {
+func SuccessResponse(w http.ResponseWriter, statusCode int, message string, data any) {
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(dto.SuccessResult{Code: statusCode, Message: message, Data: data})
 }
