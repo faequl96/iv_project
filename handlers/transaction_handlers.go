@@ -90,15 +90,6 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		transaction.ProductName = invitation.InvitationTheme.Name
 
 		if request.PaymentMethod == models.PaymentMethodIVCoin {
-			transaction.Status = models.TransactionStatusCompleted
-			invitation.Status = models.InvitationStatusActive
-
-			err = h.InvitationRepositories.UpdateInvitation(invitation)
-			if err != nil {
-				ErrorResponse(w, http.StatusInternalServerError, "Failed to update invitation.")
-				return
-			}
-
 			ivCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(request.UserID)
 			if err != nil {
 				ErrorResponse(w, http.StatusNotFound, "No iv coin found with the provided user.")
@@ -107,6 +98,15 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 
 			if ivCoin.Balance < transaction.IVCTotalPrice {
 				ErrorResponse(w, http.StatusNotFound, fmt.Sprintf("Insufficient IVCoin balance: %d/%d IVC.", ivCoin.Balance, transaction.IVCTotalPrice))
+				return
+			}
+
+			transaction.Status = models.TransactionStatusConfirmed
+			invitation.Status = models.InvitationStatusActive
+
+			err = h.InvitationRepositories.UpdateInvitation(invitation)
+			if err != nil {
+				ErrorResponse(w, http.StatusInternalServerError, "Failed to update invitation.")
 				return
 			}
 
@@ -196,83 +196,6 @@ func (h *transactionHandlers) GetTransactionsByUserID(w http.ResponseWriter, r *
 	}
 
 	SuccessResponse(w, http.StatusOK, "Transactions retrieved successfully", transactionResponses)
-}
-
-func (h *transactionHandlers) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	var request transaction_dto.UpdateTransactionRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
-		return
-	}
-
-	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
-		return
-	}
-
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid transaction ID format.")
-		return
-	}
-
-	transaction, err := h.TransactionRepositories.GetTransactionByID(uint(id))
-	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No transaction found with the provided ID.")
-		return
-	}
-
-	if transaction.ProductType == models.ProductInvitation {
-		invitation, err := h.InvitationRepositories.GetInvitationByID(uint(transaction.ProductID))
-		if err != nil {
-			ErrorResponse(w, http.StatusNotFound, "No invitation found with the provided ID.")
-			return
-		}
-
-		if transaction.PaymentMethod == models.PaymentMethodTransfer {
-			transaction.Status = request.Status
-			invitation.Status = models.InvitationStatusActive
-
-			err = h.InvitationRepositories.UpdateInvitation(invitation)
-			if err != nil {
-				ErrorResponse(w, http.StatusInternalServerError, "Failed to update invitation.")
-				return
-			}
-		}
-	}
-
-	if transaction.ProductType == models.ProductIVCoinPackage {
-		ivCoinPackage, err := h.IVCoinPackageRepositories.GetIVCoinPackageByID(uint(transaction.ProductID))
-		if err != nil {
-			ErrorResponse(w, http.StatusNotFound, "No iv coin package found with the provided ID.")
-			return
-		}
-
-		ivCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(transaction.UserID)
-		if err != nil {
-			ErrorResponse(w, http.StatusNotFound, "No iv coin found with the provided user.")
-			return
-		}
-
-		ivCoin.Balance = ivCoin.Balance - ivCoinPackage.CoinAmount
-
-		err = h.IVCoinRepositories.UpdateIVCoin(ivCoin)
-		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Failed to update iv coin.")
-			return
-		}
-
-	}
-
-	err = h.TransactionRepositories.UpdateTransaction(transaction)
-	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to update transaction.")
-		return
-	}
-
-	SuccessResponse(w, http.StatusOK, "Transaction updated successfully", ConvertToTransactionResponse(transaction))
 }
 
 func (h *transactionHandlers) DeleteTransaction(w http.ResponseWriter, r *http.Request) {

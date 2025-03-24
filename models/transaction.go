@@ -29,13 +29,15 @@ type TransactionStatusType string
 
 const (
 	TransactionStatusPending   TransactionStatusType = "pending"
-	TransactionStatusCompleted TransactionStatusType = "completed"
+	TransactionStatusConfirmed TransactionStatusType = "confirmed"
+	TransactionStatusCanceled  TransactionStatusType = "canceled"
 )
 
 func (u TransactionStatusType) String() string {
 	maps := map[TransactionStatusType]string{
 		TransactionStatusPending:   "pending",
-		TransactionStatusCompleted: "completed",
+		TransactionStatusConfirmed: "confirmed",
+		TransactionStatusCanceled:  "canceled",
 	}
 	return maps[u]
 }
@@ -43,7 +45,8 @@ func (u TransactionStatusType) String() string {
 func StringToTransactionStatusType(value string) TransactionStatusType {
 	maps := map[string]TransactionStatusType{
 		"pending":   TransactionStatusPending,
-		"completed": TransactionStatusCompleted,
+		"confirmed": TransactionStatusConfirmed,
+		"canceled":  TransactionStatusCanceled,
 	}
 	return maps[value]
 }
@@ -51,22 +54,28 @@ func StringToTransactionStatusType(value string) TransactionStatusType {
 type PaymentMethodType string
 
 const (
-	PaymentMethodTransfer PaymentMethodType = "transfer"
-	PaymentMethodIVCoin   PaymentMethodType = "iv_coin"
+	PaymentMethodIVCoin         PaymentMethodType = "iv_coin"
+	PaymentMethodManualTransfer PaymentMethodType = "manual_transfer"
+	PaymentMethodAutoTransfer   PaymentMethodType = "auto_transfer"
+	PaymentMethodGopay          PaymentMethodType = "gopay"
 )
 
 func (u PaymentMethodType) String() string {
 	maps := map[PaymentMethodType]string{
-		PaymentMethodTransfer: "transfer",
-		PaymentMethodIVCoin:   "iv_coin",
+		PaymentMethodIVCoin:         "iv_coin",
+		PaymentMethodManualTransfer: "manual_transfer",
+		PaymentMethodAutoTransfer:   "auto_transfer",
+		PaymentMethodGopay:          "gopay",
 	}
 	return maps[u]
 }
 
 func StringToPaymentMethodType(value string) PaymentMethodType {
 	maps := map[string]PaymentMethodType{
-		"transfer": PaymentMethodTransfer,
-		"iv_coin":  PaymentMethodIVCoin,
+		"iv_coin":         PaymentMethodIVCoin,
+		"manual_transfer": PaymentMethodManualTransfer,
+		"auto_transfer":   PaymentMethodAutoTransfer,
+		"gopay":           PaymentMethodGopay,
 	}
 	return maps[value]
 }
