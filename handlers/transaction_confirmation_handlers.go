@@ -42,10 +42,9 @@ func (h *transactionConfirmationHandlers) AutoByMidtrans(w http.ResponseWriter, 
 	}
 
 	transactionStatus := notification["transaction_status"].(string)
-	orderId := notification["order_id"].(string)
+	referenceNumber := notification["order_id"].(string)
 
-	idTrans, _ := strconv.Atoi(orderId)
-	transaction, _ := h.TransactionRepositories.GetTransactionByID(uint(idTrans))
+	transaction, _ := h.TransactionRepositories.GetTransactionByReferenceNumber(referenceNumber)
 
 	if transaction.ProductType == models.ProductInvitation {
 		if transactionStatus == "pending" {
@@ -137,6 +136,8 @@ func (h *transactionConfirmationHandlers) ManualByAdminByID(w http.ResponseWrite
 		ErrorResponse(w, http.StatusNotFound, "No transaction found with the provided ID.")
 		return
 	}
+
+	print(transaction.ProductType)
 
 	if transaction.ProductType == models.ProductInvitation {
 		invitation, err := h.InvitationRepositories.GetInvitationByID(uint(transaction.ProductID))

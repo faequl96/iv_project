@@ -9,8 +9,9 @@ import (
 type TransactionRepositories interface {
 	CreateTransaction(transaction *models.Transaction) error
 	GetTransactionByID(id uint) (*models.Transaction, error)
-	GetTransactionsByUserID(userID string) ([]models.Transaction, error)
 	GetTransactions() ([]models.Transaction, error)
+	GetTransactionsByUserID(userID string) ([]models.Transaction, error)
+	GetTransactionByReferenceNumber(referenceNumber string) (*models.Transaction, error)
 	UpdateTransaction(transaction *models.Transaction) error
 	DeleteTransaction(id uint) error
 }
@@ -47,6 +48,15 @@ func (r *repository) GetTransactionsByUserID(userID string) ([]models.Transactio
 	var transactions []models.Transaction
 	err := r.db.Find(&transactions, "user_id = ?", userID).Error
 	return transactions, err
+}
+
+func (r *repository) GetTransactionByReferenceNumber(referenceNumber string) (*models.Transaction, error) {
+	var transaction models.Transaction
+	err := r.db.Where("reference_number = ?", referenceNumber).First(&transaction).Error
+	if err != nil {
+		return nil, err
+	}
+	return &transaction, nil
 }
 
 func (r *repository) UpdateTransaction(transaction *models.Transaction) error {

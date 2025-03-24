@@ -24,4 +24,5 @@ func RouteInit(r *mux.Router) {
 	InvitationRoutes(r, j)
 	InvitationDataRoutes(r, j)
 	TransactionRoutes(r, j)
+	TransactionConfirmationRoutes(r, j)
 }
