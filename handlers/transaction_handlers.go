@@ -7,11 +7,14 @@ import (
 	"iv_project/models"
 	"iv_project/repositories"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
+	"github.com/midtrans/midtrans-go"
+	"github.com/midtrans/midtrans-go/snap"
 )
 
 type transactionHandlers struct {
@@ -19,6 +22,7 @@ type transactionHandlers struct {
 	InvitationRepositories    repositories.InvitationRepositories
 	IVCoinPackageRepositories repositories.IVCoinPackageRepositories
 	IVCoinRepositories        repositories.IVCoinRepositories
+	UserRepositories          repositories.UserRepositories
 }
 
 func TransactionHandler(
@@ -26,8 +30,15 @@ func TransactionHandler(
 	InvitationRepositories repositories.InvitationRepositories,
 	IVCoinPackageRepositories repositories.IVCoinPackageRepositories,
 	IVCoinRepositories repositories.IVCoinRepositories,
+	UserRepositories repositories.UserRepositories,
 ) *transactionHandlers {
-	return &transactionHandlers{TransactionRepositories, InvitationRepositories, IVCoinPackageRepositories, IVCoinRepositories}
+	return &transactionHandlers{
+		TransactionRepositories,
+		InvitationRepositories,
+		IVCoinPackageRepositories,
+		IVCoinRepositories,
+		UserRepositories,
+	}
 }
 
 func ConvertToTransactionResponse(transaction *models.Transaction) transaction_dto.TransactionResponse {
@@ -68,7 +79,7 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		ProductType:     request.ProductType,
 		Status:          models.TransactionStatusPending,
 		PaymentMethod:   request.PaymentMethod,
-		ReferenceNumber: GenerateReferenceNumber(string(request.PaymentMethod)),
+		ReferenceNumber: GenerateReferenceNumber(request.PaymentMethod.String()),
 		ProductID:       request.ProductID,
 		UserID:          request.UserID,
 	}
@@ -138,6 +149,45 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 	err := h.TransactionRepositories.CreateTransaction(transaction)
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "Failed to create transaction.")
+		return
+	}
+
+	if request.PaymentMethod == models.PaymentMethodAutoTransfer || request.PaymentMethod == models.PaymentMethodGopay {
+		user, err := h.UserRepositories.GetUserByID(request.UserID)
+		if err != nil {
+			ErrorResponse(w, http.StatusNotFound, "User with ID "+request.UserID+" not found")
+			return
+		}
+
+		var s = snap.Client{}
+		s.New(os.Getenv("MIDTRANS_SERVER_KEY"), midtrans.Sandbox)
+
+		snapReq := &snap.Request{
+			TransactionDetails: midtrans.TransactionDetails{
+				OrderID:  transaction.ReferenceNumber,
+				GrossAmt: int64(transaction.IDRTotalPrice),
+			},
+			CustomerDetail: &midtrans.CustomerDetails{
+				FName: user.UserProfile.FirstName + " " + user.UserProfile.LastName,
+				Email: user.Email,
+			},
+			EnabledPayments: []snap.SnapPaymentType{},
+		}
+
+		if request.PaymentMethod == models.PaymentMethodAutoTransfer {
+			snapReq.EnabledPayments = append(snapReq.EnabledPayments, snap.PaymentTypeBankTransfer)
+		}
+		if request.PaymentMethod == models.PaymentMethodGopay {
+			snapReq.EnabledPayments = append(snapReq.EnabledPayments, snap.PaymentTypeGopay)
+		}
+
+		snapResp, _ := s.CreateTransaction(snapReq)
+
+		SuccessResponse(w, http.StatusCreated, "Transaction created successfully", map[string]any{
+			"transaction":           ConvertToTransactionResponse(transaction),
+			"midtrans_token":        snapResp.Token,
+			"midtrans_redirect_url": snapResp.RedirectURL,
+		})
 		return
 	}
 

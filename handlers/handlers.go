@@ -21,7 +21,12 @@ func ErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 }
 
 func GenerateReferenceNumber(paymentMethod string) string {
-	prefix := map[string]string{"transfer": "TRF", "iv_coin": "IVC"}[paymentMethod]
+	prefix := map[string]string{
+		"iv_coin":         "IVC",
+		"manual_transfer": "MTF",
+		"auto_transfer":   "ATF",
+		"gopay":           "GOP",
+	}[paymentMethod]
 	if prefix == "" {
 		prefix = "TXN"
 	}
