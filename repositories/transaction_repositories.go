@@ -30,7 +30,7 @@ func (r *repository) CreateTransaction(transaction *models.Transaction) error {
 
 func (r *repository) GetTransactionByID(id uint) (*models.Transaction, error) {
 	var transaction models.Transaction
-	err := r.db.Preload("Invitation").Preload("IVCoinPackage").First(&transaction, id).Error
+	err := r.db.First(&transaction, id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -39,13 +39,13 @@ func (r *repository) GetTransactionByID(id uint) (*models.Transaction, error) {
 
 func (r *repository) GetTransactions() ([]models.Transaction, error) {
 	var transactions []models.Transaction
-	err := r.db.Preload("Invitation").Preload("IVCoinPackage").Find(&transactions).Error
+	err := r.db.Find(&transactions).Error
 	return transactions, err
 }
 
 func (r *repository) GetTransactionsByUserID(userID string) ([]models.Transaction, error) {
 	var transactions []models.Transaction
-	err := r.db.Preload("Invitation").Preload("IVCoinPackage").Find(&transactions, "user_id = ?", userID).Error
+	err := r.db.Find(&transactions, "user_id = ?", userID).Error
 	return transactions, err
 }
 

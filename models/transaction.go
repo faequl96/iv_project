@@ -83,6 +83,7 @@ func StringToPaymentMethodType(value string) PaymentMethodType {
 type Transaction struct {
 	ID              uint                  `gorm:"primaryKey;autoIncrement" json:"id"`
 	ProductType     ProductType           `gorm:"type:varchar(50);not null" json:"product_type"`
+	ProductID       uint                  `gorm:"not null;index" json:"product_id"`
 	ProductName     string                `gorm:"size:150;not null;index" json:"product_name"`
 	Status          TransactionStatusType `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
 	PaymentMethod   PaymentMethodType     `gorm:"type:varchar(50);not null" json:"payment_method"`
@@ -93,9 +94,6 @@ type Transaction struct {
 	IVCPrice        uint                  `gorm:"not null" json:"ivc_price"`
 	IVCDiscount     uint                  `gorm:"not null" json:"ivc_discount"`
 	IVCTotalPrice   uint                  `gorm:"not null" json:"ivc_total_price"`
-	ProductID       uint                  `gorm:"not null;index" json:"product_id"`
-	Invitation      *Invitation           `gorm:"foreignKey:ProductID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"invitation,omitempty"`
-	IVCoinPackage   *IVCoinPackage        `gorm:"foreignKey:ProductID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"iv_coin_package,omitempty"`
 
 	UserID string `gorm:"size:36;not null;index" json:"user_id"`
 	User   *User  `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`

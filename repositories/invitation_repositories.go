@@ -30,7 +30,7 @@ func (r *repository) CreateInvitation(invitation *models.Invitation) error {
 
 func (r *repository) GetInvitationByID(id uint) (*models.Invitation, error) {
 	var invitation models.Invitation
-	err := r.db.Preload("InvitationData.Gallery").First(&invitation, id).Error
+	err := r.db.Preload("InvitationData.Gallery").Preload("InvitationTheme").First(&invitation, id).Error
 	if err != nil {
 		return nil, err
 	}
