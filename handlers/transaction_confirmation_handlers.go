@@ -101,7 +101,7 @@ func (h *transactionConfirmationHandlers) AutoByMidtrans(w http.ResponseWriter, 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *transactionConfirmationHandlers) ManualByAdminByTransactionID(w http.ResponseWriter, r *http.Request) {
+func (h *transactionConfirmationHandlers) ManualByAdminByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var request transaction_confirmation_dto.UpdateTransactionConfirmationRequest
@@ -136,7 +136,9 @@ func (h *transactionConfirmationHandlers) ManualByAdminByTransactionID(w http.Re
 
 		if transaction.PaymentMethod == models.PaymentMethodManualTransfer {
 			transaction.Status = request.Status
-			invitation.Status = models.InvitationStatusActive
+			if transaction.Status == models.TransactionStatusConfirmed {
+				invitation.Status = models.InvitationStatusActive
+			}
 
 			err = h.InvitationRepositories.UpdateInvitation(invitation)
 			if err != nil {
@@ -160,7 +162,9 @@ func (h *transactionConfirmationHandlers) ManualByAdminByTransactionID(w http.Re
 		}
 
 		transaction.Status = request.Status
-		ivCoin.Balance = ivCoin.Balance + ivCoinPackage.CoinAmount
+		if transaction.Status == models.TransactionStatusConfirmed {
+			ivCoin.Balance = ivCoin.Balance + ivCoinPackage.CoinAmount
+		}
 
 		err = h.IVCoinRepositories.UpdateIVCoin(ivCoin)
 		if err != nil {

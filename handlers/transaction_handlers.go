@@ -172,10 +172,10 @@ func (h *transactionHandlers) GetTransactionsByUserID(w http.ResponseWriter, r *
 	SuccessResponse(w, http.StatusOK, "Transactions retrieved successfully", transactionResponses)
 }
 
-func (h *transactionHandlers) UpdateTransactionPaymentMethodByID(w http.ResponseWriter, r *http.Request) {
+func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var request transaction_dto.UpdateTransactionPaymentMethodRequest
+	var request transaction_dto.UpdateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
 		return

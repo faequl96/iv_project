@@ -25,6 +25,6 @@ func TransactionConfirmationRoutes(r *mux.Router, jwtServices jwtToken.JWTServic
 	r.HandleFunc("/transaction-confirmation-auto", h.AutoByMidtrans).Methods("POST")
 	r.HandleFunc(
 		"/transaction-confirmation-manual/id/{id}",
-		middleware.Auth(jwtServices, h.ManualByAdminByTransactionID),
+		middleware.Auth(jwtServices, h.ManualByAdminByID),
 	).Methods("PATCH")
 }

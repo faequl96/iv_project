@@ -28,6 +28,6 @@ func TransactionRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	r.HandleFunc("/transaction/id/{id}", middleware.Auth(jwtServices, h.GetTransactionByID)).Methods("GET")
 	r.HandleFunc("/transactions", middleware.Auth(jwtServices, h.GetTransactions)).Methods("GET")
 	r.HandleFunc("/transactions/user-id/{userId}", middleware.Auth(jwtServices, h.GetTransactionsByUserID)).Methods("GET")
-	r.HandleFunc("/transaction/id/{id}", middleware.Auth(jwtServices, h.UpdateTransactionPaymentMethodByID)).Methods("PATCH")
+	r.HandleFunc("/transaction/id/{id}", middleware.Auth(jwtServices, h.UpdateTransactionByID)).Methods("PATCH")
 	r.HandleFunc("/transaction/id/{id}", middleware.Auth(jwtServices, h.CreateTransaction)).Methods("DELETE")
 }

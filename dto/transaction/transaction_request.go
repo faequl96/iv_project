@@ -8,6 +8,6 @@ type CreateTransactionRequest struct {
 	UserID      string             `json:"user_id" validate:"required"`
 }
 
-type UpdateTransactionPaymentMethodRequest struct {
+type UpdateTransactionRequest struct {
 	PaymentMethod models.PaymentMethodType `json:"payment_method"`
 }
