@@ -10,4 +10,5 @@ type CreateTransactionRequest struct {
 
 type UpdateTransactionRequest struct {
 	PaymentMethod models.PaymentMethodType `json:"payment_method"`
+	VoucherCodeID uint                     `json:"voucher_code_id"`
 }

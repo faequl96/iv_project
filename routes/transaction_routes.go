@@ -16,12 +16,14 @@ func TransactionRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	ivCoinPackageRepository := repositories.IVCoinPackageRepository(mysql.DB)
 	ivCoinRepository := repositories.IVCoinRepository(mysql.DB)
 	userRepository := repositories.UserRepository(mysql.DB)
+	voucherCodeRepository := repositories.VoucherCodeRepository(mysql.DB)
 	h := handlers.TransactionHandler(
 		transactionRepository,
 		invitationRepository,
 		ivCoinPackageRepository,
 		ivCoinRepository,
 		userRepository,
+		voucherCodeRepository,
 	)
 
 	r.HandleFunc("/transaction", middleware.Auth(jwtServices, h.CreateTransaction)).Methods("POST")

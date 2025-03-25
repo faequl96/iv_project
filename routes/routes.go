@@ -26,4 +26,5 @@ func RouteInit(r *mux.Router) {
 	TransactionRoutes(r, j)
 	TransactionPaymentRoutes(r, j)
 	TransactionConfirmationRoutes(r, j)
+	VoucherCodeRoutes(r, j)
 }

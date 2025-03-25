@@ -20,6 +20,7 @@ func RunMigration() {
 		&models.InvitationData{},
 		&models.Gallery{},
 		&models.Transaction{},
+		&models.VoucherCode{},
 	)
 
 	if err != nil {

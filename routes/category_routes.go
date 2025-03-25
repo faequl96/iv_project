@@ -11,8 +11,8 @@ import (
 )
 
 func CategoryRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
-	iategoryRepository := repositories.CategoryRepository(mysql.DB)
-	h := handlers.CategoryHandler(iategoryRepository)
+	categoryRepository := repositories.CategoryRepository(mysql.DB)
+	h := handlers.CategoryHandler(categoryRepository)
 
 	r.HandleFunc("/category", middleware.Auth(jwtServices, h.CreateCategory)).Methods("POST")
 	r.HandleFunc("/category/id/{id}", middleware.Auth(jwtServices, h.GetCategoryByID)).Methods("GET")

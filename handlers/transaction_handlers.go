@@ -19,6 +19,7 @@ type transactionHandlers struct {
 	IVCoinPackageRepositories repositories.IVCoinPackageRepositories
 	IVCoinRepositories        repositories.IVCoinRepositories
 	UserRepositories          repositories.UserRepositories
+	VoucherCodeRepositories   repositories.VoucherCodeRepositories
 }
 
 func TransactionHandler(
@@ -27,6 +28,7 @@ func TransactionHandler(
 	IVCoinPackageRepositories repositories.IVCoinPackageRepositories,
 	IVCoinRepositories repositories.IVCoinRepositories,
 	UserRepositories repositories.UserRepositories,
+	VoucherCodeRepositories repositories.VoucherCodeRepositories,
 ) *transactionHandlers {
 	return &transactionHandlers{
 		TransactionRepositories,
@@ -34,6 +36,7 @@ func TransactionHandler(
 		IVCoinPackageRepositories,
 		IVCoinRepositories,
 		UserRepositories,
+		VoucherCodeRepositories,
 	}
 }
 
@@ -201,6 +204,48 @@ func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *ht
 	if request.PaymentMethod.String() != "" {
 		transaction.PaymentMethod = request.PaymentMethod
 		transaction.ReferenceNumber = GenerateReferenceNumber(request.PaymentMethod.String())
+	}
+
+	if request.VoucherCodeID != 0 {
+		voucherCode, err := h.VoucherCodeRepositories.GetVoucherCodeByID(uint(request.VoucherCodeID))
+		if err != nil {
+			ErrorResponse(w, http.StatusNotFound, "No voucher code found with the provided ID.")
+			return
+		}
+		transaction.VoucherCodeID = voucherCode.ID
+		transaction.VoucherCodeName = voucherCode.Name
+
+		if transaction.ProductType == models.ProductInvitation {
+			totalIDRVoucherCodeDiscount := CalculateDiscountedPrice(transaction.IDRTotalPrice, voucherCode.DiscountPercentage)
+			transaction.IDRVoucherCodeDiscount = transaction.IDRTotalPrice - totalIDRVoucherCodeDiscount
+			transaction.IDRTotalPrice = totalIDRVoucherCodeDiscount
+			totalIVCVoucherCodeDiscount := CalculateDiscountedPrice(transaction.IVCTotalPrice, voucherCode.DiscountPercentage)
+			transaction.IVCVoucherCodeDiscount = transaction.IVCTotalPrice - totalIVCVoucherCodeDiscount
+			transaction.IVCTotalPrice = totalIVCVoucherCodeDiscount
+		}
+
+		if transaction.ProductType == models.ProductIVCoinPackage {
+			totalIDRVoucherCodeDiscount := CalculateDiscountedPrice(transaction.IDRTotalPrice, voucherCode.DiscountPercentage)
+			transaction.IDRVoucherCodeDiscount = transaction.IDRTotalPrice - totalIDRVoucherCodeDiscount
+			transaction.IDRTotalPrice = totalIDRVoucherCodeDiscount
+		}
+	}
+
+	if request.VoucherCodeID != 0 {
+		transaction.VoucherCodeID = 0
+		transaction.VoucherCodeName = ""
+
+		if transaction.ProductType == models.ProductInvitation {
+			transaction.IDRVoucherCodeDiscount = 0
+			transaction.IDRTotalPrice = transaction.IDRPrice - transaction.IDRDiscount
+			transaction.IVCVoucherCodeDiscount = 0
+			transaction.IVCTotalPrice = transaction.IVCPrice - transaction.IVCDiscount
+		}
+
+		if transaction.ProductType == models.ProductIVCoinPackage {
+			transaction.IDRVoucherCodeDiscount = 0
+			transaction.IDRTotalPrice = transaction.IDRPrice - transaction.IDRDiscount
+		}
 	}
 
 	err = h.TransactionRepositories.UpdateTransaction(transaction)
