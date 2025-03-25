@@ -81,19 +81,20 @@ func StringToPaymentMethodType(value string) PaymentMethodType {
 }
 
 type Transaction struct {
-	ID              uint                  `gorm:"primaryKey;autoIncrement" json:"id"`
-	ProductType     ProductType           `gorm:"type:varchar(50);not null" json:"product_type"`
-	ProductID       uint                  `gorm:"not null;index" json:"product_id"`
-	ProductName     string                `gorm:"size:150;not null;index" json:"product_name"`
-	Status          TransactionStatusType `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
-	PaymentMethod   PaymentMethodType     `gorm:"type:varchar(50);not null" json:"payment_method"`
-	ReferenceNumber string                `gorm:"size:100;uniqueIndex;not null" json:"reference_number"`
-	IDRPrice        uint                  `gorm:"not null" json:"idr_price"`
-	IDRDiscount     uint                  `gorm:"not null" json:"idr_discount"`
-	IDRTotalPrice   uint                  `gorm:"not null" json:"idr_total_price"`
-	IVCPrice        uint                  `gorm:"not null" json:"ivc_price"`
-	IVCDiscount     uint                  `gorm:"not null" json:"ivc_discount"`
-	IVCTotalPrice   uint                  `gorm:"not null" json:"ivc_total_price"`
+	ID                   uint                  `gorm:"primaryKey;autoIncrement" json:"id"`
+	ProductType          ProductType           `gorm:"type:varchar(50);not null" json:"product_type"`
+	ProductID            uint                  `gorm:"not null;index" json:"product_id"`
+	ProductName          string                `gorm:"size:150;not null;index" json:"product_name"`
+	Status               TransactionStatusType `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
+	PaymentMethod        PaymentMethodType     `gorm:"type:varchar(50);not null" json:"payment_method"`
+	ReferenceNumber      string                `gorm:"size:100;uniqueIndex;not null" json:"reference_number"`
+	IDRPrice             uint                  `gorm:"not null" json:"idr_price"`
+	IDRDiscount          uint                  `gorm:"not null" json:"idr_discount"`
+	IDRTotalPrice        uint                  `gorm:"not null" json:"idr_total_price"`
+	IVCPrice             uint                  `gorm:"not null" json:"ivc_price"`
+	IVCDiscount          uint                  `gorm:"not null" json:"ivc_discount"`
+	IVCTotalPrice        uint                  `gorm:"not null" json:"ivc_total_price"`
+	PaymentProofImageUrl string                `gorm:"type:varchar(255)" json:"payment_proof_image_url"`
 
 	UserID string `gorm:"size:36;not null;index" json:"user_id"`
 	User   *User  `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`

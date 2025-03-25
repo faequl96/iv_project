@@ -10,21 +10,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func TransactionConfirmationRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
+func TransactionPaymentRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	transactionRepository := repositories.TransactionRepository(mysql.DB)
 	invitationRepository := repositories.InvitationRepository(mysql.DB)
 	ivCoinPackageRepository := repositories.IVCoinPackageRepository(mysql.DB)
 	ivCoinRepository := repositories.IVCoinRepository(mysql.DB)
-	h := handlers.TransactionConfirmationHandler(
+	userRepository := repositories.UserRepository(mysql.DB)
+	h := handlers.TransactionPaymentHandler(
 		transactionRepository,
 		invitationRepository,
 		ivCoinPackageRepository,
 		ivCoinRepository,
+		userRepository,
 	)
 
-	r.HandleFunc("/transaction-confirmation-auto", h.AutoByMidtrans).Methods("POST")
-	r.HandleFunc(
-		"/transaction-confirmation-manual/id/{id}",
-		middleware.Auth(jwtServices, h.ManualByAdminByTransactionID),
-	).Methods("PATCH")
+	r.HandleFunc("/issue/id/{id}", middleware.Auth(jwtServices, h.IssueByID)).Methods("PATCH")
 }

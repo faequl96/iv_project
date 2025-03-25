@@ -2,19 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	transaction_dto "iv_project/dto/transaction"
 	"iv_project/models"
 	"iv_project/repositories"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
-	"github.com/midtrans/midtrans-go"
-	"github.com/midtrans/midtrans-go/snap"
 )
 
 type transactionHandlers struct {
@@ -76,12 +72,10 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 	}
 
 	transaction := &models.Transaction{
-		ProductType:     request.ProductType,
-		Status:          models.TransactionStatusPending,
-		PaymentMethod:   request.PaymentMethod,
-		ReferenceNumber: GenerateReferenceNumber(request.PaymentMethod.String()),
-		ProductID:       request.ProductID,
-		UserID:          request.UserID,
+		ProductType: request.ProductType,
+		Status:      models.TransactionStatusPending,
+		ProductID:   request.ProductID,
+		UserID:      request.UserID,
 	}
 
 	if request.ProductType == models.ProductInvitation {
@@ -99,37 +93,6 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		transaction.IVCTotalPrice = invitation.InvitationTheme.IVCDiscountPrice
 
 		transaction.ProductName = invitation.InvitationTheme.Name
-
-		if request.PaymentMethod == models.PaymentMethodIVCoin {
-			ivCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(request.UserID)
-			if err != nil {
-				ErrorResponse(w, http.StatusNotFound, "No iv coin found with the provided user.")
-				return
-			}
-
-			if ivCoin.Balance < transaction.IVCTotalPrice {
-				ErrorResponse(w, http.StatusPaymentRequired, fmt.Sprintf("Insufficient IVCoin balance: %d/%d IVC.", ivCoin.Balance, transaction.IVCTotalPrice))
-				return
-			}
-
-			transaction.Status = models.TransactionStatusConfirmed
-			invitation.Status = models.InvitationStatusActive
-
-			err = h.InvitationRepositories.UpdateInvitation(invitation)
-			if err != nil {
-				ErrorResponse(w, http.StatusInternalServerError, "Failed to update invitation.")
-				return
-			}
-
-			ivCoin.Balance = ivCoin.Balance - transaction.IVCTotalPrice
-
-			err = h.IVCoinRepositories.UpdateIVCoin(ivCoin)
-			if err != nil {
-				ErrorResponse(w, http.StatusInternalServerError, "Failed to update iv coin.")
-				return
-			}
-		}
-
 	}
 
 	if request.ProductType == models.ProductIVCoinPackage {
@@ -149,48 +112,6 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 	err := h.TransactionRepositories.CreateTransaction(transaction)
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "Failed to create transaction.")
-		return
-	}
-
-	if request.PaymentMethod == models.PaymentMethodAutoTransfer || request.PaymentMethod == models.PaymentMethodGopay {
-		user, err := h.UserRepositories.GetUserByID(request.UserID)
-		if err != nil {
-			ErrorResponse(w, http.StatusNotFound, "User with ID "+request.UserID+" not found")
-			return
-		}
-
-		var s = snap.Client{}
-		s.New(os.Getenv("MIDTRANS_SERVER_KEY"), midtrans.Sandbox)
-
-		snapReq := &snap.Request{
-			TransactionDetails: midtrans.TransactionDetails{
-				OrderID:  transaction.ReferenceNumber,
-				GrossAmt: int64(transaction.IDRTotalPrice),
-			},
-			CustomerDetail: &midtrans.CustomerDetails{
-				FName: user.UserProfile.FirstName + " " + user.UserProfile.LastName,
-				Email: user.Email,
-			},
-			EnabledPayments: []snap.SnapPaymentType{},
-		}
-
-		if request.PaymentMethod == models.PaymentMethodAutoTransfer {
-			snapReq.EnabledPayments = append(snapReq.EnabledPayments, snap.PaymentTypeBankTransfer)
-		}
-		if request.PaymentMethod == models.PaymentMethodGopay {
-			snapReq.EnabledPayments = append(snapReq.EnabledPayments, snap.PaymentTypeGopay)
-			snapReq.Gopay = &snap.GopayDetails{
-				EnableCallback: true,
-				CallbackUrl:    "yourapp://payment-callback",
-			}
-		}
-
-		snapResp, _ := s.CreateTransaction(snapReq)
-
-		SuccessResponse(w, http.StatusCreated, "Transaction created successfully", map[string]any{
-			"midtrans_redirect_url": snapResp.RedirectURL,
-			"transaction":           ConvertToTransactionResponse(transaction),
-		})
 		return
 	}
 
@@ -249,6 +170,46 @@ func (h *transactionHandlers) GetTransactionsByUserID(w http.ResponseWriter, r *
 	}
 
 	SuccessResponse(w, http.StatusOK, "Transactions retrieved successfully", transactionResponses)
+}
+
+func (h *transactionHandlers) UpdateTransactionPaymentMethodByID(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var request transaction_dto.UpdateTransactionPaymentMethodRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
+		return
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		ErrorResponse(w, http.StatusBadRequest, "Invalid transaction ID format.")
+		return
+	}
+
+	transaction, err := h.TransactionRepositories.GetTransactionByID(uint(id))
+	if err != nil {
+		ErrorResponse(w, http.StatusNotFound, "No transaction found with the provided ID.")
+		return
+	}
+
+	if request.PaymentMethod.String() != "" {
+		transaction.PaymentMethod = request.PaymentMethod
+		transaction.ReferenceNumber = GenerateReferenceNumber(request.PaymentMethod.String())
+	}
+
+	err = h.TransactionRepositories.UpdateTransaction(transaction)
+	if err != nil {
+		ErrorResponse(w, http.StatusInternalServerError, "Failed to update transaction.")
+		return
+	}
+
+	SuccessResponse(w, http.StatusCreated, "Transaction created successfully", ConvertToTransactionResponse(transaction))
 }
 
 func (h *transactionHandlers) DeleteTransaction(w http.ResponseWriter, r *http.Request) {

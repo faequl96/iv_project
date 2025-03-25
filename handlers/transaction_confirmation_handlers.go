@@ -46,13 +46,13 @@ func (h *transactionConfirmationHandlers) AutoByMidtrans(w http.ResponseWriter, 
 
 	transaction, _ := h.TransactionRepositories.GetTransactionByReferenceNumber(referenceNumber)
 
-	if transaction.ProductType == models.ProductInvitation {
-		if transactionStatus == "pending" {
-			transaction.Status = models.TransactionStatusPending
-		}
-		if transactionStatus == "settlement" {
-			transaction.Status = models.TransactionStatusConfirmed
+	if transactionStatus == "pending" {
+		transaction.Status = models.TransactionStatusPending
+	}
+	if transactionStatus == "settlement" {
+		transaction.Status = models.TransactionStatusConfirmed
 
+		if transaction.ProductType == models.ProductInvitation {
 			invitation, err := h.InvitationRepositories.GetInvitationByID(uint(transaction.ProductID))
 			if err != nil {
 				ErrorResponse(w, http.StatusNotFound, "No invitation found with the provided ID.")
@@ -65,18 +65,8 @@ func (h *transactionConfirmationHandlers) AutoByMidtrans(w http.ResponseWriter, 
 				return
 			}
 		}
-		if transactionStatus == "cancel" || transactionStatus == "expire" || transactionStatus == "deny" || transactionStatus == "failure" {
-			transaction.Status = models.TransactionStatusCanceled
-		}
-	}
 
-	if transaction.ProductType == models.ProductIVCoinPackage {
-		if transactionStatus == "pending" {
-			transaction.Status = models.TransactionStatusPending
-		}
-		if transactionStatus == "settlement" {
-			transaction.Status = models.TransactionStatusConfirmed
-
+		if transaction.ProductType == models.ProductIVCoinPackage {
 			ivCoinPackage, err := h.IVCoinPackageRepositories.GetIVCoinPackageByID(uint(transaction.ProductID))
 			if err != nil {
 				ErrorResponse(w, http.StatusNotFound, "No iv coin package found with the provided ID.")
@@ -97,9 +87,9 @@ func (h *transactionConfirmationHandlers) AutoByMidtrans(w http.ResponseWriter, 
 				return
 			}
 		}
-		if transactionStatus == "cancel" || transactionStatus == "expire" || transactionStatus == "deny" || transactionStatus == "failure" {
-			transaction.Status = models.TransactionStatusCanceled
-		}
+	}
+	if transactionStatus == "cancel" || transactionStatus == "expire" || transactionStatus == "deny" || transactionStatus == "failure" {
+		transaction.Status = models.TransactionStatusCanceled
 	}
 
 	err = h.TransactionRepositories.UpdateTransaction(transaction)
@@ -111,7 +101,7 @@ func (h *transactionConfirmationHandlers) AutoByMidtrans(w http.ResponseWriter, 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *transactionConfirmationHandlers) ManualByAdminByID(w http.ResponseWriter, r *http.Request) {
+func (h *transactionConfirmationHandlers) ManualByAdminByTransactionID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var request transaction_confirmation_dto.UpdateTransactionConfirmationRequest
@@ -136,8 +126,6 @@ func (h *transactionConfirmationHandlers) ManualByAdminByID(w http.ResponseWrite
 		ErrorResponse(w, http.StatusNotFound, "No transaction found with the provided ID.")
 		return
 	}
-
-	print(transaction.ProductType)
 
 	if transaction.ProductType == models.ProductInvitation {
 		invitation, err := h.InvitationRepositories.GetInvitationByID(uint(transaction.ProductID))
@@ -171,6 +159,7 @@ func (h *transactionConfirmationHandlers) ManualByAdminByID(w http.ResponseWrite
 			return
 		}
 
+		transaction.Status = request.Status
 		ivCoin.Balance = ivCoin.Balance + ivCoinPackage.CoinAmount
 
 		err = h.IVCoinRepositories.UpdateIVCoin(ivCoin)
