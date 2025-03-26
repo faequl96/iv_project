@@ -42,19 +42,24 @@ func TransactionHandler(
 
 func ConvertToTransactionResponse(transaction *models.Transaction) transaction_dto.TransactionResponse {
 	transactionResponse := transaction_dto.TransactionResponse{
-		ID:              transaction.ID,
-		ProductType:     transaction.ProductType,
-		ProductName:     transaction.ProductName,
-		Status:          transaction.Status,
-		PaymentMethod:   transaction.PaymentMethod,
-		ReferenceNumber: transaction.ReferenceNumber,
-		IDRPrice:        transaction.IDRPrice,
-		IDRDiscount:     transaction.IDRDiscount,
-		IDRTotalPrice:   transaction.IDRTotalPrice,
-		IVCPrice:        transaction.IVCPrice,
-		IVCDiscount:     transaction.IVCDiscount,
-		IVCTotalPrice:   transaction.IVCTotalPrice,
-		CreatedAt:       transaction.CreatedAt.Format(time.RFC3339),
+		ID:                     transaction.ID,
+		ProductType:            transaction.ProductType,
+		ProductName:            transaction.ProductName,
+		Status:                 transaction.Status,
+		PaymentMethod:          transaction.PaymentMethod,
+		ReferenceNumber:        transaction.ReferenceNumber,
+		IDRPrice:               transaction.IDRPrice,
+		IDRDiscount:            transaction.IDRDiscount,
+		IDRTotalPrice:          transaction.IDRTotalPrice,
+		IVCPrice:               transaction.IVCPrice,
+		IVCDiscount:            transaction.IVCDiscount,
+		IVCTotalPrice:          transaction.IVCTotalPrice,
+		VoucherCodeID:          transaction.VoucherCodeID,
+		VoucherCodeName:        transaction.VoucherCodeName,
+		IDRVoucherCodeDiscount: transaction.IDRVoucherCodeDiscount,
+		IVCVoucherCodeDiscount: transaction.IVCVoucherCodeDiscount,
+		PaymentProofImageUrl:   transaction.PaymentProofImageUrl,
+		CreatedAt:              transaction.CreatedAt.Format(time.RFC3339),
 	}
 
 	return transactionResponse
@@ -96,6 +101,20 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		transaction.IVCTotalPrice = invitation.InvitationTheme.IVCDiscountPrice
 
 		transaction.ProductName = invitation.InvitationTheme.Name
+
+		ivCoin, _ := h.IVCoinRepositories.GetIVCoinByUserID(transaction.UserID)
+		if ivCoin != nil {
+			if ivCoin.Balance > transaction.IVCTotalPrice {
+				transaction.PaymentMethod = models.PaymentMethodIVCoin
+				transaction.ReferenceNumber = GenerateReferenceNumber(transaction.PaymentMethod.String())
+			} else {
+				transaction.PaymentMethod = models.PaymentMethodGopay
+				transaction.ReferenceNumber = GenerateReferenceNumber(transaction.PaymentMethod.String())
+			}
+		} else {
+			transaction.PaymentMethod = models.PaymentMethodGopay
+			transaction.ReferenceNumber = GenerateReferenceNumber(transaction.PaymentMethod.String())
+		}
 	}
 
 	if request.ProductType == models.ProductIVCoinPackage {
@@ -110,6 +129,9 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		transaction.IDRTotalPrice = ivCoinPackage.IDRDiscountPrice
 
 		transaction.ProductName = ivCoinPackage.Name
+
+		transaction.PaymentMethod = models.PaymentMethodGopay
+		transaction.ReferenceNumber = GenerateReferenceNumber(transaction.PaymentMethod.String())
 	}
 
 	err := h.TransactionRepositories.CreateTransaction(transaction)
@@ -231,7 +253,7 @@ func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *ht
 		}
 	}
 
-	if request.VoucherCodeID != 0 {
+	if request.VoucherCodeID == 0 {
 		transaction.VoucherCodeID = 0
 		transaction.VoucherCodeName = ""
 

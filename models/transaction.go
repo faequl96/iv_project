@@ -94,11 +94,11 @@ type Transaction struct {
 	IVCPrice               uint                  `gorm:"not null" json:"ivc_price"`
 	IVCDiscount            uint                  `gorm:"not null" json:"ivc_discount"`
 	IVCTotalPrice          uint                  `gorm:"not null" json:"ivc_total_price"`
-	PaymentProofImageUrl   string                `gorm:"type:varchar(255)" json:"payment_proof_image_url"`
 	VoucherCodeID          uint                  `gorm:"not null" json:"voucher_code_id"`
 	VoucherCodeName        string                `gorm:"size:20;not null" json:"voucher_code_name"`
 	IDRVoucherCodeDiscount uint                  `gorm:"not null" json:"idr_voucher_code_discount"`
 	IVCVoucherCodeDiscount uint                  `gorm:"not null" json:"ivc_voucher_code_discount"`
+	PaymentProofImageUrl   string                `gorm:"type:varchar(255)" json:"payment_proof_image_url"`
 
 	UserID string `gorm:"size:36;not null;index" json:"user_id"`
 	User   *User  `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
