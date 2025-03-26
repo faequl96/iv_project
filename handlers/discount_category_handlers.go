@@ -65,12 +65,6 @@ func (h *discountCategoryHandlers) CreateDiscountCategory(w http.ResponseWriter,
 func (h *discountCategoryHandlers) GetDiscountCategoryByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	role := r.Context().Value(middleware.RoleKey).(string)
-	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
-		return
-	}
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid discount category ID format. Please provide a numeric ID.")
@@ -88,12 +82,6 @@ func (h *discountCategoryHandlers) GetDiscountCategoryByID(w http.ResponseWriter
 
 func (h *discountCategoryHandlers) GetDiscountCategories(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
-	role := r.Context().Value(middleware.RoleKey).(string)
-	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
-		return
-	}
 
 	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategories()
 	if err != nil {

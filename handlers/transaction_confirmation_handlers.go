@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	transaction_confirmation_dto "iv_project/dto/transaction_confirmation"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -103,6 +104,12 @@ func (h *transactionConfirmationHandlers) AutoByMidtrans(w http.ResponseWriter, 
 
 func (h *transactionConfirmationHandlers) ManualByAdminByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
+		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		return
+	}
 
 	var request transaction_confirmation_dto.UpdateTransactionConfirmationRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
