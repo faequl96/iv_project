@@ -223,6 +223,11 @@ func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *ht
 		return
 	}
 
+	if transaction.Status == models.TransactionStatusConfirmed || transaction.Status == models.TransactionStatusCanceled {
+		ErrorResponse(w, http.StatusNotFound, "The transaction cannot be updated, because the transaction has been completed.")
+		return
+	}
+
 	if request.PaymentMethod.String() != "" {
 		transaction.PaymentMethod = request.PaymentMethod
 		transaction.ReferenceNumber = GenerateReferenceNumber(request.PaymentMethod.String())
