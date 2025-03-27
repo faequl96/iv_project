@@ -18,14 +18,14 @@ func Auth(jwtServices jwtToken.JWTServices, next http.HandlerFunc) http.HandlerF
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Authorization header is required"})
+			json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusUnauthorized, Message: "Authorization header is required"})
 			return
 		}
 
 		const bearerPrefix = "Bearer "
 		if !strings.HasPrefix(authHeader, bearerPrefix) {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token format"})
+			json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusUnauthorized, Message: "Invalid token format"})
 			return
 		}
 
@@ -33,14 +33,14 @@ func Auth(jwtServices jwtToken.JWTServices, next http.HandlerFunc) http.HandlerF
 		claims, err := jwtServices.DecodeToken(tokenString)
 		if err != nil || claims == nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid or expired token"})
+			json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusUnauthorized, Message: "Invalid or expired token"})
 			return
 		}
 
 		idValue, exists := claims["id"]
 		if !exists {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token claims: missing userID"})
+			json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusUnauthorized, Message: "Invalid token claims: missing userID"})
 			return
 		}
 		userID, ok := idValue.(string)
@@ -51,7 +51,7 @@ func Auth(jwtServices jwtToken.JWTServices, next http.HandlerFunc) http.HandlerF
 		roleValue, exists := claims["role"]
 		if !exists {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusUnauthorized, Message: "Invalid token claims: missing role"})
+			json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusUnauthorized, Message: "Invalid token claims: missing role"})
 			return
 		}
 		role, ok := roleValue.(string)

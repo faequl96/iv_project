@@ -33,7 +33,7 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 					continue // Lewati jika user tidak mengunggah gambar ini
 				}
 				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: "Gagal mengambil file"})
+				json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusBadRequest, Message: "Gagal mengambil file"})
 				return
 			}
 			defer file.Close()
@@ -41,7 +41,7 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 			filePath, err := saveImage(file, header.Filename)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()})
+				json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusBadRequest, Message: err.Error()})
 				return
 			}
 
@@ -61,7 +61,7 @@ func PaymentProofImageUploader(next http.HandlerFunc) http.HandlerFunc {
 		file, header, err := r.FormFile("image")
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: "Gagal mengambil file"})
+			json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusBadRequest, Message: "Gagal mengambil file"})
 			return
 		}
 		defer file.Close()
@@ -69,7 +69,7 @@ func PaymentProofImageUploader(next http.HandlerFunc) http.HandlerFunc {
 		filePath, err := saveImage(file, header.Filename)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()})
+			json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusBadRequest, Message: err.Error()})
 			return
 		}
 
