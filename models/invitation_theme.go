@@ -1,10 +1,6 @@
 package models
 
-import (
-	"time"
-
-	"gorm.io/plugin/soft_delete"
-)
+import "time"
 
 type InvitationTheme struct {
 	ID                 uint               `gorm:"primaryKey" json:"id"`
@@ -17,7 +13,6 @@ type InvitationTheme struct {
 	DiscountCategories []DiscountCategory `gorm:"many2many:invitation_theme_discount_categories;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"discount_categories,omitempty"`
 	Reviews            []Review           `gorm:"foreignKey:InvitationThemeID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"reviews,omitempty"`
 
-	CreatedAt time.Time             `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time             `gorm:"autoUpdateTime" json:"updated_at"`
-	DeletedAt soft_delete.DeletedAt `gorm:"index" json:"-"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

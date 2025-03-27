@@ -1,10 +1,6 @@
 package models
 
-import (
-	"time"
-
-	"gorm.io/plugin/soft_delete"
-)
+import "time"
 
 type UserRoleType string
 
@@ -39,7 +35,6 @@ type User struct {
 	UserProfile *UserProfile `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user_profile,omitempty"`
 	IVCoin      *IVCoin      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"iv_coin,omitempty"`
 
-	CreatedAt time.Time             `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time             `gorm:"autoUpdateTime" json:"updated_at"`
-	DeletedAt soft_delete.DeletedAt `gorm:"index" json:"-"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
