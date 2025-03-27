@@ -1,5 +1,5 @@
 package user_dto
 
-type UpdateUserRequest struct {
+type UserRequest struct {
 	Role string `json:"role" validate:"required"`
 }

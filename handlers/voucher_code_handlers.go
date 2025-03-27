@@ -40,7 +40,7 @@ func (h *voucherCodeHandlers) CreateVoucherCode(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	var request voucher_code_dto.CreateVoucherCodeRequest
+	var request voucher_code_dto.VoucherCodeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
 		return
@@ -91,7 +91,7 @@ func (h *voucherCodeHandlers) UpdateVoucherCodeByID(w http.ResponseWriter, r *ht
 		return
 	}
 
-	var request voucher_code_dto.UpdateVoucherCodeRequest
+	var request voucher_code_dto.VoucherCodeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
 		return

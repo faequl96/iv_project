@@ -6,10 +6,9 @@ import (
 )
 
 type CreateInvitationRequest struct {
-	InvitationData invitation_data_dto.CreateInvitationDataRequest `json:"invitation_data"`
-
-	UserID            string `json:"user_id" validate:"required"`
-	InvitationThemeID uint   `json:"invitation_theme_id" validate:"required"`
+	InvitationData    invitation_data_dto.CreateInvitationDataRequest `json:"invitation_data" validate:"required"`
+	UserID            string                                          `json:"user_id" validate:"required"`
+	InvitationThemeID uint                                            `json:"invitation_theme_id" validate:"required"`
 }
 
 type UpdateInvitationRequest struct {

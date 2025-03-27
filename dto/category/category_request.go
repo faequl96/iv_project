@@ -1,9 +1,5 @@
 package category_dto
 
-type CreateCategoryRequest struct {
-	Name string `json:"name" validate:"required"`
-}
-
-type UpdateCategoryRequest struct {
+type CategoryRequest struct {
 	Name string `json:"name" validate:"required"`
 }

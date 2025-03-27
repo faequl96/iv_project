@@ -1,9 +1,5 @@
 package discount_category_dto
 
-type CreateDiscountCategoryRequest struct {
-	Name string `json:"name" validate:"required"`
-}
-
-type UpdateDiscountCategoryRequest struct {
+type DiscountCategoryRequest struct {
 	Name string `json:"name" validate:"required"`
 }

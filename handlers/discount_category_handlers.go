@@ -39,7 +39,7 @@ func (h *discountCategoryHandlers) CreateDiscountCategory(w http.ResponseWriter,
 		return
 	}
 
-	var request discount_category_dto.CreateDiscountCategoryRequest
+	var request discount_category_dto.DiscountCategoryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
 		return
@@ -111,7 +111,7 @@ func (h *discountCategoryHandlers) UpdateDiscountCategory(w http.ResponseWriter,
 		return
 	}
 
-	var request discount_category_dto.UpdateDiscountCategoryRequest
+	var request discount_category_dto.DiscountCategoryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
 		return

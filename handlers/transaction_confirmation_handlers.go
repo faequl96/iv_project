@@ -111,7 +111,7 @@ func (h *transactionConfirmationHandlers) ManualByAdminByID(w http.ResponseWrite
 		return
 	}
 
-	var request transaction_confirmation_dto.UpdateTransactionConfirmationRequest
+	var request transaction_confirmation_dto.TransactionConfirmationRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
 		return

@@ -105,7 +105,7 @@ func (h *userHandlers) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request user_dto.UpdateUserRequest
+	var request user_dto.UserRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return

@@ -39,7 +39,7 @@ func (h *categoryHandlers) CreateCategory(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var request category_dto.CreateCategoryRequest
+	var request category_dto.CategoryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
 		return
@@ -111,7 +111,7 @@ func (h *categoryHandlers) UpdateCategoryByID(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	var request category_dto.UpdateCategoryRequest
+	var request category_dto.CategoryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
 		return

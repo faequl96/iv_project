@@ -95,9 +95,9 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 	invitationTheme := &models.InvitationTheme{
 		Name:               request.Name,
 		IDRPrice:           request.IDRPrice,
-		IDRDiscountPrice:   request.IDRDiscountPrice,
+		IDRDiscountPrice:   request.IDRPrice,
 		IVCPrice:           request.IVCPrice,
-		IVCDiscountPrice:   request.IVCDiscountPrice,
+		IVCDiscountPrice:   request.IVCPrice,
 		Categories:         categories,
 		DiscountCategories: discountCategories,
 	}
@@ -227,12 +227,12 @@ func (h *invitationThemeHandlers) UpdateInvitationThemeByID(w http.ResponseWrite
 	}
 	if request.IDRPrice != 0 {
 		invitationTheme.IDRPrice = request.IDRPrice
+		invitationTheme.IDRDiscountPrice = request.IDRPrice
 	}
-	invitationTheme.IDRDiscountPrice = request.IDRDiscountPrice
 	if request.IVCPrice != 0 {
 		invitationTheme.IVCPrice = request.IVCPrice
+		invitationTheme.IVCDiscountPrice = request.IVCPrice
 	}
-	invitationTheme.IVCDiscountPrice = request.IVCDiscountPrice
 	if len(categories) != 0 {
 		invitationTheme.Categories = categories
 	}

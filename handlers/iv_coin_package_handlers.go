@@ -77,7 +77,7 @@ func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *ht
 		Name:               request.Name,
 		CoinAmount:         request.CoinAmount,
 		IDRPrice:           request.IDRPrice,
-		IDRDiscountPrice:   request.IDRDiscountPrice,
+		IDRDiscountPrice:   request.IDRPrice,
 		DiscountCategories: discountCategories,
 	}
 
@@ -175,8 +175,8 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackageByID(w http.ResponseWriter, r
 	}
 	if request.IDRPrice != 0 {
 		ivCoinPackage.IDRPrice = request.IDRPrice
+		ivCoinPackage.IDRDiscountPrice = request.IDRPrice
 	}
-	ivCoinPackage.IDRDiscountPrice = request.IDRDiscountPrice
 	if len(discountCategories) != 0 {
 		ivCoinPackage.DiscountCategories = discountCategories
 	}
