@@ -11,7 +11,7 @@ type CreateInvitationThemeRequest struct {
 }
 
 type UpdateInvitationThemeRequest struct {
-	Name                string `json:"n"`
+	Name                string `json:"name"`
 	IDRPrice            uint   `json:"idr_price"`
 	IDRDiscountPrice    uint   `json:"idr_discount_price"`
 	IVCPrice            uint   `json:"ivc_price"`

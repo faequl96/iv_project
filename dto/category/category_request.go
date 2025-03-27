@@ -5,5 +5,5 @@ type CreateCategoryRequest struct {
 }
 
 type UpdateCategoryRequest struct {
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required"`
 }
