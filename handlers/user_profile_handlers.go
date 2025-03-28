@@ -71,7 +71,7 @@ func (h *userProfileHandlers) GetUserProfileByID(w http.ResponseWriter, r *http.
 func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var request user_profile_dto.UpdateUserProfileRequest
+	var request user_profile_dto.UserProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return
@@ -113,7 +113,7 @@ func (h *userProfileHandlers) UpdateUserProfileByID(w http.ResponseWriter, r *ht
 		return
 	}
 
-	var request user_profile_dto.UpdateUserProfileRequest
+	var request user_profile_dto.UserProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
 		return
