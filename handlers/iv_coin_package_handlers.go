@@ -50,24 +50,44 @@ func ConvertToIVCoinPackageResponse(ivCoinPackage *models.IVCoinPackage) iv_coin
 func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	var request iv_coin_package_dto.CreateIVCoinPackageRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategoriesByIDs(request.DiscountCategoryIDs)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching discount categories by ids.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching discount categories by IDs.",
+			"id": "Terjadi kesalahan saat mengambil kategori diskon berdasarkan IDs.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -80,7 +100,12 @@ func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *ht
 	}
 
 	if err := h.IVCoinPackageRepositories.CreateIVCoinPackage(ivCoinPackage); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Error occurred while creating iv coin package. Please try again later.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Error occurred while creating iv coin package. Please try again later.",
+			"id": "Terjadi kesalahan saat membuat paket iv coin. Coba lagi nanti.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -90,13 +115,23 @@ func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *ht
 func (h *ivCoinPackageHandlers) GetIVCoinPackageByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid iv coin package ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid iv coin package ID format. Please provide a numeric ID.",
+			"id": "Format ID paket iv coin tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	ivCoinPackage, err := h.IVCoinPackageRepositories.GetIVCoinPackageByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No iv coin package found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No iv coin package found with the provided ID.",
+			"id": "Paket iv coin tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -106,7 +141,12 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackageByID(w http.ResponseWriter, r *h
 func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http.Request) {
 	ivCoinPackages, err := h.IVCoinPackageRepositories.GetIVCoinPackages()
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching iv coin packages.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching iv coin packages.",
+			"id": "Terjadi kesalahan saat mengambil paket iv coin.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -126,36 +166,66 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http
 func (h *ivCoinPackageHandlers) UpdateIVCoinPackageByID(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	var request iv_coin_package_dto.UpdateIVCoinPackageRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid iv coin package ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid iv coin package ID format. Please provide a numeric ID.",
+			"id": "Format ID paket iv coin tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	ivCoinPackage, err := h.IVCoinPackageRepositories.GetIVCoinPackageByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No iv coin package found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No iv coin package found with the provided ID.",
+			"id": "Paket iv coin tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategoriesByIDs(request.DiscountCategoryIDs)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching discount categories by ids.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching discount categories by IDs.",
+			"id": "Terjadi kesalahan saat mengambil kategori diskon berdasarkan IDs.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -174,7 +244,12 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackageByID(w http.ResponseWriter, r
 	}
 
 	if err := h.IVCoinPackageRepositories.UpdateIVCoinPackage(ivCoinPackage); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the iv coin package.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while updating the iv coin package.",
+			"id": "Terjadi kesalahan saat mengupdate paket iv coin.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -184,23 +259,43 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackageByID(w http.ResponseWriter, r
 func (h *ivCoinPackageHandlers) DeleteIVCoinPackageByID(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid iv coin package ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid iv coin package ID format. Please provide a numeric ID.",
+			"id": "Format ID paket iv coin tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if _, err = h.IVCoinPackageRepositories.GetIVCoinPackageByID(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No iv coin package found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No iv coin package found with the provided ID.",
+			"id": "Paket iv coin tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	if err := h.IVCoinPackageRepositories.DeleteIVCoinPackage(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while deleting the IV coin package.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while deleting the iv coin package.",
+			"id": "Terjadi kesalahan saat menghapus paket iv coin.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 

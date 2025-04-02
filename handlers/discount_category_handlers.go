@@ -33,18 +33,33 @@ func ConvertToDiscountCategoryResponse(discountCategory *models.DiscountCategory
 func (h *discountCategoryHandlers) CreateDiscountCategory(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	var request discount_category_dto.DiscountCategoryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
@@ -53,7 +68,12 @@ func (h *discountCategoryHandlers) CreateDiscountCategory(w http.ResponseWriter,
 	}
 
 	if err := h.DiscountCategoryRepositories.CreateDiscountCategory(discountCategory); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Error occurred while creating discount category. Please try again later.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Error occurred while creating discount category. Please try again later.",
+			"id": "Terjadi kesalahan saat membuat kategori diskon. Coba lagi nanti.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -63,13 +83,23 @@ func (h *discountCategoryHandlers) CreateDiscountCategory(w http.ResponseWriter,
 func (h *discountCategoryHandlers) GetDiscountCategoryByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid discount category ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid discount category ID format. Please provide a numeric ID.",
+			"id": "Format ID kategori diskon tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	discountCategory, err := h.DiscountCategoryRepositories.GetDiscountCategoryByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No discount category found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No discount category found with the provided ID.",
+			"id": "Kategori diskon tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -79,7 +109,12 @@ func (h *discountCategoryHandlers) GetDiscountCategoryByID(w http.ResponseWriter
 func (h *discountCategoryHandlers) GetDiscountCategories(w http.ResponseWriter, r *http.Request) {
 	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategories()
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching discount categories.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching discount categories.",
+			"id": "Terjadi kesalahan saat mengambil kategori diskon.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -89,7 +124,12 @@ func (h *discountCategoryHandlers) GetDiscountCategories(w http.ResponseWriter, 
 	}
 
 	if len(discountCategories) == 0 {
-		SuccessResponse(w, http.StatusOK, "No discount categories available at the moment.", discountCategoryResponses)
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No discount categories available at the moment.",
+			"id": "Tidak ada kategori diskon yang tersedia saat ini.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], discountCategoryResponses)
 		return
 	}
 
@@ -99,30 +139,55 @@ func (h *discountCategoryHandlers) GetDiscountCategories(w http.ResponseWriter, 
 func (h *discountCategoryHandlers) UpdateDiscountCategory(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	var request discount_category_dto.DiscountCategoryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid discount category ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid discount category ID format. Please provide a numeric ID.",
+			"id": "Format ID kategori diskon tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	discountCategory, err := h.DiscountCategoryRepositories.GetDiscountCategoryByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No discount category found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No discount category found with the provided ID.",
+			"id": "Kategori diskon tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -131,7 +196,12 @@ func (h *discountCategoryHandlers) UpdateDiscountCategory(w http.ResponseWriter,
 	}
 
 	if err := h.DiscountCategoryRepositories.UpdateDiscountCategory(discountCategory); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the discount category.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while updating the discount category.",
+			"id": "Terjadi kesalahan saat memperbarui kategori diskon.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -141,23 +211,43 @@ func (h *discountCategoryHandlers) UpdateDiscountCategory(w http.ResponseWriter,
 func (h *discountCategoryHandlers) DeleteDiscountCategory(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid discount category ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid discount category ID format. Please provide a numeric ID.",
+			"id": "Format ID kategori diskon tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if _, err = h.DiscountCategoryRepositories.GetDiscountCategoryByID(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No discount category found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No discount category found with the provided ID.",
+			"id": "Kategori diskon tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	if err := h.DiscountCategoryRepositories.DeleteDiscountCategory(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while deleting the discount category.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while deleting the discount category.",
+			"id": "Terjadi kesalahan saat menghapus kategori diskon.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 

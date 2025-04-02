@@ -41,25 +41,45 @@ func TransactionPaymentHandler(
 func (h *transactionPaymentHandlers) IssueByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid transaction ID format.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid transaction ID format. Please provide a numeric ID.",
+			"id": "Format ID transaksi tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	transaction, err := h.TransactionRepositories.GetTransactionByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No transaction found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No transaction found with the provided ID.",
+			"id": "Transaksi tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	if transaction.PaymentMethod == models.PaymentMethodIVCoin {
 		ivCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(transaction.UserID)
 		if err != nil {
-			ErrorResponse(w, http.StatusNotFound, "No iv coin found with the provided user.")
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "No iv coin found with the provided user.",
+				"id": "IV coin tidak ditemukan dengan pengguna yang diberikan.",
+			}
+			ErrorResponse(w, http.StatusNotFound, messages, lang)
 			return
 		}
 
 		if ivCoin.Balance < transaction.IVCTotalPrice {
-			ErrorResponse(w, http.StatusPaymentRequired, fmt.Sprintf("Insufficient IVCoin balance: %d/%d IVC.", ivCoin.Balance, transaction.IVCTotalPrice))
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": fmt.Sprintf("Insufficient IVCoin balance: %d/%d IVC.", ivCoin.Balance, transaction.IVCTotalPrice),
+				"id": fmt.Sprintf("IV koin tidak cukup: %d/%d IVC.", ivCoin.Balance, transaction.IVCTotalPrice),
+			}
+			ErrorResponse(w, http.StatusPaymentRequired, messages, lang)
 			return
 		}
 		transaction.Status = models.TransactionStatusConfirmed
@@ -67,13 +87,23 @@ func (h *transactionPaymentHandlers) IssueByID(w http.ResponseWriter, r *http.Re
 		if transaction.ProductType == models.ProductInvitation {
 			invitation, err := h.InvitationRepositories.GetInvitationByID(uint(transaction.ProductID))
 			if err != nil {
-				ErrorResponse(w, http.StatusNotFound, "No invitation found with the provided ID.")
+				lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+				messages := map[string]string{
+					"en": "No transaction found with the provided ID.",
+					"id": "Transaksi tidak ditemukan dengan ID yang diberikan.",
+				}
+				ErrorResponse(w, http.StatusNotFound, messages, lang)
 				return
 			}
 			invitation.Status = models.InvitationStatusActive
 			err = h.InvitationRepositories.UpdateInvitation(invitation)
 			if err != nil {
-				ErrorResponse(w, http.StatusInternalServerError, "Failed to update invitation.")
+				lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+				messages := map[string]string{
+					"en": "Failed to update invitation",
+					"id": "Gagal mengupdate undangan",
+				}
+				ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 				return
 			}
 		}
@@ -82,13 +112,23 @@ func (h *transactionPaymentHandlers) IssueByID(w http.ResponseWriter, r *http.Re
 
 		err = h.IVCoinRepositories.UpdateIVCoin(ivCoin)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Failed to update iv coin.")
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Failed to update iv coin.",
+				"id": "Gagal mengupdate iv coin.",
+			}
+			ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 			return
 		}
 
 		err = h.TransactionRepositories.UpdateTransaction(transaction)
 		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Failed to update transaction.")
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Failed to update transaction.",
+				"id": "Gagal mengupdate transaksi.",
+			}
+			ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 			return
 		}
 
@@ -106,7 +146,12 @@ func (h *transactionPaymentHandlers) IssueByID(w http.ResponseWriter, r *http.Re
 	if transaction.PaymentMethod == models.PaymentMethodAutoTransfer || transaction.PaymentMethod == models.PaymentMethodGopay {
 		user, err := h.UserRepositories.GetUserByID(transaction.UserID)
 		if err != nil {
-			ErrorResponse(w, http.StatusNotFound, "User with ID "+transaction.UserID+" not found")
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "No user found with the provided ID.",
+				"id": "Pengguna tidak ditemukan dengan ID yang diberikan.",
+			}
+			ErrorResponse(w, http.StatusNotFound, messages, lang)
 			return
 		}
 

@@ -50,24 +50,44 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 	invitationJSON := r.FormValue("invitation")
 	var request invitation_dto.CreateInvitationRequest
 	if err := json.Unmarshal([]byte(invitationJSON), &request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	invitationTheme, err := h.InvitationThemeRepositories.GetInvitationThemeByID(request.InvitationThemeID)
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No invitation theme found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitation theme found with the provided ID.",
+			"id": "Tema undangan tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid EventDate format. Use RFC3339.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid EventDate format. Use RFC3339.",
+			"id": "EventDate format tidak valid. Gunakan RFC3339.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
@@ -132,7 +152,12 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 
 	err = h.InvitationRepositories.CreateInvitation(invitation)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to create invitation.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Failed to create invitation.",
+			"id": "Gagal membuat undangan.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -142,13 +167,23 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 func (h *invitationHandlers) GetInvitationByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid Invitation ID format. Please provide a numeric ID.",
+			"id": "Format ID undangan tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	invitation, err := h.InvitationRepositories.GetInvitationByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No invitation found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitation found with the provided ID.",
+			"id": "Undangan tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -158,7 +193,12 @@ func (h *invitationHandlers) GetInvitationByID(w http.ResponseWriter, r *http.Re
 func (h *invitationHandlers) GetInvitations(w http.ResponseWriter, r *http.Request) {
 	invitations, err := h.InvitationRepositories.GetInvitations()
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching invitations.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching invitations.",
+			"id": "Terjadi kesalahan saat mengambil undangan.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -180,7 +220,12 @@ func (h *invitationHandlers) GetInvitationsByUserID(w http.ResponseWriter, r *ht
 
 	invitations, err := h.InvitationRepositories.GetInvitationsByUserID(id)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching invitations by user id.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching invitations by user ID.",
+			"id": "Terjadi kesalahan saat mengambil undangan berdasarkan ID user.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -201,24 +246,44 @@ func (h *invitationHandlers) UpdateInvitationByID(w http.ResponseWriter, r *http
 	invitationJSON := r.FormValue("invitation")
 	var request invitation_dto.UpdateInvitationRequest
 	if err := json.Unmarshal([]byte(invitationJSON), &request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid JSON format.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid Invitation ID format. Please provide a numeric ID.",
+			"id": "Format ID undangan tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	invitation, err := h.InvitationRepositories.GetInvitationByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No invitation found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitation found with the provided ID.",
+			"id": "Undangan tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -227,7 +292,12 @@ func (h *invitationHandlers) UpdateInvitationByID(w http.ResponseWriter, r *http
 	}
 	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid EventDate format. Use RFC3339.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid EventDate format. Use RFC3339.",
+			"id": "EventDate format tidak valid. Gunakan RFC3339.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 	invitation.Status = request.Status
@@ -284,7 +354,12 @@ func (h *invitationHandlers) UpdateInvitationByID(w http.ResponseWriter, r *http
 
 	err = h.InvitationRepositories.UpdateInvitation(invitation)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to update invitation.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Failed to update invitation",
+			"id": "Gagal mengupdate undangan",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -294,17 +369,32 @@ func (h *invitationHandlers) UpdateInvitationByID(w http.ResponseWriter, r *http
 func (h *invitationHandlers) DeleteInvitationByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid Invitation ID format. Please provide a numeric ID.",
+			"id": "Format ID undangan tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if _, err = h.InvitationRepositories.GetInvitationByID(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No invitation found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitation found with the provided ID.",
+			"id": "Undangan tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	if err := h.InvitationRepositories.DeleteInvitation(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while deleting the invitation.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while deleting the invitation.",
+			"id": "Terjadi kesalahan saat menghapus undangan.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 

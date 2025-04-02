@@ -35,7 +35,12 @@ func (h *userProfileHandlers) GetUserProfile(w http.ResponseWriter, r *http.Requ
 	userID := r.Context().Value(middleware.UserIdKey).(string)
 	userProfile, err := h.UserProfileRepositories.GetUserProfileByUserID(userID)
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No user profile found with the provided user.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No user profile found with the provided user ID.",
+			"id": "Profile pengguna tidak ditemukan dengan ID pengguna yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -45,19 +50,34 @@ func (h *userProfileHandlers) GetUserProfile(w http.ResponseWriter, r *http.Requ
 func (h *userProfileHandlers) GetUserProfileByID(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid user profile ID format. Please provide a numeric ID.",
+			"id": "Format ID profil pengguna tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	userProfile, err := h.UserProfileRepositories.GetUserProfileByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User profile not found")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No user profile found with the provided ID.",
+			"id": "Profile pengguna tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -67,19 +87,34 @@ func (h *userProfileHandlers) GetUserProfileByID(w http.ResponseWriter, r *http.
 func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	var request user_profile_dto.UserProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	userID := r.Context().Value(middleware.UserIdKey).(string)
 	userProfile, err := h.UserProfileRepositories.GetUserProfileByUserID(userID)
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No user profile found with the provided user.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No user profile found with the provided user ID.",
+			"id": "Profile pengguna tidak ditemukan dengan ID pengguna yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -91,7 +126,12 @@ func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.R
 	}
 
 	if err = h.UserProfileRepositories.UpdateUserProfile(userProfile); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to update User profile: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Failed to update user profile.",
+			"id": "Gagal mengupdate profil pengguna.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -101,30 +141,55 @@ func (h *userProfileHandlers) UpdateUserProfile(w http.ResponseWriter, r *http.R
 func (h *userProfileHandlers) UpdateUserProfileByID(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	var request user_profile_dto.UserProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid user profile ID format. Please provide a numeric ID.",
+			"id": "Format ID profil pengguna tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	userProfile, err := h.UserProfileRepositories.GetUserProfileByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User profile not found")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No user profile found with the provided ID.",
+			"id": "Profile pengguna tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -136,7 +201,12 @@ func (h *userProfileHandlers) UpdateUserProfileByID(w http.ResponseWriter, r *ht
 	}
 
 	if err = h.UserProfileRepositories.UpdateUserProfile(userProfile); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to update User profile: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Failed to update user profile.",
+			"id": "Gagal mengupdate profil pengguna.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 

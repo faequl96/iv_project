@@ -63,30 +63,55 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	var request invitation_theme_dto.CreateInvitationThemeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	categories, err := h.CategoryRepositories.GetCategoriesByIDs(request.CategoryIDs)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching categories by ids.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching categories by IDs.",
+			"id": "Terjadi kesalahan saat mengambil kategori berdasarkan IDs.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
 	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategoriesByIDs(request.DiscountCategoryIDs)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching discount categories by ids.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching discount categories by IDs.",
+			"id": "Terjadi kesalahan saat mengambil kategori diskon berdasarkan IDs.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -101,7 +126,12 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 	}
 
 	if err := h.InvitationThemeRepositories.CreateInvitationTheme(invitationTheme); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Error occurred while creating invitation theme. Please try again later.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Error occurred while creating invitation theme. Please try again later.",
+			"id": "Terjadi kesalahan saat membuat tema undangan. Coba lagi nanti.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -111,13 +141,23 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 func (h *invitationThemeHandlers) GetInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation theme ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid Invitation theme ID format. Please provide a numeric ID.",
+			"id": "Format ID tema undangan tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	invitationTheme, err := h.InvitationThemeRepositories.GetInvitationThemeByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No invitation theme found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitation theme found with the provided ID.",
+			"id": "Tema undangan tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -127,7 +167,12 @@ func (h *invitationThemeHandlers) GetInvitationThemeByID(w http.ResponseWriter, 
 func (h *invitationThemeHandlers) GetInvitationThemes(w http.ResponseWriter, r *http.Request) {
 	invitationThemes, err := h.InvitationThemeRepositories.GetInvitationThemes()
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching invitation themes.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching invitation themes.",
+			"id": "Terjadi kesalahan saat mengambil tema undangan.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -147,13 +192,23 @@ func (h *invitationThemeHandlers) GetInvitationThemes(w http.ResponseWriter, r *
 func (h *invitationThemeHandlers) GetInvitationThemesByCategoryID(w http.ResponseWriter, r *http.Request) {
 	categoryID, err := strconv.Atoi(mux.Vars(r)["categoryId"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid category ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid Invitation theme ID format. Please provide a numeric ID.",
+			"id": "Format ID tema undangan tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	invitationThemes, err := h.InvitationThemeRepositories.GetInvitationThemesByCategoryID(uint(categoryID))
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching invitation themes by category.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching invitation themes by category ID.",
+			"id": "Terjadi kesalahan saat mengambil tema undangan berdasarkan ID kategori.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -173,42 +228,77 @@ func (h *invitationThemeHandlers) GetInvitationThemesByCategoryID(w http.Respons
 func (h *invitationThemeHandlers) UpdateInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	var request invitation_theme_dto.UpdateInvitationThemeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Failed to parse request: invalid JSON format")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation theme ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid Invitation theme ID format. Please provide a numeric ID.",
+			"id": "Format ID tema undangan tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	invitationTheme, err := h.InvitationThemeRepositories.GetInvitationThemeByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No invitation theme found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitation theme found with the provided ID.",
+			"id": "Tema undangan tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	categories, err := h.CategoryRepositories.GetCategoriesByIDs(request.CategoryIDs)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching categories by ids.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching categories by IDs.",
+			"id": "Terjadi kesalahan saat mengambil kategori berdasarkan IDs.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
 	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategoriesByIDs(request.DiscountCategoryIDs)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching discount categories by ids.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching discount categories by IDs.",
+			"id": "Terjadi kesalahan saat mengambil kategori diskon berdasarkan IDs.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -231,7 +321,12 @@ func (h *invitationThemeHandlers) UpdateInvitationThemeByID(w http.ResponseWrite
 	}
 
 	if err := h.InvitationThemeRepositories.UpdateInvitationTheme(invitationTheme); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the invitation theme.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while updating the invitation theme.",
+			"id": "Terjadi kesalahan saat mengupdate tema undangan.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -241,23 +336,43 @@ func (h *invitationThemeHandlers) UpdateInvitationThemeByID(w http.ResponseWrite
 func (h *invitationThemeHandlers) DeleteInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation theme ID format. Please provide a numeric ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid Invitation theme ID format. Please provide a numeric ID.",
+			"id": "Format ID tema undangan tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if _, err = h.InvitationThemeRepositories.GetInvitationThemeByID(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No invitation theme found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitation theme found with the provided ID.",
+			"id": "Tema undangan tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	if err := h.InvitationThemeRepositories.DeleteInvitationTheme(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while deleting the invitation theme.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while deleting the invitation theme.",
+			"id": "Terjadi kesalahan saat menghapus tema undangan.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 

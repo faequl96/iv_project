@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	transaction_dto "iv_project/dto/transaction"
 	"iv_project/models"
+	"iv_project/pkg/middleware"
+	"iv_project/pkg/utils"
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
@@ -68,12 +70,22 @@ func ConvertToTransactionResponse(transaction *models.Transaction) transaction_d
 func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	var request transaction_dto.CreateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
@@ -87,7 +99,12 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 	if request.ProductType == models.ProductInvitation {
 		invitation, err := h.InvitationRepositories.GetInvitationByID(uint(request.ProductID))
 		if err != nil {
-			ErrorResponse(w, http.StatusNotFound, "No invitation found with the provided ID.")
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "No invitation found with the provided ID.",
+				"id": "Undangan tidak ditemukan dengan ID yang diberikan.",
+			}
+			ErrorResponse(w, http.StatusNotFound, messages, lang)
 			return
 		}
 
@@ -104,21 +121,26 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		if ivCoin != nil {
 			if ivCoin.Balance > transaction.IVCTotalPrice {
 				transaction.PaymentMethod = models.PaymentMethodIVCoin
-				transaction.ReferenceNumber = GenerateReferenceNumber(transaction.PaymentMethod.String())
+				transaction.ReferenceNumber = utils.GenerateReferenceNumber(transaction.PaymentMethod.String())
 			} else {
 				transaction.PaymentMethod = models.PaymentMethodGopay
-				transaction.ReferenceNumber = GenerateReferenceNumber(transaction.PaymentMethod.String())
+				transaction.ReferenceNumber = utils.GenerateReferenceNumber(transaction.PaymentMethod.String())
 			}
 		} else {
 			transaction.PaymentMethod = models.PaymentMethodGopay
-			transaction.ReferenceNumber = GenerateReferenceNumber(transaction.PaymentMethod.String())
+			transaction.ReferenceNumber = utils.GenerateReferenceNumber(transaction.PaymentMethod.String())
 		}
 	}
 
 	if request.ProductType == models.ProductIVCoinPackage {
 		ivCoinPackage, err := h.IVCoinPackageRepositories.GetIVCoinPackageByID(uint(request.ProductID))
 		if err != nil {
-			ErrorResponse(w, http.StatusNotFound, "No iv coin package found with the provided ID.")
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "No iv coin package found with the provided ID.",
+				"id": "Paket iv coin tidak ditemukan dengan ID yang diberikan.",
+			}
+			ErrorResponse(w, http.StatusNotFound, messages, lang)
 			return
 		}
 
@@ -129,12 +151,17 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		transaction.ProductName = ivCoinPackage.Name
 
 		transaction.PaymentMethod = models.PaymentMethodGopay
-		transaction.ReferenceNumber = GenerateReferenceNumber(transaction.PaymentMethod.String())
+		transaction.ReferenceNumber = utils.GenerateReferenceNumber(transaction.PaymentMethod.String())
 	}
 
 	err := h.TransactionRepositories.CreateTransaction(transaction)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to create transaction.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Failed to create transaction.",
+			"id": "Gagal membuat transaksi.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -144,13 +171,23 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 func (h *transactionHandlers) GetTransactionByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid transaction ID format.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid transaction ID format. Please provide a numeric ID.",
+			"id": "Format ID transaksi tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	transaction, err := h.TransactionRepositories.GetTransactionByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No transaction found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No transaction found with the provided ID.",
+			"id": "Transaksi tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -160,7 +197,12 @@ func (h *transactionHandlers) GetTransactionByID(w http.ResponseWriter, r *http.
 func (h *transactionHandlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	transactions, err := h.TransactionRepositories.GetTransactions()
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching transactions.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching transactions.",
+			"id": "Terjadi kesalahan saat mengambil transaksi.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -177,7 +219,12 @@ func (h *transactionHandlers) GetTransactionsByUserID(w http.ResponseWriter, r *
 
 	transactions, err := h.TransactionRepositories.GetTransactionsByUserID(userID)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching transactions.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching transactions.",
+			"id": "Terjadi kesalahan saat mengambil transaksi.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -192,57 +239,87 @@ func (h *transactionHandlers) GetTransactionsByUserID(w http.ResponseWriter, r *
 func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *http.Request) {
 	var request transaction_dto.UpdateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid transaction ID format.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid transaction ID format. Please provide a numeric ID.",
+			"id": "Format ID transaksi tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	transaction, err := h.TransactionRepositories.GetTransactionByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No transaction found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No transaction found with the provided ID.",
+			"id": "Transaksi tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	if transaction.Status == models.TransactionStatusConfirmed || transaction.Status == models.TransactionStatusCanceled {
-		ErrorResponse(w, http.StatusNotFound, "The transaction cannot be updated, because the transaction has been completed.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "The transaction cannot be updated, because the transaction has been completed.",
+			"id": "Transaksi tidak dapat diupdate, karena transaksi telah selesai.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
 	if request.PaymentMethod.String() != "" {
 		transaction.PaymentMethod = request.PaymentMethod
-		transaction.ReferenceNumber = GenerateReferenceNumber(request.PaymentMethod.String())
+		transaction.ReferenceNumber = utils.GenerateReferenceNumber(request.PaymentMethod.String())
 	}
 
 	if request.VoucherCodeID != 0 {
 		voucherCode, err := h.VoucherCodeRepositories.GetVoucherCodeByID(uint(request.VoucherCodeID))
 		if err != nil {
-			ErrorResponse(w, http.StatusNotFound, "No voucher code found with the provided ID.")
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "No voucher code found with the provided ID.",
+				"id": "Kode voucher tidak ditemukan dengan ID yang diberikan.",
+			}
+			ErrorResponse(w, http.StatusNotFound, messages, lang)
 			return
 		}
 		transaction.VoucherCodeID = voucherCode.ID
 		transaction.VoucherCodeName = voucherCode.Name
 
 		if transaction.ProductType == models.ProductInvitation {
-			totalIDRVoucherCodeDiscount := CalculateDiscountedPrice(transaction.IDRTotalPrice, voucherCode.DiscountPercentage)
+			totalIDRVoucherCodeDiscount := utils.CalculateDiscountedPrice(transaction.IDRTotalPrice, voucherCode.DiscountPercentage)
 			transaction.IDRVoucherCodeDiscount = transaction.IDRTotalPrice - totalIDRVoucherCodeDiscount
 			transaction.IDRTotalPrice = totalIDRVoucherCodeDiscount
-			totalIVCVoucherCodeDiscount := CalculateDiscountedPrice(transaction.IVCTotalPrice, voucherCode.DiscountPercentage)
+			totalIVCVoucherCodeDiscount := utils.CalculateDiscountedPrice(transaction.IVCTotalPrice, voucherCode.DiscountPercentage)
 			transaction.IVCVoucherCodeDiscount = transaction.IVCTotalPrice - totalIVCVoucherCodeDiscount
 			transaction.IVCTotalPrice = totalIVCVoucherCodeDiscount
 		}
 
 		if transaction.ProductType == models.ProductIVCoinPackage {
-			totalIDRVoucherCodeDiscount := CalculateDiscountedPrice(transaction.IDRTotalPrice, voucherCode.DiscountPercentage)
+			totalIDRVoucherCodeDiscount := utils.CalculateDiscountedPrice(transaction.IDRTotalPrice, voucherCode.DiscountPercentage)
 			transaction.IDRVoucherCodeDiscount = transaction.IDRTotalPrice - totalIDRVoucherCodeDiscount
 			transaction.IDRTotalPrice = totalIDRVoucherCodeDiscount
 		}
@@ -267,7 +344,12 @@ func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *ht
 
 	err = h.TransactionRepositories.UpdateTransaction(transaction)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to update transaction.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Failed to update transaction.",
+			"id": "Gagal mengupdate transaksi.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -277,17 +359,32 @@ func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *ht
 func (h *transactionHandlers) DeleteTransaction(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid transaction ID format.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid transaction ID format. Please provide a numeric ID.",
+			"id": "Format ID transaksi tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if _, err = h.TransactionRepositories.GetTransactionByID(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No transaction found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No transaction found with the provided ID.",
+			"id": "Transaksi tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	if err := h.TransactionRepositories.DeleteTransaction(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while deleting the transaction.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while deleting the transaction.",
+			"id": "Terjadi kesalahan saat menghapus transaksi.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 

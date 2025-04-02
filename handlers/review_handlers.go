@@ -46,12 +46,22 @@ func ConvertToReviewResponse(review *models.Review) review_dto.ReviewResponse {
 func (h *reviewHandlers) CreateReview(w http.ResponseWriter, r *http.Request) {
 	var request review_dto.CreateReviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
@@ -64,13 +74,23 @@ func (h *reviewHandlers) CreateReview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.ReviewRepositories.CreateReview(review); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while create the review. Please try again.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An Error occurred while creating the review. Please try again later.",
+			"id": "Terjadi kesalahan saat membuat review. Coba lagi nanti.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
 	user, err := h.UserRepositories.GetUserByID(userID)
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User with ID "+userID+" not found")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No user found with the provided ID.",
+			"id": "Pengguna tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -82,13 +102,23 @@ func (h *reviewHandlers) CreateReview(w http.ResponseWriter, r *http.Request) {
 func (h *reviewHandlers) GetReviewByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format. Please use a number.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid review ID format. Please provide a numeric ID.",
+			"id": "Format ID review tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	review, err := h.ReviewRepositories.GetReviewByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "Review not found with the given ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No review found with the provided ID.",
+			"id": "Review tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -98,13 +128,23 @@ func (h *reviewHandlers) GetReviewByID(w http.ResponseWriter, r *http.Request) {
 func (h *reviewHandlers) GetReviews(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	reviews, err := h.ReviewRepositories.GetReviews()
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching iv coin packages.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching reviews.",
+			"id": "Terjadi kesalahan saat mengambil review.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -124,13 +164,23 @@ func (h *reviewHandlers) GetReviews(w http.ResponseWriter, r *http.Request) {
 func (h *reviewHandlers) GetReviewsByInvitationThemeID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["invitationThemeId"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format. Please use a number.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid invitation theme ID format. Please provide a numeric ID.",
+			"id": "Format ID tema undangan tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	reviews, err := h.ReviewRepositories.GetReviewsByInvitationThemeID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while retrieving reviews. Please try again.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while retrieving reviews. Please try again.",
+			"id": "Terjadi kesalahan saat mengambil review. Silahkan coba lagi nanti",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -150,24 +200,44 @@ func (h *reviewHandlers) GetReviewsByInvitationThemeID(w http.ResponseWriter, r 
 func (h *reviewHandlers) UpdateReviewByID(w http.ResponseWriter, r *http.Request) {
 	var request review_dto.UpdateReviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format. Please use a number.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid review ID format. Please provide a numeric ID.",
+			"id": "Format ID review tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	review, err := h.ReviewRepositories.GetReviewByID(uint(id))
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "Review not found with the given ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No review found with the provided ID.",
+			"id": "Review tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -179,7 +249,12 @@ func (h *reviewHandlers) UpdateReviewByID(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := h.ReviewRepositories.UpdateReview(review); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the review. Please try again.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while updating the review.",
+			"id": "Terjadi kesalahan saat mengupdate review.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -189,17 +264,32 @@ func (h *reviewHandlers) UpdateReviewByID(w http.ResponseWriter, r *http.Request
 func (h *reviewHandlers) DeleteReviewByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format. Please use a number.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid review ID format. Please provide a numeric ID.",
+			"id": "Format ID review tidak valid. Harap berikan ID dalam format angka.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if _, err = h.ReviewRepositories.GetReviewByID(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No review found with the provided ID.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No review found with the provided ID.",
+			"id": "Review tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	if err := h.ReviewRepositories.DeleteReview(uint(id)); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while deleting the review. Please try again.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while deleting the review.",
+			"id": "Terjadi kesalahan saat menghapus review.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 

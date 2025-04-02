@@ -40,7 +40,12 @@ func (h *userHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserIdKey).(string)
 	user, err := h.UserRepositories.GetUserByID(userID)
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User with ID "+userID+" not found")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No user found with the provided ID.",
+			"id": "Pengguna tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -50,14 +55,24 @@ func (h *userHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
 func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	id := mux.Vars(r)["id"]
 	user, err := h.UserRepositories.GetUserByID(id)
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No user found with the provided ID.",
+			"id": "Pengguna tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -67,13 +82,23 @@ func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	users, err := h.UserRepositories.GetUsers()
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to retrieve users: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching users.",
+			"id": "Terjadi kesalahan saat mengambil user.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -93,25 +118,45 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 func (h *userHandlers) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	var request user_dto.UserRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	id := mux.Vars(r)["id"]
 	user, err := h.UserRepositories.GetUserByID(id)
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User not found")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No user found with the provided ID.",
+			"id": "Pengguna tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
@@ -121,7 +166,12 @@ func (h *userHandlers) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = h.UserRepositories.UpdateUser(user); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to update User: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Failed to update user.",
+			"id": "Gagal mengupdate pengguna.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -131,12 +181,22 @@ func (h *userHandlers) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserIdKey).(string)
 	if _, err := h.UserRepositories.GetUserByID(userID); err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User with ID "+userID+" not found")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No user found with the provided ID.",
+			"id": "Pengguna tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	if err := h.UserRepositories.DeleteUser(userID); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to delete user: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while deleting the user.",
+			"id": "Terjadi kesalahan saat menghapus pengguna.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -146,18 +206,33 @@ func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 func (h *userHandlers) DeleteUserByID(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	id := mux.Vars(r)["id"]
 	if _, err := h.UserRepositories.GetUserByID(id); err != nil {
-		ErrorResponse(w, http.StatusNotFound, "User with ID "+id+" not found")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No user found with the provided ID.",
+			"id": "Pengguna tidak ditemukan dengan ID yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	if err := h.UserRepositories.DeleteUser(id); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to delete user: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while deleting the user.",
+			"id": "Terjadi kesalahan saat menghapus pengguna.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 

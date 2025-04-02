@@ -5,6 +5,7 @@ import (
 	auth_dto "iv_project/dto/auth"
 	"iv_project/models"
 	jwtToken "iv_project/pkg/jwt"
+	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
 
@@ -34,12 +35,22 @@ func ConvertToAuthResponse(token string, user *models.User) auth_dto.AuthRespons
 func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	var request auth_dto.AuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
@@ -67,7 +78,12 @@ func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 
 	if userFinded == nil {
 		if err := h.UserRepositories.CreateUser(user); err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "Failed to create user: "+err.Error())
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Failed to create user",
+				"id": "Gagal membuat pengguna",
+			}
+			ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 			return
 		}
 	}

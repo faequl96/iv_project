@@ -7,6 +7,7 @@ import (
 	iv_coin_package_dto "iv_project/dto/iv_coin_package"
 	"iv_project/models"
 	"iv_project/pkg/middleware"
+	"iv_project/pkg/utils"
 	"iv_project/repositories"
 	"net/http"
 
@@ -53,49 +54,84 @@ func ConvertToDiscountResponse(
 func (h *dicountHandlers) SetProductPrices(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
-		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
 		return
 	}
 
 	var request discount_dto.DiscountRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	invitationThemes, err := h.InvitationThemeRepositories.GetInvitationThemesByDiscountCategoryID(request.DiscountCategoryID)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching invitation themes by discount category.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching invitation themes by discount category.",
+			"id": "Terjadi kesalahan saat mengambil tema undangan berdasarkan kategori diskon.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
 	for index, invitationTheme := range invitationThemes {
-		invitationThemes[index].IDRDiscountPrice = CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
-		invitationThemes[index].IVCDiscountPrice = CalculateDiscountedPrice(invitationTheme.IVCPrice, request.Percentage)
-		invitationTheme.IDRDiscountPrice = CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
-		invitationTheme.IVCDiscountPrice = CalculateDiscountedPrice(invitationTheme.IVCPrice, request.Percentage)
+		invitationThemes[index].IDRDiscountPrice = utils.CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
+		invitationThemes[index].IVCDiscountPrice = utils.CalculateDiscountedPrice(invitationTheme.IVCPrice, request.Percentage)
+		invitationTheme.IDRDiscountPrice = utils.CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
+		invitationTheme.IVCDiscountPrice = utils.CalculateDiscountedPrice(invitationTheme.IVCPrice, request.Percentage)
 		if err := h.InvitationThemeRepositories.UpdateInvitationTheme(&invitationTheme); err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the invitation theme.")
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "An error occurred while updating the invitation theme.",
+				"id": "Terjadi kesalahan saat mengupdate tema undangan.",
+			}
+			ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 			return
 		}
 	}
 
 	ivCoinPackages, err := h.IVCoinPackageRepositories.GetIVCoinPackagesByDiscountCategoryID(request.DiscountCategoryID)
 	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching iv coins by discount category.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching iv coins by discount category.",
+			"id": "Terjadi kesalahan saat mengambil iv coin berdasarkan kategori diskon.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
 	for index, ivCoinPackage := range ivCoinPackages {
-		ivCoinPackages[index].IDRDiscountPrice = CalculateDiscountedPrice(ivCoinPackage.IDRPrice, request.Percentage)
-		ivCoinPackage.IDRDiscountPrice = CalculateDiscountedPrice(ivCoinPackage.IDRPrice, request.Percentage)
+		ivCoinPackages[index].IDRDiscountPrice = utils.CalculateDiscountedPrice(ivCoinPackage.IDRPrice, request.Percentage)
+		ivCoinPackage.IDRDiscountPrice = utils.CalculateDiscountedPrice(ivCoinPackage.IDRPrice, request.Percentage)
 		if err := h.IVCoinPackageRepositories.UpdateIVCoinPackage(&ivCoinPackage); err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, "An error occurred while updating the iv coin package.")
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "An error occurred while updating the iv coin package.",
+				"id": "Terjadi kesalahan saat mengupdate paket iv coin.",
+			}
+			ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 			return
 		}
 	}
