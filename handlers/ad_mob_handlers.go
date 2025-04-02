@@ -29,18 +29,33 @@ func (h *adMobHandlers) AddExtraIVCoins(w http.ResponseWriter, r *http.Request) 
 	userID := r.Context().Value(middleware.UserIdKey).(string)
 	ivCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(userID)
 	if err != nil {
-		ErrorResponse(w, http.StatusNotFound, "No iv coin found with the provided user.")
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No iv coin found with the provided user.",
+			"id": "IV coin tidak ditemukan berdasarkan pengguna ini.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
 	var request ad_mob_dto.AdMobRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Validation failed. Please complete the request field",
+			"id": "Validasi gagal. Silahkan lengkapi field request",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
 		return
 	}
 
@@ -49,7 +64,12 @@ func (h *adMobHandlers) AddExtraIVCoins(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err = h.IVCoinRepositories.UpdateIVCoin(ivCoin); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, "Failed to update iv coin: "+err.Error())
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Failed to update iv coin",
+			"id": "Gagal mengupdate iv coin",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
