@@ -31,8 +31,6 @@ func ConvertToDiscountCategoryResponse(discountCategory *models.DiscountCategory
 }
 
 func (h *discountCategoryHandlers) CreateDiscountCategory(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -63,8 +61,6 @@ func (h *discountCategoryHandlers) CreateDiscountCategory(w http.ResponseWriter,
 }
 
 func (h *discountCategoryHandlers) GetDiscountCategoryByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid discount category ID format. Please provide a numeric ID.")
@@ -81,8 +77,6 @@ func (h *discountCategoryHandlers) GetDiscountCategoryByID(w http.ResponseWriter
 }
 
 func (h *discountCategoryHandlers) GetDiscountCategories(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	discountCategories, err := h.DiscountCategoryRepositories.GetDiscountCategories()
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching discount categories.")
@@ -103,8 +97,6 @@ func (h *discountCategoryHandlers) GetDiscountCategories(w http.ResponseWriter, 
 }
 
 func (h *discountCategoryHandlers) UpdateDiscountCategory(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -147,8 +139,6 @@ func (h *discountCategoryHandlers) UpdateDiscountCategory(w http.ResponseWriter,
 }
 
 func (h *discountCategoryHandlers) DeleteDiscountCategory(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")

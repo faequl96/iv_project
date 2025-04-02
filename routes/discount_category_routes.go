@@ -14,6 +14,8 @@ func DiscountCategoryRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	discountCategoryRepository := repositories.DiscountCategoryRepository(mysql.DB)
 	h := handlers.DiscountCategoryHandler(discountCategoryRepository)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/discount-category", middleware.Auth(jwtServices, h.CreateDiscountCategory)).Methods("POST")
 	r.HandleFunc("/discount-category/id/{id}", middleware.Auth(jwtServices, h.GetDiscountCategoryByID)).Methods("GET")
 	r.HandleFunc("/discount-categories", middleware.Auth(jwtServices, h.GetDiscountCategories)).Methods("GET")

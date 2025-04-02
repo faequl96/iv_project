@@ -48,8 +48,6 @@ func ConvertToIVCoinPackageResponse(ivCoinPackage *models.IVCoinPackage) iv_coin
 }
 
 func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -90,8 +88,6 @@ func (h *ivCoinPackageHandlers) CreateIVCoinPackage(w http.ResponseWriter, r *ht
 }
 
 func (h *ivCoinPackageHandlers) GetIVCoinPackageByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid iv coin package ID format. Please provide a numeric ID.")
@@ -108,8 +104,6 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackageByID(w http.ResponseWriter, r *h
 }
 
 func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	ivCoinPackages, err := h.IVCoinPackageRepositories.GetIVCoinPackages()
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching iv coin packages.")
@@ -130,8 +124,6 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http
 }
 
 func (h *ivCoinPackageHandlers) UpdateIVCoinPackageByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -190,8 +182,6 @@ func (h *ivCoinPackageHandlers) UpdateIVCoinPackageByID(w http.ResponseWriter, r
 }
 
 func (h *ivCoinPackageHandlers) DeleteIVCoinPackageByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")

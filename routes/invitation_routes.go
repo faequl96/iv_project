@@ -15,6 +15,8 @@ func InvitationRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	invitationThemeRepository := repositories.InvitationThemeRepository(mysql.DB)
 	h := handlers.InvitationHandler(invitationRepository, invitationThemeRepository)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/invitation", middleware.Auth(jwtServices, middleware.InvitationImagesUploader(h.CreateInvitation))).Methods("POST")
 	r.HandleFunc("/invitation/id/{id}", middleware.Auth(jwtServices, h.GetInvitationByID)).Methods("GET")
 	r.HandleFunc("/invitations", middleware.Auth(jwtServices, h.GetInvitations)).Methods("GET")

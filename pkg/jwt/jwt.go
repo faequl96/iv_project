@@ -3,7 +3,6 @@ package jwtToken
 import (
 	"errors"
 	"iv_project/models"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -29,7 +28,6 @@ func (j *jwtService) GenerateToken(userID string, role models.UserRoleType) (str
 	claims := jwt.MapClaims{
 		"id":   userID,
 		"role": role.String(),
-		"exp":  time.Now().Add(time.Hour * 48).Unix(), // Token berlaku 48 jam
 		"iss":  j.issuer,
 	}
 

@@ -32,8 +32,6 @@ func ConvertToAuthResponse(token string, user *models.User) auth_dto.AuthRespons
 }
 
 func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	var request auth_dto.AuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format: "+err.Error())

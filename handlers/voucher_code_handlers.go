@@ -32,8 +32,6 @@ func ConvertToVoucherCodeResponse(VoucherCode *models.VoucherCode) voucher_code_
 }
 
 func (h *voucherCodeHandlers) CreateVoucherCode(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -65,8 +63,6 @@ func (h *voucherCodeHandlers) CreateVoucherCode(w http.ResponseWriter, r *http.R
 }
 
 func (h *voucherCodeHandlers) GetVoucherCodeByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid voucher code ID format. Please provide a numeric ID.")
@@ -83,8 +79,6 @@ func (h *voucherCodeHandlers) GetVoucherCodeByID(w http.ResponseWriter, r *http.
 }
 
 func (h *voucherCodeHandlers) UpdateVoucherCodeByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -128,8 +122,6 @@ func (h *voucherCodeHandlers) UpdateVoucherCodeByID(w http.ResponseWriter, r *ht
 }
 
 func (h *voucherCodeHandlers) DeleteVoucherCodeByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")

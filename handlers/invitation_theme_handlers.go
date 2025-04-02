@@ -61,8 +61,6 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 }
 
 func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -111,8 +109,6 @@ func (h *invitationThemeHandlers) CreateInvitationTheme(w http.ResponseWriter, r
 }
 
 func (h *invitationThemeHandlers) GetInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation theme ID format. Please provide a numeric ID.")
@@ -129,8 +125,6 @@ func (h *invitationThemeHandlers) GetInvitationThemeByID(w http.ResponseWriter, 
 }
 
 func (h *invitationThemeHandlers) GetInvitationThemes(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	invitationThemes, err := h.InvitationThemeRepositories.GetInvitationThemes()
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching invitation themes.")
@@ -151,8 +145,6 @@ func (h *invitationThemeHandlers) GetInvitationThemes(w http.ResponseWriter, r *
 }
 
 func (h *invitationThemeHandlers) GetInvitationThemesByCategoryID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	categoryID, err := strconv.Atoi(mux.Vars(r)["categoryId"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid category ID format. Please provide a numeric ID.")
@@ -179,8 +171,6 @@ func (h *invitationThemeHandlers) GetInvitationThemesByCategoryID(w http.Respons
 }
 
 func (h *invitationThemeHandlers) UpdateInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -249,8 +239,6 @@ func (h *invitationThemeHandlers) UpdateInvitationThemeByID(w http.ResponseWrite
 }
 
 func (h *invitationThemeHandlers) DeleteInvitationThemeByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")

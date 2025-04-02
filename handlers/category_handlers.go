@@ -31,8 +31,6 @@ func ConvertToCategoryResponse(category *models.Category) category_dto.CategoryR
 }
 
 func (h *categoryHandlers) CreateCategory(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -63,8 +61,6 @@ func (h *categoryHandlers) CreateCategory(w http.ResponseWriter, r *http.Request
 }
 
 func (h *categoryHandlers) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid category ID format. Please provide a numeric ID.")
@@ -81,8 +77,6 @@ func (h *categoryHandlers) GetCategoryByID(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *categoryHandlers) GetCategories(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	categories, err := h.CategoryRepositories.GetCategories()
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching categories.")
@@ -103,8 +97,6 @@ func (h *categoryHandlers) GetCategories(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *categoryHandlers) UpdateCategoryByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -147,8 +139,6 @@ func (h *categoryHandlers) UpdateCategoryByID(w http.ResponseWriter, r *http.Req
 }
 
 func (h *categoryHandlers) DeleteCategoryByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")

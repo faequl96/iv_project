@@ -16,6 +16,8 @@ func InvitationThemeRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	discountCategoryRepository := repositories.DiscountCategoryRepository(mysql.DB)
 	h := handlers.InvitationThemeHandler(invitationThemeRepository, categoryRepository, discountCategoryRepository)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/invitation-theme", middleware.Auth(jwtServices, h.CreateInvitationTheme)).Methods("POST")
 	r.HandleFunc("/invitation-theme/id/{id}", middleware.Auth(jwtServices, h.GetInvitationThemeByID)).Methods("GET")
 	r.HandleFunc("/invitation-themes", middleware.Auth(jwtServices, h.GetInvitationThemes)).Methods("GET")

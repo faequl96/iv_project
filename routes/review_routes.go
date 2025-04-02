@@ -15,6 +15,8 @@ func ReviewRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	userRepository := repositories.UserRepository(mysql.DB)
 	h := handlers.ReviewHandlers(reviewRepository, userRepository)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/review", middleware.Auth(jwtServices, h.CreateReview)).Methods("POST")
 	r.HandleFunc("/review/id/{id}", middleware.Auth(jwtServices, h.GetReviewByID)).Methods("GET")
 	r.HandleFunc("/reviews", middleware.Auth(jwtServices, h.GetReviews)).Methods("GET")

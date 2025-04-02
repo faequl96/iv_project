@@ -15,6 +15,8 @@ func IVCoinPackageRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	discountCategoryRepository := repositories.DiscountCategoryRepository(mysql.DB)
 	h := handlers.IVCoinPackageHandler(ivCoinPackageRepository, discountCategoryRepository)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/iv-coin-package", middleware.Auth(jwtServices, h.CreateIVCoinPackage)).Methods("POST")
 	r.HandleFunc("/iv-coin-package/id/{id}", middleware.Auth(jwtServices, h.GetIVCoinPackageByID)).Methods("GET")
 	r.HandleFunc("/iv-coin-packages", middleware.Auth(jwtServices, h.GetIVCoinPackages)).Methods("GET")

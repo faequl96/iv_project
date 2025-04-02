@@ -51,8 +51,6 @@ func ConvertToDiscountResponse(
 }
 
 func (h *dicountHandlers) SetProductPrices(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")

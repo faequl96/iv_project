@@ -26,8 +26,6 @@ func ConvertToAdMobResponse(ivCoin *models.IVCoin) ad_mob_dto.AdMobResponse {
 }
 
 func (h *adMobHandlers) AddExtraIVCoins(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	userID := r.Context().Value(middleware.UserIdKey).(string)
 	ivCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(userID)
 	if err != nil {

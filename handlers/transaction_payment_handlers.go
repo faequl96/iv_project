@@ -39,8 +39,6 @@ func TransactionPaymentHandler(
 }
 
 func (h *transactionPaymentHandlers) IssueByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid transaction ID format.")

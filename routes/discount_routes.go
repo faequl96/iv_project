@@ -15,5 +15,7 @@ func DiscountRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	ivCoinPackageRepository := repositories.IVCoinPackageRepository(mysql.DB)
 	h := handlers.DiscountHandlers(invitationThemeRepository, ivCoinPackageRepository)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/discount", middleware.Auth(jwtServices, h.SetProductPrices)).Methods("PATCH")
 }

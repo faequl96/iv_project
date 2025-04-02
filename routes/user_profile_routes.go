@@ -14,6 +14,8 @@ func UserProfileRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	userProfileRepository := repositories.UserProfileRepository(mysql.DB)
 	h := handlers.UserProfileHandlers(userProfileRepository)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/user-profile", middleware.Auth(jwtServices, h.GetUserProfile)).Methods("GET")
 	r.HandleFunc("/user-profile/id/{id}", middleware.Auth(jwtServices, h.GetUserProfileByID)).Methods("GET")
 	r.HandleFunc("/user-profile", middleware.Auth(jwtServices, h.UpdateUserProfile)).Methods("PATCH")

@@ -40,8 +40,6 @@ func ConvertToInvitationDataResponse(invitationData *models.InvitationData) invi
 }
 
 func (h *invitationDataHandlers) GetInvitationDataByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation data ID format. Please provide a numeric ID.")
@@ -58,8 +56,6 @@ func (h *invitationDataHandlers) GetInvitationDataByID(w http.ResponseWriter, r 
 }
 
 func (h *invitationDataHandlers) UpdateInvitationDataByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	invitationDataJSON := r.FormValue("invitation_data")
 	var request invitation_data_dto.UpdateInvitationDataRequest
 	if err := json.Unmarshal([]byte(invitationDataJSON), &request); err != nil {

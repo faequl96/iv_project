@@ -37,8 +37,6 @@ func ConvertToUserResponse(user *models.User) user_dto.UserResponse {
 }
 
 func (h *userHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	userID := r.Context().Value(middleware.UserIdKey).(string)
 	user, err := h.UserRepositories.GetUserByID(userID)
 	if err != nil {
@@ -50,8 +48,6 @@ func (h *userHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -69,8 +65,6 @@ func (h *userHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() && role != models.UserRoleAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -97,8 +91,6 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandlers) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -137,8 +129,6 @@ func (h *userHandlers) UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	userID := r.Context().Value(middleware.UserIdKey).(string)
 	if _, err := h.UserRepositories.GetUserByID(userID); err != nil {
 		ErrorResponse(w, http.StatusNotFound, "User with ID "+userID+" not found")
@@ -154,8 +144,6 @@ func (h *userHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandlers) DeleteUserByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")

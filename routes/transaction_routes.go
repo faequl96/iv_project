@@ -26,6 +26,8 @@ func TransactionRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 		voucherCodeRepository,
 	)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/transaction", middleware.Auth(jwtServices, h.CreateTransaction)).Methods("POST")
 	r.HandleFunc("/transaction/id/{id}", middleware.Auth(jwtServices, h.GetTransactionByID)).Methods("GET")
 	r.HandleFunc("/transactions", middleware.Auth(jwtServices, h.GetTransactions)).Methods("GET")

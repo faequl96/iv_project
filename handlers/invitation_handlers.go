@@ -47,8 +47,6 @@ func ConvertToInvitationResponse(invitation *models.Invitation) invitation_dto.I
 }
 
 func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	invitationJSON := r.FormValue("invitation")
 	var request invitation_dto.CreateInvitationRequest
 	if err := json.Unmarshal([]byte(invitationJSON), &request); err != nil {
@@ -142,8 +140,6 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 }
 
 func (h *invitationHandlers) GetInvitationByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation ID format. Please provide a numeric ID.")
@@ -160,8 +156,6 @@ func (h *invitationHandlers) GetInvitationByID(w http.ResponseWriter, r *http.Re
 }
 
 func (h *invitationHandlers) GetInvitations(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	invitations, err := h.InvitationRepositories.GetInvitations()
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching invitations.")
@@ -182,8 +176,6 @@ func (h *invitationHandlers) GetInvitations(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *invitationHandlers) GetInvitationsByUserID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id := mux.Vars(r)["userId"]
 
 	invitations, err := h.InvitationRepositories.GetInvitationsByUserID(id)
@@ -206,8 +198,6 @@ func (h *invitationHandlers) GetInvitationsByUserID(w http.ResponseWriter, r *ht
 }
 
 func (h *invitationHandlers) UpdateInvitationByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	invitationJSON := r.FormValue("invitation")
 	var request invitation_dto.UpdateInvitationRequest
 	if err := json.Unmarshal([]byte(invitationJSON), &request); err != nil {
@@ -302,8 +292,6 @@ func (h *invitationHandlers) UpdateInvitationByID(w http.ResponseWriter, r *http
 }
 
 func (h *invitationHandlers) DeleteInvitationByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid invitation ID format. Please provide a numeric ID.")

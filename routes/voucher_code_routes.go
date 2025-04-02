@@ -14,6 +14,8 @@ func VoucherCodeRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	voucherCodeRepository := repositories.VoucherCodeRepository(mysql.DB)
 	h := handlers.VoucherCodeHandler(voucherCodeRepository)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/voucher-code", middleware.Auth(jwtServices, h.CreateVoucherCode)).Methods("POST")
 	r.HandleFunc("/voucher-code/id/{id}", middleware.Auth(jwtServices, h.GetVoucherCodeByID)).Methods("GET")
 	r.HandleFunc("/voucher-code/id/{id}", middleware.Auth(jwtServices, h.UpdateVoucherCodeByID)).Methods("PATCH")

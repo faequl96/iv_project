@@ -14,6 +14,8 @@ func InvitationDataRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	invitationDataRepository := repositories.InvitationDataRepository(mysql.DB)
 	h := handlers.InvitationDataHandler(invitationDataRepository)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/invitation-data/id/{id}", middleware.Auth(jwtServices, h.GetInvitationDataByID)).Methods("GET")
 	r.HandleFunc("/invitation-data/id/{id}", middleware.Auth(jwtServices, middleware.InvitationImagesUploader(h.UpdateInvitationDataByID))).Methods("PATCH")
 }

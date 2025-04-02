@@ -44,8 +44,6 @@ func ConvertToReviewResponse(review *models.Review) review_dto.ReviewResponse {
 }
 
 func (h *reviewHandlers) CreateReview(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	var request review_dto.CreateReviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
@@ -82,8 +80,6 @@ func (h *reviewHandlers) CreateReview(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *reviewHandlers) GetReviewByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format. Please use a number.")
@@ -100,8 +96,6 @@ func (h *reviewHandlers) GetReviewByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *reviewHandlers) GetReviews(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	role := r.Context().Value(middleware.RoleKey).(string)
 	if role != models.UserRoleSuperAdmin.String() {
 		ErrorResponse(w, http.StatusForbidden, "You do not have permission to access this resource.")
@@ -128,8 +122,6 @@ func (h *reviewHandlers) GetReviews(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *reviewHandlers) GetReviewsByInvitationThemeID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["invitationThemeId"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format. Please use a number.")
@@ -156,8 +148,6 @@ func (h *reviewHandlers) GetReviewsByInvitationThemeID(w http.ResponseWriter, r 
 }
 
 func (h *reviewHandlers) UpdateReviewByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	var request review_dto.UpdateReviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
@@ -197,8 +187,6 @@ func (h *reviewHandlers) UpdateReviewByID(w http.ResponseWriter, r *http.Request
 }
 
 func (h *reviewHandlers) DeleteReviewByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid ID format. Please use a number.")

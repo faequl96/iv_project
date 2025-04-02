@@ -66,8 +66,6 @@ func ConvertToTransactionResponse(transaction *models.Transaction) transaction_d
 }
 
 func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	var request transaction_dto.CreateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
@@ -144,8 +142,6 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 }
 
 func (h *transactionHandlers) GetTransactionByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid transaction ID format.")
@@ -162,8 +158,6 @@ func (h *transactionHandlers) GetTransactionByID(w http.ResponseWriter, r *http.
 }
 
 func (h *transactionHandlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	transactions, err := h.TransactionRepositories.GetTransactions()
 	if err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, "An error occurred while fetching transactions.")
@@ -179,8 +173,6 @@ func (h *transactionHandlers) GetTransactions(w http.ResponseWriter, r *http.Req
 }
 
 func (h *transactionHandlers) GetTransactionsByUserID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	userID := mux.Vars(r)["userId"]
 
 	transactions, err := h.TransactionRepositories.GetTransactionsByUserID(userID)
@@ -198,8 +190,6 @@ func (h *transactionHandlers) GetTransactionsByUserID(w http.ResponseWriter, r *
 }
 
 func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	var request transaction_dto.UpdateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid request format. Please check your input.")
@@ -285,8 +275,6 @@ func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *ht
 }
 
 func (h *transactionHandlers) DeleteTransaction(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		ErrorResponse(w, http.StatusBadRequest, "Invalid transaction ID format.")

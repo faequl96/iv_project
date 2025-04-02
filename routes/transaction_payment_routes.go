@@ -24,5 +24,7 @@ func TransactionPaymentRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 		userRepository,
 	)
 
+	r.Use(middleware.Language)
+
 	r.HandleFunc("/issue/id/{id}", middleware.Auth(jwtServices, h.IssueByID)).Methods("PATCH")
 }
