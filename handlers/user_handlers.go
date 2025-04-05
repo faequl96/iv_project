@@ -21,7 +21,7 @@ func UserHandlers(UserRepositories repositories.UserRepositories) *userHandlers 
 }
 
 func ConvertToUserResponse(user *models.User) user_dto.UserResponse {
-	userResponse := user_dto.UserResponse{ID: user.ID, Role: user.Role}
+	userResponse := user_dto.UserResponse{ID: user.ID, UnixID: user.UnixID, Role: user.Role}
 
 	if user.UserProfile != nil {
 		userProfileResponse := ConvertToUserProfileResponse(user.UserProfile)

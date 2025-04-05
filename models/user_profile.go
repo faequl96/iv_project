@@ -2,6 +2,7 @@ package models
 
 type UserProfile struct {
 	ID        uint   `gorm:"primaryKey;autoIncrement" json:"id"`
+	Email     string `gorm:"size:100;not null" json:"email"`
 	FirstName string `gorm:"size:120;not null" json:"first_name"`
 	LastName  string `gorm:"size:120;not null" json:"last_name"`
 

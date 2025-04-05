@@ -8,6 +8,7 @@ import (
 
 type UserResponse struct {
 	ID          string                                `json:"id"` // Firebase UID
+	UnixID      string                                `json:"unix_id"`
 	Role        models.UserRoleType                   `json:"role"`
 	UserProfile *user_profile_dto.UserProfileResponse `json:"user_profile"`
 	IVCoin      *iv_coin_dto.IVCoinResponse           `json:"iv_coin"`

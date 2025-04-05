@@ -6,6 +6,7 @@ import (
 	"iv_project/models"
 	jwtToken "iv_project/pkg/jwt"
 	"iv_project/pkg/middleware"
+	"iv_project/pkg/utils"
 	"iv_project/repositories"
 	"net/http"
 
@@ -60,8 +61,8 @@ func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		user = &models.User{
 			ID:          request.ID,
-			Email:       request.Email,
-			UserProfile: &models.UserProfile{UserID: request.ID},
+			UnixID:      utils.GenerateUnixID(),
+			UserProfile: &models.UserProfile{UserID: request.ID, Email: request.Email},
 			IVCoin:      &models.IVCoin{Balance: 0, UserID: request.ID},
 		}
 	}
@@ -71,7 +72,7 @@ func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 
 	if user.Role == "" {
 		user.Role = models.UserRoleUser
-		if user.Email == "faequl96@gmail.com" {
+		if user.UserProfile.Email == "faequl96@gmail.com" {
 			user.Role = models.UserRoleSuperAdmin
 		}
 	}

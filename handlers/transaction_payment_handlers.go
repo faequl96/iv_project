@@ -165,7 +165,7 @@ func (h *transactionPaymentHandlers) IssueByID(w http.ResponseWriter, r *http.Re
 			},
 			CustomerDetail: &midtrans.CustomerDetails{
 				FName: user.UserProfile.FirstName + " " + user.UserProfile.LastName,
-				Email: user.Email,
+				Email: user.UserProfile.Email,
 			},
 			EnabledPayments: []snap.SnapPaymentType{},
 		}

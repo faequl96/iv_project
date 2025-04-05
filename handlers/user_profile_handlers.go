@@ -24,6 +24,7 @@ func UserProfileHandlers(UserProfileRepositories repositories.UserProfileReposit
 func ConvertToUserProfileResponse(userProfile *models.UserProfile) user_profile_dto.UserProfileResponse {
 	userProfileResponse := user_profile_dto.UserProfileResponse{
 		ID:        userProfile.ID,
+		Email:     userProfile.Email,
 		FirstName: userProfile.FirstName,
 		LastName:  userProfile.LastName,
 	}
