@@ -1,7 +1,9 @@
 package repositories
 
 import (
+	query_dto "iv_project/dto/query"
 	"iv_project/models"
+	"iv_project/pkg/utils"
 
 	"gorm.io/gorm"
 )
@@ -9,7 +11,7 @@ import (
 type UserRepositories interface {
 	CreateUser(user *models.User) error
 	GetUserByID(id string) (*models.User, error)
-	GetUsers() ([]models.User, error)
+	GetUsers(query *query_dto.QueryRequest) ([]models.User, error)
 	UpdateUser(user *models.User) error
 	DeleteUser(id string) error
 }
@@ -36,9 +38,10 @@ func (r *repository) GetUserByID(id string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *repository) GetUsers() ([]models.User, error) {
+func (r *repository) GetUsers(query *query_dto.QueryRequest) ([]models.User, error) {
 	var users []models.User
-	err := r.db.Preload("UserProfile").Preload("IVCoin").Find(&users).Error
+	db := utils.ImplementQuery(r.db, query)
+	err := db.Preload("UserProfile").Preload("IVCoin").Find(&users).Error
 	return users, err
 }
 

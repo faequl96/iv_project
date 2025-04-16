@@ -59,10 +59,11 @@ func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 
 	userFinded, err := h.UserRepositories.GetUserByID(request.ID)
 	if err != nil {
+		firstName, lastName := utils.SplitName(request.DisplayName)
 		user = &models.User{
 			ID:          request.ID,
 			UnixID:      utils.GenerateUnixID(),
-			UserProfile: &models.UserProfile{UserID: request.ID, Email: request.Email},
+			UserProfile: &models.UserProfile{UserID: request.ID, Email: request.Email, FirstName: firstName, LastName: lastName},
 			IVCoin:      &models.IVCoin{Balance: 0, UserID: request.ID},
 		}
 	}

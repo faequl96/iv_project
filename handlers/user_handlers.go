@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	query_dto "iv_project/dto/query"
 	user_dto "iv_project/dto/user"
 	"iv_project/models"
 	"iv_project/pkg/middleware"
@@ -91,7 +92,10 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := h.UserRepositories.GetUsers()
+	var request *query_dto.QueryRequest
+	json.NewDecoder(r.Body).Decode(&request)
+
+	users, err := h.UserRepositories.GetUsers(request)
 	if err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
