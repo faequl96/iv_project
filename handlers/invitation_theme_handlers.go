@@ -176,14 +176,19 @@ func (h *invitationThemeHandlers) GetInvitationThemes(w http.ResponseWriter, r *
 		return
 	}
 
+	if len(invitationThemes) == 0 {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitation themes available at the moment.",
+			"id": "Tidak ada tema undangan yang tersedia saat ini.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []invitation_theme_dto.InvitationThemeResponse{})
+		return
+	}
+
 	var invitationThemeResponses []invitation_theme_dto.InvitationThemeResponse
 	for _, invitationTheme := range invitationThemes {
 		invitationThemeResponses = append(invitationThemeResponses, ConvertToInvitationThemeResponse(&invitationTheme))
-	}
-
-	if len(invitationThemes) == 0 {
-		SuccessResponse(w, http.StatusOK, "No invitation themes available at the moment.", invitationThemeResponses)
-		return
 	}
 
 	SuccessResponse(w, http.StatusOK, "Invitation themes retrieved successfully", invitationThemeResponses)
@@ -212,14 +217,19 @@ func (h *invitationThemeHandlers) GetInvitationThemesByCategoryID(w http.Respons
 		return
 	}
 
+	if len(invitationThemes) == 0 {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitation themes found for the specified category.",
+			"id": "Tidak ditemukan tema undangan berdasarkan kategori yang dimaksud.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []invitation_theme_dto.InvitationThemeResponse{})
+		return
+	}
+
 	var invitationThemeResponses []invitation_theme_dto.InvitationThemeResponse
 	for _, invitationTheme := range invitationThemes {
 		invitationThemeResponses = append(invitationThemeResponses, ConvertToInvitationThemeResponse(&invitationTheme))
-	}
-
-	if len(invitationThemes) == 0 {
-		SuccessResponse(w, http.StatusOK, "No invitation themes found for the specified category.", invitationThemeResponses)
-		return
 	}
 
 	SuccessResponse(w, http.StatusOK, "Invitation themes retrieved successfully", invitationThemeResponses)

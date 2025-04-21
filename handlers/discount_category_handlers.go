@@ -118,19 +118,19 @@ func (h *discountCategoryHandlers) GetDiscountCategories(w http.ResponseWriter, 
 		return
 	}
 
-	var discountCategoryResponses []discount_category_dto.DiscountCategoryResponse
-	for _, discountCategory := range discountCategories {
-		discountCategoryResponses = append(discountCategoryResponses, ConvertToDiscountCategoryResponse(&discountCategory))
-	}
-
 	if len(discountCategories) == 0 {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
 			"en": "No discount categories available at the moment.",
 			"id": "Tidak ada kategori diskon yang tersedia saat ini.",
 		}
-		SuccessResponse(w, http.StatusOK, messages[lang], discountCategoryResponses)
+		SuccessResponse(w, http.StatusOK, messages[lang], []discount_category_dto.DiscountCategoryResponse{})
 		return
+	}
+
+	var discountCategoryResponses []discount_category_dto.DiscountCategoryResponse
+	for _, discountCategory := range discountCategories {
+		discountCategoryResponses = append(discountCategoryResponses, ConvertToDiscountCategoryResponse(&discountCategory))
 	}
 
 	SuccessResponse(w, http.StatusOK, "Discount categories retrieved successfully", discountCategoryResponses)

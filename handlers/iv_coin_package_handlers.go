@@ -151,7 +151,12 @@ func (h *ivCoinPackageHandlers) GetIVCoinPackages(w http.ResponseWriter, r *http
 	}
 
 	if len(ivCoinPackages) == 0 {
-		SuccessResponse(w, http.StatusOK, "No iv coin packages available at this moment", []iv_coin_package_dto.IVCoinPackageResponse{})
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No iv coin packages available at the moment.",
+			"id": "Tidak ada paket iv coin yang tersedia saat ini.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []iv_coin_package_dto.IVCoinPackageResponse{})
 		return
 	}
 

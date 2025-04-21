@@ -24,13 +24,24 @@ func ImplementQuery(db *gorm.DB, query *query_dto.QueryRequest) *gorm.DB {
 		db = db.Order(order)
 	}
 
+	if query.Page != nil && query.Limit != nil {
+		offset := (*query.Page - 1) * *query.Limit
+		db = db.Offset(offset).Limit(*query.Limit)
+	}
+
+	if len(query.FilterGroups) == 0 {
+		return db
+	}
+
+	db = autoJoinRelations(db, query)
+
 	for _, group := range query.FilterGroups {
 		var conditions []string
 		var values []any
 
 		for _, filter := range group.Filters {
-			sqlOperator := buildSQLOperator(filter.Operator)
-			conditions = append(conditions, fmt.Sprintf("%s %s ?", group.Key, sqlOperator))
+			sqlOperator := filter.Operator.ToSQL()
+			conditions = append(conditions, fmt.Sprintf("%s %s ?", filter.Field, sqlOperator))
 			values = append(values, buildFilterValue(filter.Operator, filter.Value))
 		}
 
@@ -43,36 +54,41 @@ func ImplementQuery(db *gorm.DB, query *query_dto.QueryRequest) *gorm.DB {
 		}
 	}
 
-	if query.Page != nil && query.Limit != nil {
-		offset := (*query.Page - 1) * *query.Limit
-		db = db.Offset(offset).Limit(*query.Limit)
-	}
-
 	return db
 }
 
-func buildSQLOperator(op string) string {
-	switch op {
-	case "equals":
-		return "="
-	case "like":
-		return "LIKE"
-	case "greater_than":
-		return ">"
-	case "less_than":
-		return "<"
-	case "greater_than_or_equal":
-		return ">="
-	case "less_than_or_equal":
-		return "<="
-	default:
-		return "="
-	}
-}
-
-func buildFilterValue(operator string, value string) any {
-	if operator == "like" {
+func buildFilterValue(operator query_dto.OperatorType, value string) interface{} {
+	if operator == query_dto.Like {
 		return "%" + value + "%"
 	}
 	return value
+}
+
+func autoJoinRelations(db *gorm.DB, query *query_dto.QueryRequest) *gorm.DB {
+	if query == nil {
+		return db
+	}
+
+	joined := make(map[string]bool)
+
+	for _, group := range query.FilterGroups {
+		for _, filter := range group.Filters {
+			parts := strings.Split(filter.Field, ".")
+			if len(parts) > 1 {
+				rel := parts[0]
+				if !joined[rel] {
+					switch rel {
+					case "user_profiles":
+						db = db.Joins("LEFT JOIN user_profiles ON users.id = user_profiles.user_id")
+					case "invitation_datas":
+						db = db.Joins("LEFT JOIN invitation_datas ON invitations.id = invitation_datas.invitation_id")
+						// add more as needed
+					}
+					joined[rel] = true
+				}
+			}
+		}
+	}
+
+	return db
 }

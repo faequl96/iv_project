@@ -149,7 +149,12 @@ func (h *reviewHandlers) GetReviews(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(reviews) == 0 {
-		SuccessResponse(w, http.StatusOK, "No reviews available at this moment", []review_dto.ReviewResponse{})
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No reviews available at the moment.",
+			"id": "Tidak ada review yang tersedia saat ini.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []review_dto.ReviewResponse{})
 		return
 	}
 
@@ -185,7 +190,12 @@ func (h *reviewHandlers) GetReviewsByInvitationThemeID(w http.ResponseWriter, r 
 	}
 
 	if len(reviews) == 0 {
-		SuccessResponse(w, http.StatusOK, "No reviews available for this invitation theme", []review_dto.ReviewResponse{})
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No reviews found for the specified invitation theme.",
+			"id": "Tidak ditemukan review berdasarkan tema undangan yang dimaksud.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []review_dto.ReviewResponse{})
 		return
 	}
 

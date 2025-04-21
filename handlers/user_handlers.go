@@ -92,10 +92,18 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request *query_dto.QueryRequest
-	json.NewDecoder(r.Body).Decode(&request)
+	var request query_dto.QueryRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid request format",
+			"id": "Format request tidak valid",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
+		return
+	}
 
-	users, err := h.UserRepositories.GetUsers(request)
+	users, err := h.UserRepositories.GetUsers(&request)
 	if err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
@@ -107,7 +115,12 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(users) == 0 {
-		SuccessResponse(w, http.StatusOK, "No users available at this moment", []user_dto.UserResponse{})
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No users available at the moment.",
+			"id": "Tidak ada pengguna saat ini.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []user_dto.UserResponse{})
 		return
 	}
 

@@ -10,16 +10,16 @@ type QueryRequest struct {
 type SortType string
 
 const (
-	SortASC  SortType = "ASC"
-	SortDESC SortType = "DESC"
+	SortASC  SortType = "asc"
+	SortDESC SortType = "desc"
 )
 
-func (u SortType) String() string {
+func (s SortType) String() string {
 	maps := map[SortType]string{
-		SortASC:  "ASC",
-		SortDESC: "DESC",
+		SortASC:  "asc",
+		SortDESC: "desc",
 	}
-	return maps[u]
+	return maps[s]
 }
 
 type SortRequest struct {
@@ -30,25 +30,55 @@ type SortRequest struct {
 type JoinType string
 
 const (
-	JoinAND JoinType = "AND"
-	JoinOR  JoinType = "OR"
+	JoinAND JoinType = "and"
+	JoinOR  JoinType = "or"
 )
 
-func (u JoinType) String() string {
+func (j JoinType) String() string {
 	maps := map[JoinType]string{
-		JoinAND: "AND",
-		JoinOR:  "OR",
+		JoinAND: "and",
+		JoinOR:  "or",
 	}
-	return maps[u]
+	return maps[j]
 }
 
 type FilterGroupRequest struct {
-	Key      string          `json:"key"`
 	JoinType JoinType        `json:"join_type"`
 	Filters  []FilterRequest `json:"filters"`
 }
 
+type OperatorType string
+
+const (
+	Equals             OperatorType = "equals"
+	Like               OperatorType = "like"
+	GreaterThan        OperatorType = "greater_than"
+	LessThan           OperatorType = "less_than"
+	GreaterThanOrEqual OperatorType = "greater_than_or_equal"
+	LessThanOrEqual    OperatorType = "less_than_or_equal"
+)
+
+func (o OperatorType) ToSQL() string {
+	switch o {
+	case Equals:
+		return "="
+	case Like:
+		return "LIKE"
+	case GreaterThan:
+		return ">"
+	case LessThan:
+		return "<"
+	case GreaterThanOrEqual:
+		return ">="
+	case LessThanOrEqual:
+		return "<="
+	default:
+		return "="
+	}
+}
+
 type FilterRequest struct {
-	Value    string `json:"value"`
-	Operator string `json:"operator"`
+	Field    string       `json:"field"`
+	Operator OperatorType `json:"operator"`
+	Value    string       `json:"value"`
 }

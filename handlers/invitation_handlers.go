@@ -202,14 +202,19 @@ func (h *invitationHandlers) GetInvitations(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if len(invitations) == 0 {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitations available at the moment.",
+			"id": "Tidak ada undangan yang tersedia saat ini.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []invitation_dto.InvitationResponse{})
+		return
+	}
+
 	var invitationResponses []invitation_dto.InvitationResponse
 	for _, invitation := range invitations {
 		invitationResponses = append(invitationResponses, ConvertToInvitationResponse(&invitation))
-	}
-
-	if len(invitations) == 0 {
-		SuccessResponse(w, http.StatusOK, "No invitations available at the moment.", invitationResponses)
-		return
 	}
 
 	SuccessResponse(w, http.StatusOK, "Invitations retrieved successfully", invitationResponses)
@@ -229,14 +234,19 @@ func (h *invitationHandlers) GetInvitationsByUserID(w http.ResponseWriter, r *ht
 		return
 	}
 
+	if len(invitations) == 0 {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No invitations found for the specified user.",
+			"id": "Tidak ditemukan undangan untuk pengguna yang dimaksud.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []invitation_dto.InvitationResponse{})
+		return
+	}
+
 	var invitationResponses []invitation_dto.InvitationResponse
 	for _, invitation := range invitations {
 		invitationResponses = append(invitationResponses, ConvertToInvitationResponse(&invitation))
-	}
-
-	if len(invitations) == 0 {
-		SuccessResponse(w, http.StatusOK, "No invitations found for the specified user.", invitationResponses)
-		return
 	}
 
 	SuccessResponse(w, http.StatusOK, "Invitations retrieved successfully", invitationResponses)

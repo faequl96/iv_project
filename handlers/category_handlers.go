@@ -118,19 +118,19 @@ func (h *categoryHandlers) GetCategories(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var categoryResponses []category_dto.CategoryResponse
-	for _, category := range categories {
-		categoryResponses = append(categoryResponses, ConvertToCategoryResponse(&category))
-	}
-
 	if len(categories) == 0 {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
 			"en": "No categories available at the moment.",
 			"id": "Tidak ada kategori yang tersedia saat ini.",
 		}
-		SuccessResponse(w, http.StatusOK, messages[lang], categoryResponses)
+		SuccessResponse(w, http.StatusOK, messages[lang], []category_dto.CategoryResponse{})
 		return
+	}
+
+	var categoryResponses []category_dto.CategoryResponse
+	for _, category := range categories {
+		categoryResponses = append(categoryResponses, ConvertToCategoryResponse(&category))
 	}
 
 	SuccessResponse(w, http.StatusOK, "Categories retrieved successfully", categoryResponses)
