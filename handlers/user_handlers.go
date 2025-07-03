@@ -8,17 +8,22 @@ import (
 	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
 type userHandlers struct {
-	UserRepositories repositories.UserRepositories
+	UserRepositories   repositories.UserRepositories
+	IVCoinRepositories repositories.IVCoinRepositories
 }
 
-func UserHandlers(UserRepositories repositories.UserRepositories) *userHandlers {
-	return &userHandlers{UserRepositories}
+func UserHandlers(
+	UserRepositories repositories.UserRepositories,
+	IVCoinRepositories repositories.IVCoinRepositories,
+) *userHandlers {
+	return &userHandlers{UserRepositories, IVCoinRepositories}
 }
 
 func ConvertToUserResponse(user *models.User) user_dto.UserResponse {
@@ -47,6 +52,35 @@ func (h *userHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
 			"id": "Pengguna tidak ditemukan dengan ID yang diberikan.",
 		}
 		ErrorResponse(w, http.StatusNotFound, messages, lang)
+		return
+	}
+
+	ivCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(userID)
+	if err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No iv coin found with the provided user.",
+			"id": "IV coin tidak ditemukan dengan pengguna yang diberikan.",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
+		return
+	}
+
+	now := time.Now()
+	if now.Year() != ivCoin.AdMobLastUpdateAt.Year() ||
+		now.Month() != ivCoin.AdMobLastUpdateAt.Month() ||
+		now.Day() != ivCoin.AdMobLastUpdateAt.Day() {
+		ivCoin.AdMobLastUpdateAt = now
+		ivCoin.AdMobMarker = 0
+	}
+
+	if err = h.IVCoinRepositories.UpdateIVCoin(ivCoin); err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Failed to update iv coin.",
+			"id": "Gagal mengupdate iv coin.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 		return
 	}
 
@@ -92,18 +126,10 @@ func (h *userHandlers) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request query_dto.QueryRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
-		messages := map[string]string{
-			"en": "Invalid request format",
-			"id": "Format request tidak valid",
-		}
-		ErrorResponse(w, http.StatusBadRequest, messages, lang)
-		return
-	}
+	var request *query_dto.QueryRequest
+	json.NewDecoder(r.Body).Decode(&request)
 
-	users, err := h.UserRepositories.GetUsers(&request)
+	users, err := h.UserRepositories.GetUsers(request)
 	if err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{

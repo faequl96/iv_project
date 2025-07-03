@@ -2,26 +2,32 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	query_dto "iv_project/dto/query"
 	transaction_dto "iv_project/dto/transaction"
 	"iv_project/models"
 	"iv_project/pkg/middleware"
 	"iv_project/pkg/utils"
 	"iv_project/repositories"
 	"net/http"
-	"strconv"
 	"time"
 
+	"fmt"
+
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 )
 
 type transactionHandlers struct {
-	TransactionRepositories   repositories.TransactionRepositories
-	InvitationRepositories    repositories.InvitationRepositories
-	IVCoinPackageRepositories repositories.IVCoinPackageRepositories
-	IVCoinRepositories        repositories.IVCoinRepositories
-	UserRepositories          repositories.UserRepositories
-	VoucherCodeRepositories   repositories.VoucherCodeRepositories
+	TransactionRepositories          repositories.TransactionRepositories
+	InvitationRepositories           repositories.InvitationRepositories
+	IVCoinPackageRepositories        repositories.IVCoinPackageRepositories
+	IVCoinRepositories               repositories.IVCoinRepositories
+	UserRepositories                 repositories.UserRepositories
+	VoucherCodeRepositories          repositories.VoucherCodeRepositories
+	UserVoucherCodeUsageRepositories repositories.UserVoucherCodeUsageRepositories
 }
 
 func TransactionHandler(
@@ -31,6 +37,7 @@ func TransactionHandler(
 	IVCoinRepositories repositories.IVCoinRepositories,
 	UserRepositories repositories.UserRepositories,
 	VoucherCodeRepositories repositories.VoucherCodeRepositories,
+	UserVoucherCodeUsageRepositories repositories.UserVoucherCodeUsageRepositories,
 ) *transactionHandlers {
 	return &transactionHandlers{
 		TransactionRepositories,
@@ -39,17 +46,24 @@ func TransactionHandler(
 		IVCoinRepositories,
 		UserRepositories,
 		VoucherCodeRepositories,
+		UserVoucherCodeUsageRepositories,
 	}
 }
 
 func ConvertToTransactionResponse(transaction *models.Transaction) transaction_dto.TransactionResponse {
 	transactionResponse := transaction_dto.TransactionResponse{
 		ID:                     transaction.ID,
+		TransactionCode:        transaction.TransactionCode,
 		ProductType:            transaction.ProductType,
 		ProductName:            transaction.ProductName,
+		ProductDescription:     transaction.ProductDescription,
 		Status:                 transaction.Status,
 		PaymentMethod:          transaction.PaymentMethod,
 		ReferenceNumber:        transaction.ReferenceNumber,
+		PaymentURL:             transaction.PaymentURL,
+		Acquirer:               transaction.Acquirer,
+		MidtransStatus:         transaction.MidtransStatus,
+		TimeLimitAt:            transaction.TimeLimitAt,
 		IDRPrice:               transaction.IDRPrice,
 		IDRDiscount:            transaction.IDRDiscount,
 		IDRTotalPrice:          transaction.IDRTotalPrice,
@@ -90,10 +104,13 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 	}
 
 	transaction := &models.Transaction{
-		ProductType: request.ProductType,
-		Status:      models.TransactionStatusPending,
-		ProductID:   request.ProductID,
-		UserID:      request.UserID,
+		ID:              uuid.New().String(),
+		TransactionCode: utils.GenerateTransactionCode(),
+		ProductType:     request.ProductType,
+		Status:          models.TransactionStatusCreated,
+		MidtransStatus:  models.MidtransTransactionStatusUnknown,
+		ProductID:       request.ProductID,
+		UserID:          request.UserID,
 	}
 
 	if request.ProductType == models.ProductInvitation {
@@ -149,6 +166,7 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 		transaction.IDRTotalPrice = ivCoinPackage.IDRDiscountPrice
 
 		transaction.ProductName = ivCoinPackage.Name
+		transaction.ProductDescription = fmt.Sprint(ivCoinPackage.CoinAmount)
 
 		transaction.PaymentMethod = models.PaymentMethodGopay
 		transaction.ReferenceNumber = utils.GenerateReferenceNumber(transaction.PaymentMethod.String())
@@ -169,18 +187,26 @@ func (h *transactionHandlers) CreateTransaction(w http.ResponseWriter, r *http.R
 }
 
 func (h *transactionHandlers) GetTransactionByID(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id := mux.Vars(r)["id"]
+
+	transaction, err := h.TransactionRepositories.GetTransactionByID(id)
 	if err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
-			"en": "Invalid transaction ID format. Please provide a numeric ID.",
-			"id": "Format ID transaksi tidak valid. Harap berikan ID dalam format angka.",
+			"en": "No transaction found with the provided ID.",
+			"id": "Transaksi tidak ditemukan dengan ID yang diberikan.",
 		}
-		ErrorResponse(w, http.StatusBadRequest, messages, lang)
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
 		return
 	}
 
-	transaction, err := h.TransactionRepositories.GetTransactionByID(uint(id))
+	SuccessResponse(w, http.StatusOK, "Transaction retrieved successfully", ConvertToTransactionResponse(transaction))
+}
+
+func (h *transactionHandlers) GetTransactionByReferenceNumber(w http.ResponseWriter, r *http.Request) {
+	referenceNumber := mux.Vars(r)["referenceNumber"]
+
+	transaction, err := h.TransactionRepositories.GetTransactionByReferenceNumber(referenceNumber)
 	if err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
@@ -195,7 +221,10 @@ func (h *transactionHandlers) GetTransactionByID(w http.ResponseWriter, r *http.
 }
 
 func (h *transactionHandlers) GetTransactions(w http.ResponseWriter, r *http.Request) {
-	transactions, err := h.TransactionRepositories.GetTransactions()
+	var request *query_dto.QueryRequest
+	json.NewDecoder(r.Body).Decode(&request)
+
+	transactions, err := h.TransactionRepositories.GetTransactions(request)
 	if err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
@@ -203,6 +232,16 @@ func (h *transactionHandlers) GetTransactions(w http.ResponseWriter, r *http.Req
 			"id": "Terjadi kesalahan saat mengambil transaksi.",
 		}
 		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
+		return
+	}
+
+	if len(transactions) == 0 {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No transactions available at the moment.",
+			"id": "Tidak ada transaksi saat ini.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []transaction_dto.TransactionResponse{})
 		return
 	}
 
@@ -225,6 +264,16 @@ func (h *transactionHandlers) GetTransactionsByUserID(w http.ResponseWriter, r *
 			"id": "Terjadi kesalahan saat mengambil transaksi.",
 		}
 		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
+		return
+	}
+
+	if len(transactions) == 0 {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No transactions available at the moment.",
+			"id": "Tidak ada transaksi saat ini.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []transaction_dto.TransactionResponse{})
 		return
 	}
 
@@ -258,18 +307,9 @@ func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *ht
 		return
 	}
 
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
-		messages := map[string]string{
-			"en": "Invalid transaction ID format. Please provide a numeric ID.",
-			"id": "Format ID transaksi tidak valid. Harap berikan ID dalam format angka.",
-		}
-		ErrorResponse(w, http.StatusBadRequest, messages, lang)
-		return
-	}
+	id := mux.Vars(r)["id"]
 
-	transaction, err := h.TransactionRepositories.GetTransactionByID(uint(id))
+	transaction, err := h.TransactionRepositories.GetTransactionByID(id)
 	if err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
@@ -290,42 +330,86 @@ func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *ht
 		return
 	}
 
+	transaction.MidtransStatus = models.MidtransTransactionStatusUnknown
+
 	if request.PaymentMethod.String() != "" {
 		transaction.PaymentMethod = request.PaymentMethod
 		transaction.ReferenceNumber = utils.GenerateReferenceNumber(request.PaymentMethod.String())
 	}
 
-	if request.VoucherCodeID != 0 {
-		voucherCode, err := h.VoucherCodeRepositories.GetVoucherCodeByID(uint(request.VoucherCodeID))
+	if request.VoucherCodeName != "" {
+		voucherCode, err := h.VoucherCodeRepositories.GetVoucherCodeByName(request.VoucherCodeName)
 		if err != nil {
 			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 			messages := map[string]string{
-				"en": "No voucher code found with the provided ID.",
-				"id": "Kode voucher tidak ditemukan dengan ID yang diberikan.",
+				"en": "Voucher code not available",
+				"id": "Kode voucher tidak tersedia",
 			}
 			ErrorResponse(w, http.StatusNotFound, messages, lang)
 			return
 		}
+		if !voucherCode.IsGlobal {
+			allowed := false
+			for _, user := range voucherCode.Users {
+				if user.ID == transaction.UserID {
+					allowed = true
+					break
+				}
+			}
+			if !allowed {
+				lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+				messages := map[string]string{
+					"en": "Voucher code is not valid",
+					"id": "Kode voucher tidak berlaku",
+				}
+				ErrorResponse(w, http.StatusNotFound, messages, lang)
+				return
+			}
+		}
+
+		userVoucherCodeUsage, err := h.UserVoucherCodeUsageRepositories.GetUserVoucherCodeUsageByUserAndVoucherCodeID(transaction.UserID, voucherCode.ID)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "An error occurred while retrieving voucher code usage data.",
+				"id": "Terjadi kesalahan saat mengambil data penggunaan kode voucher.",
+			}
+			ErrorResponse(w, http.StatusNotFound, messages, lang)
+			return
+		}
+
+		if userVoucherCodeUsage != nil {
+			if userVoucherCodeUsage.UsageCount >= voucherCode.UsageLimitPerUser {
+				lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+				messages := map[string]string{
+					"en": "Voucher usage has reached the limit",
+					"id": "Penggunaan voucher telah mencapai batas",
+				}
+				ErrorResponse(w, http.StatusNotFound, messages, lang)
+				return
+			}
+		}
+
 		transaction.VoucherCodeID = voucherCode.ID
 		transaction.VoucherCodeName = voucherCode.Name
 
 		if transaction.ProductType == models.ProductInvitation {
-			totalIDRVoucherCodeDiscount := utils.CalculateDiscountedPrice(transaction.IDRTotalPrice, voucherCode.DiscountPercentage)
-			transaction.IDRVoucherCodeDiscount = transaction.IDRTotalPrice - totalIDRVoucherCodeDiscount
+			totalIDRVoucherCodeDiscount := utils.CalculateDiscountedPrice((transaction.IDRPrice - transaction.IDRDiscount), voucherCode.DiscountPercentage)
+			transaction.IDRVoucherCodeDiscount = (transaction.IDRPrice - transaction.IDRDiscount) - totalIDRVoucherCodeDiscount
 			transaction.IDRTotalPrice = totalIDRVoucherCodeDiscount
-			totalIVCVoucherCodeDiscount := utils.CalculateDiscountedPrice(transaction.IVCTotalPrice, voucherCode.DiscountPercentage)
-			transaction.IVCVoucherCodeDiscount = transaction.IVCTotalPrice - totalIVCVoucherCodeDiscount
+			totalIVCVoucherCodeDiscount := utils.CalculateDiscountedPrice((transaction.IVCPrice - transaction.IVCDiscount), voucherCode.DiscountPercentage)
+			transaction.IVCVoucherCodeDiscount = (transaction.IVCPrice - transaction.IVCDiscount) - totalIVCVoucherCodeDiscount
 			transaction.IVCTotalPrice = totalIVCVoucherCodeDiscount
 		}
 
 		if transaction.ProductType == models.ProductIVCoinPackage {
-			totalIDRVoucherCodeDiscount := utils.CalculateDiscountedPrice(transaction.IDRTotalPrice, voucherCode.DiscountPercentage)
-			transaction.IDRVoucherCodeDiscount = transaction.IDRTotalPrice - totalIDRVoucherCodeDiscount
+			totalIDRVoucherCodeDiscount := utils.CalculateDiscountedPrice((transaction.IDRPrice - transaction.IDRDiscount), voucherCode.DiscountPercentage)
+			transaction.IDRVoucherCodeDiscount = (transaction.IDRPrice - transaction.IDRDiscount) - totalIDRVoucherCodeDiscount
 			transaction.IDRTotalPrice = totalIDRVoucherCodeDiscount
 		}
 	}
 
-	if request.VoucherCodeID == 0 {
+	if request.VoucherCodeName == "" {
 		transaction.VoucherCodeID = 0
 		transaction.VoucherCodeName = ""
 
@@ -357,18 +441,9 @@ func (h *transactionHandlers) UpdateTransactionByID(w http.ResponseWriter, r *ht
 }
 
 func (h *transactionHandlers) DeleteTransaction(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
-		messages := map[string]string{
-			"en": "Invalid transaction ID format. Please provide a numeric ID.",
-			"id": "Format ID transaksi tidak valid. Harap berikan ID dalam format angka.",
-		}
-		ErrorResponse(w, http.StatusBadRequest, messages, lang)
-		return
-	}
+	id := mux.Vars(r)["id"]
 
-	if _, err = h.TransactionRepositories.GetTransactionByID(uint(id)); err != nil {
+	if _, err := h.TransactionRepositories.GetTransactionByID(id); err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
 			"en": "No transaction found with the provided ID.",
@@ -378,7 +453,7 @@ func (h *transactionHandlers) DeleteTransaction(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if err := h.TransactionRepositories.DeleteTransaction(uint(id)); err != nil {
+	if err := h.TransactionRepositories.DeleteTransaction(id); err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
 			"en": "An error occurred while deleting the transaction.",

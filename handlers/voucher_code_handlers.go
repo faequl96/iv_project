@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	user_dto "iv_project/dto/user"
 	voucher_code_dto "iv_project/dto/voucher_code"
 	"iv_project/models"
 	"iv_project/pkg/middleware"
@@ -15,17 +16,34 @@ import (
 
 type voucherCodeHandlers struct {
 	VoucherCodeRepositories repositories.VoucherCodeRepositories
+	UserRepositories        repositories.UserRepositories
 }
 
-func VoucherCodeHandler(VoucherCodeRepositories repositories.VoucherCodeRepositories) *voucherCodeHandlers {
-	return &voucherCodeHandlers{VoucherCodeRepositories}
+func VoucherCodeHandler(
+	VoucherCodeRepositories repositories.VoucherCodeRepositories,
+	UserRepositories repositories.UserRepositories,
+) *voucherCodeHandlers {
+	return &voucherCodeHandlers{VoucherCodeRepositories, UserRepositories}
 }
 
-func ConvertToVoucherCodeResponse(VoucherCode *models.VoucherCode) voucher_code_dto.VoucherCodeResponse {
+func ConvertToVoucherCodeResponse(voucherCode *models.VoucherCode) voucher_code_dto.VoucherCodeResponse {
 	voucherCodeResponse := voucher_code_dto.VoucherCodeResponse{
-		ID:                 VoucherCode.ID,
-		Name:               VoucherCode.Name,
-		DiscountPercentage: VoucherCode.DiscountPercentage,
+		ID:                 voucherCode.ID,
+		Name:               voucherCode.Name,
+		DiscountPercentage: voucherCode.DiscountPercentage,
+		UsageLimitPerUser:  voucherCode.UsageLimitPerUser,
+		IsGlobal:           voucherCode.IsGlobal,
+	}
+
+	if len(voucherCode.Users) != 0 {
+		var userResponses []user_dto.UserResponse
+		for _, user := range voucherCode.Users {
+			userCopy := ConvertToUserResponse(&user)
+			userResponses = append(userResponses, userCopy)
+		}
+		voucherCodeResponse.Users = userResponses
+	} else {
+		voucherCodeResponse.Users = []user_dto.UserResponse{}
 	}
 
 	return voucherCodeResponse
@@ -64,9 +82,23 @@ func (h *voucherCodeHandlers) CreateVoucherCode(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	users, err := h.UserRepositories.GetUsersByIDs(request.UserIDs)
+	if err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching users by IDs.",
+			"id": "Terjadi kesalahan saat mengambil user berdasarkan IDs.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
+		return
+	}
+
 	voucherCode := &models.VoucherCode{
 		Name:               request.Name,
 		DiscountPercentage: request.DiscountPercentage,
+		UsageLimitPerUser:  request.UsageLimitPerUser,
+		IsGlobal:           request.IsGlobal,
+		Users:              users,
 	}
 
 	if err := h.VoucherCodeRepositories.CreateVoucherCode(voucherCode); err != nil {
@@ -106,6 +138,64 @@ func (h *voucherCodeHandlers) GetVoucherCodeByID(w http.ResponseWriter, r *http.
 	}
 
 	SuccessResponse(w, http.StatusOK, "Voucher code retrieved successfully", ConvertToVoucherCodeResponse(voucherCode))
+}
+
+func (h *voucherCodeHandlers) GetVoucherCodeByName(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+
+	voucherCode, err := h.VoucherCodeRepositories.GetVoucherCodeByName(name)
+	if err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No voucher code found",
+			"id": "Kode voucher tidak ditemukan",
+		}
+		ErrorResponse(w, http.StatusNotFound, messages, lang)
+		return
+	}
+
+	SuccessResponse(w, http.StatusOK, "Voucher code retrieved successfully", ConvertToVoucherCodeResponse(voucherCode))
+}
+
+func (h *voucherCodeHandlers) GetVoucherCodes(w http.ResponseWriter, r *http.Request) {
+	role := r.Context().Value(middleware.RoleKey).(string)
+	if role != models.UserRoleSuperAdmin.String() {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "You do not have permission to access this resource.",
+			"id": "Anda tidak memiliki izin untuk mengakses sumber daya ini.",
+		}
+		ErrorResponse(w, http.StatusForbidden, messages, lang)
+		return
+	}
+
+	voucherCodes, err := h.VoucherCodeRepositories.GetVoucherCodes()
+	if err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching voucher codes.",
+			"id": "Terjadi kesalahan saat mengambil kode voucher.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
+		return
+	}
+
+	if len(voucherCodes) == 0 {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "No voucher codes available at the moment.",
+			"id": "Tidak ada kode voucher yang tersedia saat ini.",
+		}
+		SuccessResponse(w, http.StatusOK, messages[lang], []voucher_code_dto.VoucherCodeResponse{})
+		return
+	}
+
+	var responses []voucher_code_dto.VoucherCodeResponse
+	for _, voucherCode := range voucherCodes {
+		responses = append(responses, ConvertToVoucherCodeResponse(&voucherCode))
+	}
+
+	SuccessResponse(w, http.StatusOK, "Reviews retrieved successfully", responses)
 }
 
 func (h *voucherCodeHandlers) UpdateVoucherCodeByID(w http.ResponseWriter, r *http.Request) {
@@ -163,10 +253,24 @@ func (h *voucherCodeHandlers) UpdateVoucherCodeByID(w http.ResponseWriter, r *ht
 		return
 	}
 
+	users, err := h.UserRepositories.GetUsersByIDs(request.UserIDs)
+	if err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching users by IDs.",
+			"id": "Terjadi kesalahan saat mengambil user berdasarkan IDs.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
+		return
+	}
+
 	if request.Name != "" && request.DiscountPercentage != 0 {
 		voucherCode.Name = request.Name
 		voucherCode.DiscountPercentage = request.DiscountPercentage
 	}
+	voucherCode.UsageLimitPerUser = request.UsageLimitPerUser
+	voucherCode.IsGlobal = request.IsGlobal
+	voucherCode.Users = users
 
 	if err := h.VoucherCodeRepositories.UpdateVoucherCode(voucherCode); err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)

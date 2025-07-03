@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	ad_mob_dto "iv_project/dto/ad_mob"
-	"iv_project/models"
 	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
@@ -17,12 +16,6 @@ type adMobHandlers struct {
 
 func AdMobHandlers(IVCoinRepositories repositories.IVCoinRepositories) *adMobHandlers {
 	return &adMobHandlers{IVCoinRepositories}
-}
-
-func ConvertToAdMobResponse(ivCoin *models.IVCoin) ad_mob_dto.AdMobResponse {
-	adMobResponse := ConvertToIVCoinResponse(ivCoin)
-
-	return ad_mob_dto.AdMobResponse(adMobResponse)
 }
 
 func (h *adMobHandlers) AddExtraIVCoins(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +53,18 @@ func (h *adMobHandlers) AddExtraIVCoins(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if request.Amount != 0 {
-		ivCoin.Balance += request.Amount
+		if ivCoin.AdMobMarker <= 5 {
+			ivCoin.AdMobMarker += 1
+			ivCoin.Balance += request.Amount
+		} else {
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Free iv coins have reached the daily limit",
+				"id": "IV coin gratis telah mencapai batas harian",
+			}
+			ErrorResponse(w, http.StatusInternalServerError, messages, lang)
+			return
+		}
 	}
 
 	if err = h.IVCoinRepositories.UpdateIVCoin(ivCoin); err != nil {

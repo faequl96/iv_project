@@ -7,10 +7,10 @@ import (
 
 func GenerateReferenceNumber(paymentMethod string) string {
 	prefix := map[string]string{
-		"iv_coin":         "IVC",
-		"manual_transfer": "MTF",
-		"auto_transfer":   "ATF",
-		"gopay":           "GOP",
+		"iv_coin":       "IVC",
+		"gopay":         "GOP",
+		"qris":          "QRI",
+		"bank_transfer": "BTF",
 	}[paymentMethod]
 	if prefix == "" {
 		prefix = "TXN"

@@ -12,6 +12,7 @@ type UserRepositories interface {
 	CreateUser(user *models.User) error
 	GetUserByID(id string) (*models.User, error)
 	GetUsers(query *query_dto.QueryRequest) ([]models.User, error)
+	GetUsersByIDs(ids []string) ([]models.User, error)
 	UpdateUser(user *models.User) error
 	DeleteUser(id string) error
 }
@@ -42,6 +43,12 @@ func (r *repository) GetUsers(query *query_dto.QueryRequest) ([]models.User, err
 	var users []models.User
 	db := utils.ImplementQuery(r.db, query)
 	err := db.Preload("UserProfile").Preload("IVCoin").Find(&users).Error
+	return users, err
+}
+
+func (r *repository) GetUsersByIDs(ids []string) ([]models.User, error) {
+	var users []models.User
+	err := r.db.Find(&users, "id IN ?", ids).Error
 	return users, err
 }
 

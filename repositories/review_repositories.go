@@ -9,8 +9,8 @@ import (
 type ReviewRepositories interface {
 	CreateReview(review *models.Review) error
 	GetReviewByID(id uint) (*models.Review, error)
-	GetReviews() ([]models.Review, error)
 	GetReviewByUserID(userID string) (*models.Review, error)
+	GetReviews() ([]models.Review, error)
 	GetReviewsByInvitationThemeID(invitationThemeID uint) ([]models.Review, error)
 	UpdateReview(review *models.Review) error
 	DeleteReview(id uint) error
@@ -33,16 +33,16 @@ func (r *repository) GetReviewByID(id uint) (*models.Review, error) {
 	return &review, nil
 }
 
-func (r *repository) GetReviews() ([]models.Review, error) {
-	var reviews []models.Review
-	err := r.db.Preload("User.UserProfile").Find(&reviews).Error
-	return reviews, err
-}
-
 func (r *repository) GetReviewByUserID(userID string) (*models.Review, error) {
 	var review models.Review
 	err := r.db.Preload("User.UserProfile").First(&review, userID).Error
 	return &review, err
+}
+
+func (r *repository) GetReviews() ([]models.Review, error) {
+	var reviews []models.Review
+	err := r.db.Preload("User.UserProfile").Find(&reviews).Error
+	return reviews, err
 }
 
 func (r *repository) GetReviewsByInvitationThemeID(invitationThemeID uint) ([]models.Review, error) {

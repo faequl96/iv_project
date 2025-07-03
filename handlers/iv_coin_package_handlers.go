@@ -42,6 +42,8 @@ func ConvertToIVCoinPackageResponse(ivCoinPackage *models.IVCoinPackage) iv_coin
 			discountCategoryResponses = append(discountCategoryResponses, discountCategoryCopy)
 		}
 		ivCoinPackageResponse.DiscountCategories = discountCategoryResponses
+	} else {
+		ivCoinPackageResponse.DiscountCategories = []discount_category_dto.DiscountCategoryResponse{}
 	}
 
 	return ivCoinPackageResponse

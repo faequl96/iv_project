@@ -17,6 +17,7 @@ func TransactionRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	ivCoinRepository := repositories.IVCoinRepository(mysql.DB)
 	userRepository := repositories.UserRepository(mysql.DB)
 	voucherCodeRepository := repositories.VoucherCodeRepository(mysql.DB)
+	userVoucherCodeUsageRepository := repositories.UserVoucherCodeUsageRepository(mysql.DB)
 	h := handlers.TransactionHandler(
 		transactionRepository,
 		invitationRepository,
@@ -24,12 +25,14 @@ func TransactionRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 		ivCoinRepository,
 		userRepository,
 		voucherCodeRepository,
+		userVoucherCodeUsageRepository,
 	)
 
 	r.Use(middleware.Language)
 
 	r.HandleFunc("/transaction", middleware.Auth(jwtServices, h.CreateTransaction)).Methods("POST")
 	r.HandleFunc("/transaction/id/{id}", middleware.Auth(jwtServices, h.GetTransactionByID)).Methods("GET")
+	r.HandleFunc("/transaction/reference-number/{referenceNumber}", middleware.Auth(jwtServices, h.GetTransactionByReferenceNumber)).Methods("GET")
 	r.HandleFunc("/transactions", middleware.Auth(jwtServices, h.GetTransactions)).Methods("GET")
 	r.HandleFunc("/transactions/user-id/{userId}", middleware.Auth(jwtServices, h.GetTransactionsByUserID)).Methods("GET")
 	r.HandleFunc("/transaction/id/{id}", middleware.Auth(jwtServices, h.UpdateTransactionByID)).Methods("PATCH")

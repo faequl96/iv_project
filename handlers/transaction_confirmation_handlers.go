@@ -2,22 +2,25 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	transaction_confirmation_dto "iv_project/dto/transaction_confirmation"
 	"iv_project/models"
 	"iv_project/pkg/middleware"
 	"iv_project/repositories"
 	"net/http"
-	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 )
 
 type transactionConfirmationHandlers struct {
-	TransactionRepositories   repositories.TransactionRepositories
-	InvitationRepositories    repositories.InvitationRepositories
-	IVCoinPackageRepositories repositories.IVCoinPackageRepositories
-	IVCoinRepositories        repositories.IVCoinRepositories
+	TransactionRepositories          repositories.TransactionRepositories
+	InvitationRepositories           repositories.InvitationRepositories
+	IVCoinPackageRepositories        repositories.IVCoinPackageRepositories
+	IVCoinRepositories               repositories.IVCoinRepositories
+	VoucherCodeRepositories          repositories.VoucherCodeRepositories
+	UserVoucherCodeUsageRepositories repositories.UserVoucherCodeUsageRepositories
 }
 
 func TransactionConfirmationHandler(
@@ -25,12 +28,16 @@ func TransactionConfirmationHandler(
 	InvitationRepositories repositories.InvitationRepositories,
 	IVCoinPackageRepositories repositories.IVCoinPackageRepositories,
 	IVCoinRepositories repositories.IVCoinRepositories,
+	VoucherCodeRepositories repositories.VoucherCodeRepositories,
+	UserVoucherCodeUsageRepositories repositories.UserVoucherCodeUsageRepositories,
 ) *transactionConfirmationHandlers {
 	return &transactionConfirmationHandlers{
 		TransactionRepositories,
 		InvitationRepositories,
 		IVCoinPackageRepositories,
 		IVCoinRepositories,
+		VoucherCodeRepositories,
+		UserVoucherCodeUsageRepositories,
 	}
 }
 
@@ -46,7 +53,7 @@ func (h *transactionConfirmationHandlers) AutoByMidtrans(w http.ResponseWriter, 
 	if transactionStatus == "pending" {
 		transaction.Status = models.TransactionStatusPending
 	}
-	if transactionStatus == "settlement" {
+	if transactionStatus == "settlement" || transactionStatus == "capture" {
 		transaction.Status = models.TransactionStatusConfirmed
 
 		if transaction.ProductType == models.ProductInvitation {
@@ -79,9 +86,60 @@ func (h *transactionConfirmationHandlers) AutoByMidtrans(w http.ResponseWriter, 
 				return
 			}
 		}
+		if transactionStatus == "settlement" {
+			transaction.MidtransStatus = models.MidtransTransactionStatusSettlement
+		}
+		if transactionStatus == "capture" {
+			transaction.MidtransStatus = models.MidtransTransactionStatusCapture
+		}
+		transaction.PaymentURL = ""
+		transaction.TimeLimitAt = nil
+
+		if transaction.VoucherCodeName != "" {
+			voucherCode, err := h.VoucherCodeRepositories.GetVoucherCodeByName(transaction.VoucherCodeName)
+			if err != nil {
+				return
+			}
+
+			userVoucherCodeUsage, err := h.UserVoucherCodeUsageRepositories.GetUserVoucherCodeUsageByUserAndVoucherCodeID(transaction.UserID, voucherCode.ID)
+			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				return
+			}
+
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				userVoucherCodeUsage = &models.UserVoucherCodeUsage{
+					UserID:        transaction.UserID,
+					VoucherCodeID: voucherCode.ID,
+					UsageCount:    1,
+				}
+				err = h.UserVoucherCodeUsageRepositories.CreateUserVoucherCodeUsage(userVoucherCodeUsage)
+				if err != nil {
+					return
+				}
+			} else {
+				userVoucherCodeUsage.UsageCount += 1
+				err = h.UserVoucherCodeUsageRepositories.UpdateUserVoucherCodeUsage(userVoucherCodeUsage)
+				if err != nil {
+					return
+				}
+			}
+		}
 	}
-	if transactionStatus == "cancel" || transactionStatus == "expire" || transactionStatus == "deny" || transactionStatus == "failure" {
-		transaction.Status = models.TransactionStatusCanceled
+	if transactionStatus == "cancel" || transactionStatus == "expire" || transactionStatus == "deny" {
+		if transactionStatus == "cancel" {
+			transaction.MidtransStatus = models.MidtransTransactionStatusCancel
+		}
+		if transactionStatus == "expire" {
+			transaction.MidtransStatus = models.MidtransTransactionStatusExpire
+		}
+		if transactionStatus == "deny" {
+			transaction.MidtransStatus = models.MidtransTransactionStatusDeny
+		}
+
+		transaction.Status = models.TransactionStatusCreated
+		transaction.PaymentURL = ""
+		transaction.TimeLimitAt = nil
+		transaction.Acquirer = ""
 	}
 
 	if err := h.TransactionRepositories.UpdateTransaction(transaction); err != nil {
@@ -124,18 +182,9 @@ func (h *transactionConfirmationHandlers) ManualByAdminByID(w http.ResponseWrite
 		return
 	}
 
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
-		messages := map[string]string{
-			"en": "Invalid transaction ID format. Please provide a numeric ID.",
-			"id": "Format ID transaksi tidak valid. Harap berikan ID dalam format angka.",
-		}
-		ErrorResponse(w, http.StatusBadRequest, messages, lang)
-		return
-	}
+	id := mux.Vars(r)["id"]
 
-	transaction, err := h.TransactionRepositories.GetTransactionByID(uint(id))
+	transaction, err := h.TransactionRepositories.GetTransactionByID(id)
 	if err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
@@ -158,22 +207,20 @@ func (h *transactionConfirmationHandlers) ManualByAdminByID(w http.ResponseWrite
 			return
 		}
 
-		if transaction.PaymentMethod == models.PaymentMethodManualTransfer {
-			transaction.Status = request.Status
-			if transaction.Status == models.TransactionStatusConfirmed {
-				invitation.Status = models.InvitationStatusActive
-			}
+		transaction.Status = request.Status
+		if transaction.Status == models.TransactionStatusConfirmed {
+			invitation.Status = models.InvitationStatusActive
+		}
 
-			err = h.InvitationRepositories.UpdateInvitation(invitation)
-			if err != nil {
-				lang, _ := r.Context().Value(middleware.LanguageKey).(string)
-				messages := map[string]string{
-					"en": "Failed to update invitation",
-					"id": "Gagal mengupdate undangan",
-				}
-				ErrorResponse(w, http.StatusInternalServerError, messages, lang)
-				return
+		err = h.InvitationRepositories.UpdateInvitation(invitation)
+		if err != nil {
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Failed to update invitation",
+				"id": "Gagal mengupdate undangan",
 			}
+			ErrorResponse(w, http.StatusInternalServerError, messages, lang)
+			return
 		}
 	}
 

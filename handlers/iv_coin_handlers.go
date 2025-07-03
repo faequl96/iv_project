@@ -8,6 +8,7 @@ import (
 	"iv_project/repositories"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -23,8 +24,9 @@ func IVCoinHandlers(IVCoinRepositories repositories.IVCoinRepositories) *ivCoinH
 
 func ConvertToIVCoinResponse(ivCoin *models.IVCoin) iv_coin_dto.IVCoinResponse {
 	ivCoinResponse := iv_coin_dto.IVCoinResponse{
-		ID:      ivCoin.ID,
-		Balance: ivCoin.Balance,
+		ID:          ivCoin.ID,
+		Balance:     ivCoin.Balance,
+		AdMobMarker: ivCoin.AdMobMarker,
 	}
 
 	return ivCoinResponse
@@ -32,7 +34,7 @@ func ConvertToIVCoinResponse(ivCoin *models.IVCoin) iv_coin_dto.IVCoinResponse {
 
 func (h *ivCoinHandlers) GetIVCoin(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserIdKey).(string)
-	iVCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(userID)
+	ivCoin, err := h.IVCoinRepositories.GetIVCoinByUserID(userID)
 	if err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
 		messages := map[string]string{
@@ -43,7 +45,25 @@ func (h *ivCoinHandlers) GetIVCoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	SuccessResponse(w, http.StatusOK, "IV coin retrieved successfully", ConvertToIVCoinResponse(iVCoin))
+	now := time.Now()
+	if now.Year() != ivCoin.AdMobLastUpdateAt.Year() ||
+		now.Month() != ivCoin.AdMobLastUpdateAt.Month() ||
+		now.Day() != ivCoin.AdMobLastUpdateAt.Day() {
+		ivCoin.AdMobLastUpdateAt = now
+		ivCoin.AdMobMarker = 0
+	}
+
+	if err = h.IVCoinRepositories.UpdateIVCoin(ivCoin); err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Failed to update iv coin.",
+			"id": "Gagal mengupdate iv coin.",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
+		return
+	}
+
+	SuccessResponse(w, http.StatusOK, "IV coin retrieved successfully", ConvertToIVCoinResponse(ivCoin))
 }
 
 func (h *ivCoinHandlers) GetIVCoinByID(w http.ResponseWriter, r *http.Request) {

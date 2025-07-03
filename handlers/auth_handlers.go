@@ -9,6 +9,7 @@ import (
 	"iv_project/pkg/utils"
 	"iv_project/repositories"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -64,7 +65,7 @@ func (h *authHandlers) Login(w http.ResponseWriter, r *http.Request) {
 			ID:          request.ID,
 			UnixID:      utils.GenerateUnixID(),
 			UserProfile: &models.UserProfile{UserID: request.ID, Email: request.Email, FirstName: firstName, LastName: lastName},
-			IVCoin:      &models.IVCoin{Balance: 0, UserID: request.ID},
+			IVCoin:      &models.IVCoin{Balance: 0, UserID: request.ID, AdMobMarker: 0, AdMobLastUpdateAt: time.Now()},
 		}
 	}
 	if userFinded != nil {

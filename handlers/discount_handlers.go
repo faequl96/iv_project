@@ -38,6 +38,8 @@ func ConvertToDiscountResponse(
 			invitationThemeResponses = append(invitationThemeResponses, ConvertToInvitationThemeResponse(&invitationTheme))
 		}
 		discountResponse.InvitationThemes = invitationThemeResponses
+	} else {
+		discountResponse.InvitationThemes = []invitation_theme_dto.InvitationThemeResponse{}
 	}
 
 	if len(ivCoinPackages) != 0 {
@@ -46,6 +48,8 @@ func ConvertToDiscountResponse(
 			ivCoinPackageResponses = append(ivCoinPackageResponses, ConvertToIVCoinPackageResponse(&ivCoinPackage))
 		}
 		discountResponse.IVCoinPackages = ivCoinPackageResponses
+	} else {
+		discountResponse.IVCoinPackages = []iv_coin_package_dto.IVCoinPackageResponse{}
 	}
 
 	return discountResponse
@@ -95,9 +99,9 @@ func (h *dicountHandlers) SetProductPrices(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	for index, invitationTheme := range invitationThemes {
-		invitationThemes[index].IDRDiscountPrice = utils.CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
-		invitationThemes[index].IVCDiscountPrice = utils.CalculateDiscountedPrice(invitationTheme.IVCPrice, request.Percentage)
+	for _, invitationTheme := range invitationThemes {
+		// invitationThemes[index].IDRDiscountPrice = utils.CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
+		// invitationThemes[index].IVCDiscountPrice = utils.CalculateDiscountedPrice(invitationTheme.IVCPrice, request.Percentage)
 		invitationTheme.IDRDiscountPrice = utils.CalculateDiscountedPrice(invitationTheme.IDRPrice, request.Percentage)
 		invitationTheme.IVCDiscountPrice = utils.CalculateDiscountedPrice(invitationTheme.IVCPrice, request.Percentage)
 		if err := h.InvitationThemeRepositories.UpdateInvitationTheme(&invitationTheme); err != nil {
@@ -111,6 +115,17 @@ func (h *dicountHandlers) SetProductPrices(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
+	invitationThemes, err = h.InvitationThemeRepositories.GetInvitationThemes()
+	if err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching invitation themes",
+			"id": "Terjadi kesalahan saat mengambil tema undangan",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
+		return
+	}
+
 	ivCoinPackages, err := h.IVCoinPackageRepositories.GetIVCoinPackagesByDiscountCategoryID(request.DiscountCategoryID)
 	if err != nil {
 		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
@@ -122,8 +137,8 @@ func (h *dicountHandlers) SetProductPrices(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	for index, ivCoinPackage := range ivCoinPackages {
-		ivCoinPackages[index].IDRDiscountPrice = utils.CalculateDiscountedPrice(ivCoinPackage.IDRPrice, request.Percentage)
+	for _, ivCoinPackage := range ivCoinPackages {
+		// ivCoinPackages[index].IDRDiscountPrice = utils.CalculateDiscountedPrice(ivCoinPackage.IDRPrice, request.Percentage)
 		ivCoinPackage.IDRDiscountPrice = utils.CalculateDiscountedPrice(ivCoinPackage.IDRPrice, request.Percentage)
 		if err := h.IVCoinPackageRepositories.UpdateIVCoinPackage(&ivCoinPackage); err != nil {
 			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
@@ -134,6 +149,17 @@ func (h *dicountHandlers) SetProductPrices(w http.ResponseWriter, r *http.Reques
 			ErrorResponse(w, http.StatusInternalServerError, messages, lang)
 			return
 		}
+	}
+
+	ivCoinPackages, err = h.IVCoinPackageRepositories.GetIVCoinPackages()
+	if err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "An error occurred while fetching iv coins",
+			"id": "Terjadi kesalahan saat mengambil iv coin",
+		}
+		ErrorResponse(w, http.StatusInternalServerError, messages, lang)
+		return
 	}
 
 	SuccessResponse(w, http.StatusOK, "Prices updated successfully", ConvertToDiscountResponse(invitationThemes, ivCoinPackages))

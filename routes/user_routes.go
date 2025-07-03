@@ -12,7 +12,8 @@ import (
 
 func UserRoutes(r *mux.Router, jwtServices jwtToken.JWTServices) {
 	userRepository := repositories.UserRepository(mysql.DB)
-	h := handlers.UserHandlers(userRepository)
+	ivCoinRepository := repositories.IVCoinRepository(mysql.DB)
+	h := handlers.UserHandlers(userRepository, ivCoinRepository)
 
 	r.Use(middleware.Language)
 

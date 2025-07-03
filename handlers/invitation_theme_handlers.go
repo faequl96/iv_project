@@ -46,6 +46,8 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 			categoryResponses = append(categoryResponses, categoryCopy)
 		}
 		invitationThemeResponse.Categories = categoryResponses
+	} else {
+		invitationThemeResponse.Categories = []category_dto.CategoryResponse{}
 	}
 
 	if len(invitationTheme.DiscountCategories) != 0 {
@@ -55,6 +57,8 @@ func ConvertToInvitationThemeResponse(invitationTheme *models.InvitationTheme) i
 			discountCategoryResponses = append(discountCategoryResponses, discountCategoryCopy)
 		}
 		invitationThemeResponse.DiscountCategories = discountCategoryResponses
+	} else {
+		invitationThemeResponse.DiscountCategories = []discount_category_dto.DiscountCategoryResponse{}
 	}
 
 	return invitationThemeResponse

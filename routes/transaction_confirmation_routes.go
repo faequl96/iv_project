@@ -15,11 +15,15 @@ func TransactionConfirmationRoutes(r *mux.Router, jwtServices jwtToken.JWTServic
 	invitationRepository := repositories.InvitationRepository(mysql.DB)
 	ivCoinPackageRepository := repositories.IVCoinPackageRepository(mysql.DB)
 	ivCoinRepository := repositories.IVCoinRepository(mysql.DB)
+	voucherCodeRepository := repositories.VoucherCodeRepository(mysql.DB)
+	userVoucherCodeUsageRepository := repositories.UserVoucherCodeUsageRepository(mysql.DB)
 	h := handlers.TransactionConfirmationHandler(
 		transactionRepository,
 		invitationRepository,
 		ivCoinPackageRepository,
 		ivCoinRepository,
+		voucherCodeRepository,
+		userVoucherCodeUsageRepository,
 	)
 
 	r.Use(middleware.Language)
