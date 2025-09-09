@@ -53,7 +53,7 @@ func (h *adMobHandlers) AddExtraIVCoins(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if request.Amount != 0 {
-		if ivCoin.AdMobMarker <= 5 {
+		if ivCoin.AdMobMarker < 5 {
 			ivCoin.AdMobMarker += 1
 			ivCoin.Balance += request.Amount
 		} else {
