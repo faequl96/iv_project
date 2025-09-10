@@ -4,13 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"iv_project/dto"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
-	"time"
+
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 )
 
 const UploadsKey MiddlewareKey = "uploadedFiles"
@@ -37,6 +36,13 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 		brideNickname := r.FormValue("bride_nickname")
 		groomNickname := r.FormValue("groom_nickname")
 
+		cld, err := getCloudinary()
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusBadRequest, Message: err.Error()})
+			return
+		}
+
 		for _, fieldName := range fields {
 			file, header, err := r.FormFile(fieldName)
 			if err != nil {
@@ -47,17 +53,23 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 				json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusBadRequest, Message: "Gagal mengambil file"})
 				return
 			}
+			defer file.Close()
 
-			filePath, err := saveImage(file, header.Filename, brideNickname, groomNickname)
-			file.Close()
-
+			uploadResp, err := cld.Upload.Upload(
+				context.Background(),
+				file,
+				uploader.UploadParams{
+					PublicID: fmt.Sprintf("%s_%s_%s", brideNickname, groomNickname, header.Filename),
+					Folder:   "invitations",
+				},
+			)
 			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusBadRequest, Message: err.Error()})
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusInternalServerError, Message: "Gagal upload ke Cloudinary"})
 				return
 			}
 
-			uploadedFiles[fieldName] = filePath
+			uploadedFiles[fieldName] = uploadResp.SecureURL
 		}
 
 		ctx := context.WithValue(r.Context(), UploadsKey, uploadedFiles)
@@ -65,57 +77,44 @@ func InvitationImagesUploader(next http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-func PaymentProofImageUploader(next http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Batasi ukuran maksimal file yang bisa diunggah (misalnya 10MB)
-		r.ParseMultipartForm(10 << 20)
+func getCloudinary() (*cloudinary.Cloudinary, error) {
+	cloudName := os.Getenv("CLOUD_NAME")
+	apiKey := os.Getenv("CLOUD_API_KEY")
+	apiSecret := os.Getenv("CLOUD_API_SECRET")
 
-		file, header, err := r.FormFile("image")
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusBadRequest, Message: "Gagal mengambil file"})
-			return
-		}
-		defer file.Close()
-
-		filePath, err := saveImage(file, header.Filename, r.FormValue("bride_nickname"), r.FormValue("groom_nickname"))
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(dto.ErrorResult{StatusCode: http.StatusBadRequest, Message: err.Error()})
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), UploadsKey, filePath)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+	cld, err := cloudinary.NewFromParams(cloudName, apiKey, apiSecret)
+	if err != nil {
+		return nil, fmt.Errorf("gagal konek ke Cloudinary")
+	}
+	return cld, nil
 }
 
-func saveImage(src io.Reader, filename, nicknameBride, nicknameGroom string) (string, error) {
-	fileBytes, err := io.ReadAll(src)
-	if err != nil {
-		return "", fmt.Errorf("gagal membaca file: %w", err)
-	}
+// func saveImage(src io.Reader, filename, nicknameBride, nicknameGroom string) (string, error) {
+// 	fileBytes, err := io.ReadAll(src)
+// 	if err != nil {
+// 		return "", fmt.Errorf("gagal membaca file: %w", err)
+// 	}
 
-	uploadDir := "uploads"
-	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
-		err := os.Mkdir(uploadDir, os.ModePerm)
-		if err != nil {
-			return "", fmt.Errorf("gagal membuat folder upload: %w", err)
-		}
-	}
+// 	uploadDir := "uploads"
+// 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+// 		err := os.Mkdir(uploadDir, os.ModePerm)
+// 		if err != nil {
+// 			return "", fmt.Errorf("gagal membuat folder upload: %w", err)
+// 		}
+// 	}
 
-	ext := filepath.Ext(filename)
+// 	ext := filepath.Ext(filename)
 
-	safeBride := strings.ReplaceAll(strings.ToLower(nicknameBride), " ", "_")
-	safeGroom := strings.ReplaceAll(strings.ToLower(nicknameGroom), " ", "_")
+// 	safeBride := strings.ReplaceAll(strings.ToLower(nicknameBride), " ", "_")
+// 	safeGroom := strings.ReplaceAll(strings.ToLower(nicknameGroom), " ", "_")
 
-	newFilename := fmt.Sprintf("%s_%s_%d%s", safeBride, safeGroom, time.Now().UnixNano(), ext)
+// 	newFilename := fmt.Sprintf("%s_%s_%d%s", safeBride, safeGroom, time.Now().UnixNano(), ext)
 
-	filePath := filepath.Join(uploadDir, newFilename)
-	err = os.WriteFile(filePath, fileBytes, 0644)
-	if err != nil {
-		return "", fmt.Errorf("gagal menyimpan file")
-	}
+// 	filePath := filepath.Join(uploadDir, newFilename)
+// 	err = os.WriteFile(filePath, fileBytes, 0644)
+// 	if err != nil {
+// 		return "", fmt.Errorf("gagal menyimpan file")
+// 	}
 
-	return filePath, nil
-}
+// 	return filePath, nil
+// }
