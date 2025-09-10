@@ -80,34 +80,108 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
-	if err != nil {
-		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
-		messages := map[string]string{
-			"en": "Invalid EventDate format. Use RFC3339.",
-			"id": "EventDate format tidak valid. Gunakan RFC3339.",
-		}
-		ErrorResponse(w, http.StatusBadRequest, messages, lang)
-		return
-	}
-
 	invitation := &models.Invitation{
 		Status:              models.InvitationStatusDraft,
 		InvitationThemeID:   request.InvitationThemeID,
 		InvitationThemeName: invitationTheme.Name,
 		InvitationData: &models.InvitationData{
-			EventName: request.InvitationData.EventName,
-			EventDate: eventDate,
-			Location:  request.InvitationData.Location,
-			Gallery:   &models.Gallery{},
+			Bride: models.Bridegroom{
+				Nickname:    request.InvitationData.Bride.Nickname,
+				FullName:    request.InvitationData.Bride.FullName,
+				Title:       request.InvitationData.Bride.Title,
+				FatherName:  request.InvitationData.Bride.FatherName,
+				FatherTitle: request.InvitationData.Bride.FatherTitle,
+				MotherName:  request.InvitationData.Bride.MotherName,
+				MotherTitle: request.InvitationData.Bride.MotherTitle,
+			},
+			Groom: models.Bridegroom{
+				Nickname:    request.InvitationData.Groom.Nickname,
+				FullName:    request.InvitationData.Groom.FullName,
+				Title:       request.InvitationData.Groom.Title,
+				FatherName:  request.InvitationData.Groom.FatherName,
+				FatherTitle: request.InvitationData.Groom.FatherTitle,
+				MotherName:  request.InvitationData.Groom.MotherName,
+				MotherTitle: request.InvitationData.Groom.MotherTitle,
+			},
+			ContractEvent: models.Event{
+				Place:   request.InvitationData.ContractEvent.Place,
+				Address: request.InvitationData.ContractEvent.Address,
+				MapsURL: request.InvitationData.ContractEvent.MapsURL,
+			},
+			ReceptionEvent: models.Event{
+				Place:   request.InvitationData.ReceptionEvent.Place,
+				Address: request.InvitationData.ReceptionEvent.Address,
+				MapsURL: request.InvitationData.ReceptionEvent.MapsURL,
+			},
+			Gallery: &models.Gallery{},
 		},
 		UserID: request.UserID,
 	}
 
+	for _, bankAccount := range request.InvitationData.BankAccounts {
+		invitation.InvitationData.BankAccounts = append(invitation.InvitationData.BankAccounts, models.BankAccount{
+			BankName:    bankAccount.BankName,
+			AccountName: bankAccount.AccountName,
+			Number:      bankAccount.Number,
+		})
+	}
+
+	contractStartTime, err := time.Parse(time.RFC3339, request.InvitationData.ContractEvent.StartTime)
+	if err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid Contract event start time format. Use RFC3339.",
+			"id": "Contract event start time format tidak valid. Gunakan RFC3339.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
+		return
+	}
+	invitation.InvitationData.ContractEvent.StartTime = contractStartTime
+
+	if request.InvitationData.ContractEvent.EndTime != "" {
+		contractEndTime, err := time.Parse(time.RFC3339, request.InvitationData.ContractEvent.EndTime)
+		if err != nil {
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Invalid Contract event end time format. Use RFC3339.",
+				"id": "Contract event end time format tidak valid. Gunakan RFC3339.",
+			}
+			ErrorResponse(w, http.StatusBadRequest, messages, lang)
+			return
+		}
+		invitation.InvitationData.ContractEvent.EndTime = &contractEndTime
+	}
+
+	receptionStartTime, err := time.Parse(time.RFC3339, request.InvitationData.ReceptionEvent.StartTime)
+	if err != nil {
+		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+		messages := map[string]string{
+			"en": "Invalid Reception event start time format. Use RFC3339.",
+			"id": "Reception event start time format tidak valid. Gunakan RFC3339.",
+		}
+		ErrorResponse(w, http.StatusBadRequest, messages, lang)
+		return
+	}
+	invitation.InvitationData.ReceptionEvent.StartTime = receptionStartTime
+
+	if request.InvitationData.ReceptionEvent.EndTime != "" {
+		receptionEndTime, err := time.Parse(time.RFC3339, request.InvitationData.ReceptionEvent.EndTime)
+		if err != nil {
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Invalid Reception event start time format. Use RFC3339.",
+				"id": "Reception event start time format tidak valid. Gunakan RFC3339.",
+			}
+			ErrorResponse(w, http.StatusBadRequest, messages, lang)
+			return
+		}
+		invitation.InvitationData.ReceptionEvent.EndTime = &receptionEndTime
+	}
+
 	uploadedFiles, ok := r.Context().Value(middleware.UploadsKey).(map[string]string)
 	if ok {
-		if val, exists := uploadedFiles["main_image_url"]; exists {
-			invitation.InvitationData.MainImageURL = val
+		if val, exists := uploadedFiles["cover_image_url"]; exists {
+			invitation.InvitationData.CoverImageURL = val
 		}
 
 		if invitation.InvitationData.Gallery != nil {
@@ -297,29 +371,132 @@ func (h *invitationHandlers) UpdateInvitationByID(w http.ResponseWriter, r *http
 		return
 	}
 
-	if request.InvitationData.EventName != "" {
-		invitation.InvitationData.EventName = request.InvitationData.EventName
-	}
-	eventDate, err := time.Parse(time.RFC3339, request.InvitationData.EventDate)
-	if err != nil {
-		lang, _ := r.Context().Value(middleware.LanguageKey).(string)
-		messages := map[string]string{
-			"en": "Invalid EventDate format. Use RFC3339.",
-			"id": "EventDate format tidak valid. Gunakan RFC3339.",
-		}
-		ErrorResponse(w, http.StatusBadRequest, messages, lang)
-		return
-	}
 	invitation.Status = request.Status
-	invitation.InvitationData.EventDate = eventDate
-	if request.InvitationData.Location != "" {
-		invitation.InvitationData.Location = request.InvitationData.Location
+
+	if request.InvitationData.Bride.Nickname != "" {
+		invitation.InvitationData.Bride.Nickname = request.InvitationData.Bride.Nickname
+	}
+	if request.InvitationData.Bride.FullName != "" {
+		invitation.InvitationData.Bride.FullName = request.InvitationData.Bride.FullName
+	}
+	if request.InvitationData.Bride.Title != "" {
+		invitation.InvitationData.Bride.Title = request.InvitationData.Bride.Title
+	}
+	if request.InvitationData.Bride.FatherName != "" {
+		invitation.InvitationData.Bride.FatherName = request.InvitationData.Bride.FatherName
+	}
+	if request.InvitationData.Bride.FatherTitle != "" {
+		invitation.InvitationData.Bride.FatherTitle = request.InvitationData.Bride.FatherTitle
+	}
+	if request.InvitationData.Bride.MotherName != "" {
+		invitation.InvitationData.Bride.MotherName = request.InvitationData.Bride.MotherName
+	}
+	if request.InvitationData.Bride.MotherTitle != "" {
+		invitation.InvitationData.Bride.MotherTitle = request.InvitationData.Bride.MotherTitle
+	}
+
+	if request.InvitationData.Groom.Nickname != "" {
+		invitation.InvitationData.Groom.Nickname = request.InvitationData.Groom.Nickname
+	}
+	if request.InvitationData.Groom.FullName != "" {
+		invitation.InvitationData.Groom.FullName = request.InvitationData.Groom.FullName
+	}
+	if request.InvitationData.Groom.Title != "" {
+		invitation.InvitationData.Groom.Title = request.InvitationData.Groom.Title
+	}
+	if request.InvitationData.Groom.FatherName != "" {
+		invitation.InvitationData.Groom.FatherName = request.InvitationData.Groom.FatherName
+	}
+	if request.InvitationData.Groom.FatherTitle != "" {
+		invitation.InvitationData.Groom.FatherTitle = request.InvitationData.Groom.FatherTitle
+	}
+	if request.InvitationData.Groom.MotherName != "" {
+		invitation.InvitationData.Groom.MotherName = request.InvitationData.Groom.MotherName
+	}
+	if request.InvitationData.Groom.FatherTitle != "" {
+		invitation.InvitationData.Groom.FatherTitle = request.InvitationData.Groom.FatherTitle
+	}
+
+	if request.InvitationData.ContractEvent.Place != "" {
+		invitation.InvitationData.ContractEvent.Place = request.InvitationData.ContractEvent.Place
+	}
+	if request.InvitationData.ContractEvent.Address != "" {
+		invitation.InvitationData.ContractEvent.Address = request.InvitationData.ContractEvent.Address
+	}
+	if request.InvitationData.ContractEvent.MapsURL != "" {
+		invitation.InvitationData.ContractEvent.MapsURL = request.InvitationData.ContractEvent.MapsURL
+	}
+
+	if request.InvitationData.ReceptionEvent.Place != "" {
+		invitation.InvitationData.ReceptionEvent.Place = request.InvitationData.ReceptionEvent.Place
+	}
+	if request.InvitationData.ReceptionEvent.Address != "" {
+		invitation.InvitationData.ReceptionEvent.Address = request.InvitationData.ReceptionEvent.Address
+	}
+	if request.InvitationData.ReceptionEvent.MapsURL != "" {
+		invitation.InvitationData.ReceptionEvent.MapsURL = request.InvitationData.ReceptionEvent.MapsURL
+	}
+
+	if request.InvitationData.ContractEvent.StartTime != "" {
+		contractStartTime, err := time.Parse(time.RFC3339, request.InvitationData.ContractEvent.StartTime)
+		if err != nil {
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Invalid Contract event start time format. Use RFC3339.",
+				"id": "Contract event start time format tidak valid. Gunakan RFC3339.",
+			}
+			ErrorResponse(w, http.StatusBadRequest, messages, lang)
+			return
+		}
+		invitation.InvitationData.ContractEvent.StartTime = contractStartTime
+	}
+
+	if request.InvitationData.ContractEvent.EndTime != "" {
+		contractEndTime, err := time.Parse(time.RFC3339, request.InvitationData.ContractEvent.EndTime)
+		if err != nil {
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Invalid Contract event end time format. Use RFC3339.",
+				"id": "Contract event end time format tidak valid. Gunakan RFC3339.",
+			}
+			ErrorResponse(w, http.StatusBadRequest, messages, lang)
+			return
+		}
+		invitation.InvitationData.ContractEvent.EndTime = &contractEndTime
+	}
+
+	if request.InvitationData.ReceptionEvent.StartTime != "" {
+		receptionStartTime, err := time.Parse(time.RFC3339, request.InvitationData.ReceptionEvent.StartTime)
+		if err != nil {
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Invalid Reception event start time format. Use RFC3339.",
+				"id": "Reception event start time format tidak valid. Gunakan RFC3339.",
+			}
+			ErrorResponse(w, http.StatusBadRequest, messages, lang)
+			return
+		}
+		invitation.InvitationData.ReceptionEvent.StartTime = receptionStartTime
+	}
+
+	if request.InvitationData.ReceptionEvent.EndTime != "" {
+		receptionEndTime, err := time.Parse(time.RFC3339, request.InvitationData.ReceptionEvent.EndTime)
+		if err != nil {
+			lang, _ := r.Context().Value(middleware.LanguageKey).(string)
+			messages := map[string]string{
+				"en": "Invalid Reception event start time format. Use RFC3339.",
+				"id": "Reception event start time format tidak valid. Gunakan RFC3339.",
+			}
+			ErrorResponse(w, http.StatusBadRequest, messages, lang)
+			return
+		}
+		invitation.InvitationData.ReceptionEvent.EndTime = &receptionEndTime
 	}
 
 	uploadedFiles, ok := r.Context().Value(middleware.UploadsKey).(map[string]string)
 	if ok {
-		if val, exists := uploadedFiles["main_image_url"]; exists {
-			invitation.InvitationData.MainImageURL = val
+		if val, exists := uploadedFiles["cover_image_url"]; exists {
+			invitation.InvitationData.CoverImageURL = val
 		}
 
 		if invitation.InvitationData.Gallery != nil {

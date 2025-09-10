@@ -22,10 +22,11 @@ func RouteInit(r *mux.Router) {
 	DiscountRoutes(r, j)
 	ReviewRoutes(r, j)
 	InvitationRoutes(r, j)
-	InvitationDataRoutes(r, j)
 	TransactionRoutes(r, j)
 	TransactionPaymentRoutes(r, j)
 	TransactionConfirmationRoutes(r, j)
 	TransactionStatusRoutes(r, j)
 	VoucherCodeRoutes(r, j)
+	InvitedGuestRoutes(r)
+	RSVPRoutes(r)
 }

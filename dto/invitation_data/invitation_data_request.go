@@ -1,13 +1,23 @@
 package invitation_data_dto
 
+import (
+	bank_account_dto "iv_project/dto/bank_account"
+	bridegroom_dto "iv_project/dto/bridegroom"
+	event_dto "iv_project/dto/event"
+)
+
 type CreateInvitationDataRequest struct {
-	EventName string `json:"event_name" validate:"required"`
-	EventDate string `json:"event_date" validate:"required"` // Format ISO8601
-	Location  string `json:"location" validate:"required"`
+	Bride          bridegroom_dto.UpdateBridegroomRequest `json:"bride" validate:"required"`
+	Groom          bridegroom_dto.UpdateBridegroomRequest `json:"groom" validate:"required"`
+	ContractEvent  event_dto.UpdateEventRequest           `json:"contract_event" validate:"required"`
+	ReceptionEvent event_dto.UpdateEventRequest           `json:"reception_event" validate:"required"`
+	BankAccounts   []bank_account_dto.BankAccountRequest  `json:"bank_accounts" validate:"required"`
 }
 
 type UpdateInvitationDataRequest struct {
-	EventName string `json:"event_name"`
-	EventDate string `json:"event_date"` // Format ISO8601
-	Location  string `json:"location"`
+	Bride          bridegroom_dto.UpdateBridegroomRequest `json:"bride"`
+	Groom          bridegroom_dto.UpdateBridegroomRequest `json:"groom"`
+	ContractEvent  event_dto.UpdateEventRequest           `json:"contract_event"`
+	ReceptionEvent event_dto.UpdateEventRequest           `json:"reception_event"`
+	BankAccounts   []bank_account_dto.BankAccountRequest  `json:"bank_accounts"`
 }
