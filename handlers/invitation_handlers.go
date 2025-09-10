@@ -180,45 +180,52 @@ func (h *invitationHandlers) CreateInvitation(w http.ResponseWriter, r *http.Req
 
 	uploadedFiles, ok := r.Context().Value(middleware.UploadsKey).(map[string]string)
 	if ok {
-		if val, exists := uploadedFiles["cover_image_url"]; exists {
+		if val, exists := uploadedFiles["cover_image"]; exists {
 			invitation.InvitationData.CoverImageURL = val
 		}
 
+		if val, exists := uploadedFiles["bride_image"]; exists {
+			invitation.InvitationData.Bride.ImageURL = val
+		}
+		if val, exists := uploadedFiles["groom_image"]; exists {
+			invitation.InvitationData.Groom.ImageURL = val
+		}
+
 		if invitation.InvitationData.Gallery != nil {
-			if val, exists := uploadedFiles["image_url_1"]; exists {
+			if val, exists := uploadedFiles["image_1"]; exists {
 				invitation.InvitationData.Gallery.ImageURL1 = val
 			}
-			if val, exists := uploadedFiles["image_url_2"]; exists {
+			if val, exists := uploadedFiles["image_2"]; exists {
 				invitation.InvitationData.Gallery.ImageURL2 = val
 			}
-			if val, exists := uploadedFiles["image_url_3"]; exists {
+			if val, exists := uploadedFiles["image_3"]; exists {
 				invitation.InvitationData.Gallery.ImageURL3 = val
 			}
-			if val, exists := uploadedFiles["image_url_4"]; exists {
+			if val, exists := uploadedFiles["image_4"]; exists {
 				invitation.InvitationData.Gallery.ImageURL4 = val
 			}
-			if val, exists := uploadedFiles["image_url_5"]; exists {
+			if val, exists := uploadedFiles["image_5"]; exists {
 				invitation.InvitationData.Gallery.ImageURL5 = val
 			}
-			if val, exists := uploadedFiles["image_url_6"]; exists {
+			if val, exists := uploadedFiles["image_6"]; exists {
 				invitation.InvitationData.Gallery.ImageURL6 = val
 			}
-			if val, exists := uploadedFiles["image_url_7"]; exists {
+			if val, exists := uploadedFiles["image_7"]; exists {
 				invitation.InvitationData.Gallery.ImageURL7 = val
 			}
-			if val, exists := uploadedFiles["image_url_8"]; exists {
+			if val, exists := uploadedFiles["image_8"]; exists {
 				invitation.InvitationData.Gallery.ImageURL8 = val
 			}
-			if val, exists := uploadedFiles["image_url_9"]; exists {
+			if val, exists := uploadedFiles["image_9"]; exists {
 				invitation.InvitationData.Gallery.ImageURL9 = val
 			}
-			if val, exists := uploadedFiles["image_url_10"]; exists {
+			if val, exists := uploadedFiles["image_10"]; exists {
 				invitation.InvitationData.Gallery.ImageURL10 = val
 			}
-			if val, exists := uploadedFiles["image_url_11"]; exists {
+			if val, exists := uploadedFiles["image_11"]; exists {
 				invitation.InvitationData.Gallery.ImageURL11 = val
 			}
-			if val, exists := uploadedFiles["image_url_12"]; exists {
+			if val, exists := uploadedFiles["image_12"]; exists {
 				invitation.InvitationData.Gallery.ImageURL12 = val
 			}
 		}
@@ -495,45 +502,52 @@ func (h *invitationHandlers) UpdateInvitationByID(w http.ResponseWriter, r *http
 
 	uploadedFiles, ok := r.Context().Value(middleware.UploadsKey).(map[string]string)
 	if ok {
-		if val, exists := uploadedFiles["cover_image_url"]; exists {
+		if val, exists := uploadedFiles["cover_image"]; exists {
 			invitation.InvitationData.CoverImageURL = val
 		}
 
+		if val, exists := uploadedFiles["bride_image"]; exists {
+			invitation.InvitationData.Bride.ImageURL = val
+		}
+		if val, exists := uploadedFiles["groom_image"]; exists {
+			invitation.InvitationData.Groom.ImageURL = val
+		}
+
 		if invitation.InvitationData.Gallery != nil {
-			if val, exists := uploadedFiles["image_url_1"]; exists {
+			if val, exists := uploadedFiles["image_1"]; exists {
 				invitation.InvitationData.Gallery.ImageURL1 = val
 			}
-			if val, exists := uploadedFiles["image_url_2"]; exists {
+			if val, exists := uploadedFiles["image_2"]; exists {
 				invitation.InvitationData.Gallery.ImageURL2 = val
 			}
-			if val, exists := uploadedFiles["image_url_3"]; exists {
+			if val, exists := uploadedFiles["image_3"]; exists {
 				invitation.InvitationData.Gallery.ImageURL3 = val
 			}
-			if val, exists := uploadedFiles["image_url_4"]; exists {
+			if val, exists := uploadedFiles["image_4"]; exists {
 				invitation.InvitationData.Gallery.ImageURL4 = val
 			}
-			if val, exists := uploadedFiles["image_url_5"]; exists {
+			if val, exists := uploadedFiles["image_5"]; exists {
 				invitation.InvitationData.Gallery.ImageURL5 = val
 			}
-			if val, exists := uploadedFiles["image_url_6"]; exists {
+			if val, exists := uploadedFiles["image_6"]; exists {
 				invitation.InvitationData.Gallery.ImageURL6 = val
 			}
-			if val, exists := uploadedFiles["image_url_7"]; exists {
+			if val, exists := uploadedFiles["image_7"]; exists {
 				invitation.InvitationData.Gallery.ImageURL7 = val
 			}
-			if val, exists := uploadedFiles["image_url_8"]; exists {
+			if val, exists := uploadedFiles["image_8"]; exists {
 				invitation.InvitationData.Gallery.ImageURL8 = val
 			}
-			if val, exists := uploadedFiles["image_url_9"]; exists {
+			if val, exists := uploadedFiles["image_9"]; exists {
 				invitation.InvitationData.Gallery.ImageURL9 = val
 			}
-			if val, exists := uploadedFiles["image_url_10"]; exists {
+			if val, exists := uploadedFiles["image_10"]; exists {
 				invitation.InvitationData.Gallery.ImageURL10 = val
 			}
-			if val, exists := uploadedFiles["image_url_11"]; exists {
+			if val, exists := uploadedFiles["image_11"]; exists {
 				invitation.InvitationData.Gallery.ImageURL11 = val
 			}
-			if val, exists := uploadedFiles["image_url_12"]; exists {
+			if val, exists := uploadedFiles["image_12"]; exists {
 				invitation.InvitationData.Gallery.ImageURL12 = val
 			}
 		}
